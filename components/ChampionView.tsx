@@ -1,100 +1,132 @@
 // in /components/ChampionView.tsx
 "use client";
 
-import { Champion, champions } from "@/data/championData";
-import { Button, Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
-import { useState } from "react";
+import { champions } from "@/data/championData";
+import { Avatar, Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChampionGuide } from "./ChampionGuide";
 
 const adcChampions = champions.filter((c) => c.role.includes("ADC"));
 const supportChampions = champions.filter((c) => c.role.includes("Support"));
 
 export function ChampionView() {
-  const [selectedChampion, setSelectedChampion] = useState<
-    Champion | undefined
-  >(adcChampions[0]);
-  const [activeRole, setActiveRole] = useState<"adc" | "support">("adc");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const handleSelectChampion = (champion: Champion) => {
-    setSelectedChampion(champion);
-  };
+  const activeRole = (searchParams.get("role") as "adc" | "support") || "adc";
+  const selectedChampId =
+    searchParams.get("champ") ||
+    (activeRole === "adc" ? adcChampions[0]?.id : supportChampions[0]?.id) ||
+    "";
 
   const currentList = activeRole === "adc" ? adcChampions : supportChampions;
+  const selectedChampion =
+    champions.find((c) => c.id === selectedChampId) || currentList[0];
 
   const handleTabChange = (key: React.Key) => {
-    const role = key as "adc" | "support";
-    setActiveRole(role);
-
-    if (role === "adc" && adcChampions.length > 0) {
-      setSelectedChampion(adcChampions[0]);
-    } else if (role === "support" && supportChampions.length > 0) {
-      setSelectedChampion(supportChampions[0]);
-    } else {
-      setSelectedChampion(undefined);
+    const newRole = key as "adc" | "support";
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("role", newRole);
+    // When role changes, set champ to the first in the new list
+    if (newRole === "adc" && adcChampions.length > 0) {
+      params.set("champ", adcChampions[0].id);
+    } else if (newRole === "support" && supportChampions.length > 0) {
+      params.set("champ", supportChampions[0].id);
     }
+    // Push both changes in a single URL update
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleSelectChampion = (id: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("champ", id);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full">
-      {/* Champion Guide Content - Will be on the left for desktop */}
-      <div className="order-2 md:order-1 md:col-span-9">
-        {selectedChampion ? (
-          <ChampionGuide champion={selectedChampion} />
-        ) : (
-          <Card>
-            <CardBody>Select a champion to view their guide.</CardBody>
-          </Card>
-        )}
-      </div>
+    <div className="w-full space-y-8">
+      <Card>
+        <Tabs
+          aria-label="Champion Roles"
+          color="primary"
+          variant="solid"
+          radius="lg"
+          selectedKey={activeRole}
+          onSelectionChange={handleTabChange}
+          classNames={{
+            tabList: "bg-content1 p-1",
+            cursor: "bg-card",
+          }}
+        >
+          <Tab key="adc" title="ADCs">
+            <Card>
+              <CardBody className="p-0">
+                <div className="p-4 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
+                  {adcChampions.map((champ) => {
+                    const isSelected = selectedChampion?.id === champ.id;
+                    return (
+                      <Tooltip
+                        content={champ.name}
+                        key={champ.id}
+                        placement="bottom"
+                      >
+                        <button onClick={() => handleSelectChampion(champ.id)}>
+                          <Avatar
+                            src={champ.portraitUrl}
+                            alt={`${champ.name} portrait`}
+                            className={`w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
+                              isSelected
+                                ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                : "grayscale hover:grayscale-0"
+                            }`}
+                          />
+                        </button>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </CardBody>
+            </Card>
+          </Tab>
+          <Tab key="support" title="Supports">
+            <Card>
+              <CardBody className="p-0">
+                <div className="p-4 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
+                  {supportChampions.map((champ) => {
+                    const isSelected = selectedChampion?.id === champ.id;
+                    return (
+                      <Tooltip
+                        content={champ.name}
+                        key={champ.id}
+                        placement="bottom"
+                      >
+                        <button onClick={() => handleSelectChampion(champ.id)}>
+                          <Avatar
+                            src={champ.portraitUrl}
+                            alt={`${champ.name} portrait`}
+                            className={`w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
+                              isSelected
+                                ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                : "grayscale hover:grayscale-0"
+                            }`}
+                          />
+                        </button>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </CardBody>
+            </Card>
+          </Tab>
+        </Tabs>
+      </Card>
 
-      {/* Champion List Sidebar - Will be on top for mobile, right for desktop */}
-      <div className="order-1 md:order-2 md:col-span-3">
-        <Card className="p-0">
-          <CardHeader className="p-0">
-            <Tabs
-              aria-label="Champion Roles"
-              color="primary"
-              variant="underlined"
-              fullWidth
-              selectedKey={activeRole}
-              onSelectionChange={handleTabChange}
-              classNames={{
-                tabList: "w-full rounded-t-lg p-0",
-                cursor: "w-full",
-                base: "w-full",
-                panel: "p-0",
-              }}
-            >
-              <Tab key="adc" title="ADCs" />
-              <Tab key="support" title="Supports" />
-            </Tabs>
-          </CardHeader>
-          <CardBody>
-            <div className="flex flex-col gap-2">
-              {currentList.map((champ) => {
-                const comfortSymbol = champ.comfort
-                  ? champ.comfort.split(" ")[0]
-                  : "";
-                return (
-                  <Button
-                    key={champ.id}
-                    variant={
-                      selectedChampion?.id === champ.id ? "solid" : "flat"
-                    }
-                    color={
-                      selectedChampion?.id === champ.id ? "primary" : "default"
-                    }
-                    className="justify-start h-12"
-                    onClick={() => handleSelectChampion(champ)}
-                  >
-                    {champ.name} {comfortSymbol}
-                  </Button>
-                );
-              })}
-            </div>
-          </CardBody>
-        </Card>
-      </div>
+      {selectedChampion && (
+        <div key={selectedChampion.id}>
+          <ChampionGuide champion={selectedChampion} />
+        </div>
+      )}
     </div>
   );
 }

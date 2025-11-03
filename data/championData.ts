@@ -30,8 +30,9 @@ export interface Matchups {
 }
 
 export interface Champion {
-  id: string; // Changed from number to string to match previous usage
+  id: string;
   name: string;
+  portraitUrl: string;
   comfort: string | null;
   role: string;
   howToPlay: HowToPlayTip[];
@@ -44,6 +45,8 @@ export const champions: Champion[] = [
   {
     id: "varus",
     name: "Varus",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Varus.png",
     comfort: "★ S+ Comfort",
     role: "ADC / Poke / Utility",
     howToPlay: [
@@ -167,6 +170,8 @@ export const champions: Champion[] = [
   {
     id: "jinx",
     name: "Jinx",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Jinx.png",
     comfort: "★ S+ Comfort",
     role: "ADC / Scaling / Hyper-carry",
     howToPlay: [
@@ -259,6 +264,8 @@ export const champions: Champion[] = [
   {
     id: "lucian",
     name: "Lucian",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lucian.png",
     comfort: "☆ S Comfort",
     role: "ADC / All-in / Poke",
     howToPlay: [
@@ -329,6 +336,8 @@ export const champions: Champion[] = [
   {
     id: "xayah",
     name: "Xayah",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Xayah.png",
     comfort: null,
     role: "ADC / Utility / All-in",
     howToPlay: [
@@ -409,6 +418,8 @@ export const champions: Champion[] = [
   {
     id: "jhin",
     name: "Jhin",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Jhin.png",
     comfort: null,
     role: "ADC / Poke / Utility",
     howToPlay: [
@@ -430,7 +441,7 @@ export const champions: Champion[] = [
       {
         tip: "R (Curtain Call)",
         description:
-          "Use this to start a fight from safety (the slow sets up your team) or to finish running enemies. Do not use it in the middle of a team fight.",
+          "Use this to start a fight from safety (the slow sets up your team) or to finish running enemies.",
       },
     ],
     matchups: {
@@ -489,6 +500,8 @@ export const champions: Champion[] = [
   {
     id: "missfortune",
     name: "Miss Fortune",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/MissFortune.png",
     comfort: null,
     role: "ADC / Poke / All-in",
     howToPlay: [
@@ -571,13 +584,15 @@ export const champions: Champion[] = [
   {
     id: "caitlyn",
     name: "Caitlyn",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Caitlyn.png",
     comfort: null,
     role: "ADC / Poke / Control",
     howToPlay: [
       {
         tip: "Range is Life",
         description:
-          "You have the longest base auto-attack range. Use this to harass the enemy every time they try to last-hit a minion.",
+          "You have the longest base auto-attack range. Use this to harass the enemy every time they try to last-hit.",
       },
       {
         tip: "Trap Combo",
@@ -680,6 +695,8 @@ export const champions: Champion[] = [
   {
     id: "kaisa",
     name: "Kai'Sa",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Kaisa.png",
     comfort: null,
     role: "ADC / All-in / Scaling",
     howToPlay: [
@@ -782,6 +799,8 @@ export const champions: Champion[] = [
   {
     id: "ashe",
     name: "Ashe",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ashe.png",
     comfort: null,
     role: "ADC / Utility / Poke",
     howToPlay: [
@@ -853,6 +872,8 @@ export const champions: Champion[] = [
   {
     id: "braum",
     name: "Braum",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Braum.png",
     comfort: null,
     role: "Support / Defensive Engage / Peel",
     howToPlay: [
@@ -940,6 +961,8 @@ export const champions: Champion[] = [
   {
     id: "nami",
     name: "Nami",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nami.png",
     comfort: "★ S+ Comfort",
     role: "Support / Poke / Sustain",
     howToPlay: [
@@ -1002,10 +1025,6 @@ export const champions: Champion[] = [
         ],
         boots: [
           {
-            name: "Ionian Boots of Lucidity",
-            icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3158.png",
-          },
-          {
             name: "Redemption Enchant",
             icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3107.png",
           },
@@ -1022,6 +1041,8 @@ export const champions: Champion[] = [
   {
     id: "milio",
     name: "Milio",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Milio.png",
     comfort: "★ S+ Comfort",
     role: "Support / Sustain / Peel",
     howToPlay: [
@@ -1083,10 +1104,6 @@ export const champions: Champion[] = [
         ],
         boots: [
           {
-            name: "Ionian Boots of Lucidity",
-            icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3158.png",
-          },
-          {
             name: "Redemption Enchant",
             icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3107.png",
           },
@@ -1103,6 +1120,8 @@ export const champions: Champion[] = [
   {
     id: "leona",
     name: "Leona",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Leona.png",
     comfort: "☆ S Comfort",
     role: "Support / All-in / Engage",
     howToPlay: [
@@ -1174,10 +1193,6 @@ export const champions: Champion[] = [
             name: "Locket Enchant",
             icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3190.png",
           },
-          {
-            name: "Redemption Enchant",
-            icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3107.png",
-          },
         ],
         situational: [
           {
@@ -1195,6 +1210,8 @@ export const champions: Champion[] = [
   {
     id: "bard",
     name: "Bard",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Bard.png",
     comfort: null,
     role: "Support / Roaming / Utility",
     howToPlay: [
@@ -1206,7 +1223,7 @@ export const champions: Champion[] = [
       {
         tip: "When to Roam",
         description:
-          "The only time you can roam is when your ADC has pushed the minion wave under the enemy tower. Drop a W (Health Pack) for them, then leave.",
+          "Only leave your ADC after helping them push the wave under the enemy tower. Drop a W (Health Pack) for them, then leave.",
       },
       {
         tip: "Q (Stun)",
@@ -1265,6 +1282,8 @@ export const champions: Champion[] = [
   {
     id: "zilean",
     name: "Zilean",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zilean.png",
     comfort: null,
     role: "Support / Poke / Utility",
     howToPlay: [
@@ -1350,6 +1369,8 @@ export const champions: Champion[] = [
   {
     id: "thresh",
     name: "Thresh",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Thresh.png",
     comfort: null,
     role: "Support / Utility / Catcher",
     howToPlay: [
@@ -1427,6 +1448,8 @@ export const champions: Champion[] = [
   {
     id: "morgana",
     name: "Morgana",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Morgana.png",
     comfort: null,
     role: "Support / Anti-CC / Catcher",
     howToPlay: [
@@ -1501,6 +1524,8 @@ export const champions: Champion[] = [
   {
     id: "lulu",
     name: "Lulu",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lulu.png",
     comfort: null,
     role: "Support / Peel / Enchanter",
     howToPlay: [

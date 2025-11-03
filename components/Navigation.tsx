@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Tab, Tabs } from "@heroui/react";
+import { Button, Card, CardBody, Tab, Tabs } from "@heroui/react";
 import { LucideIcon } from "./LucideIcon";
 
 export type MainView =
@@ -33,7 +33,7 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
   return (
     <>
       {/* Desktop Sidebar Navigation */}
-      <aside className="fixed top-0 left-0 z-40 h-screen w-64 bg-card border-r border-border p-4 flex-col hidden md:flex">
+      <aside className="fixed top-0 left-0 z-40 h-screen w-64 p-4 flex-col hidden md:flex">
         <div className="text-center my-6">
           <h1 className="text-2xl font-extrabold text-white tracking-tight">
             DRAGON LANE
@@ -41,20 +41,24 @@ export function Navigation({ activeView, setActiveView }: NavigationProps) {
             PLAYBOOK
           </h1>
         </div>
-        <nav className="flex flex-col gap-2">
-          {navItems.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeView === item.id ? "solid" : "light"}
-              color={activeView === item.id ? "primary" : "default"}
-              onClick={() => setActiveView(item.id)}
-              className="justify-start text-lg py-6"
-              startContent={<LucideIcon name={item.icon} size={20} />}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </nav>
+        <Card className="p-2 flex-grow">
+          <CardBody>
+            <nav className="flex flex-col gap-2">
+              {navItems.map((item) => (
+                <Button
+                  key={item.id}
+                  variant={activeView === item.id ? "solid" : "flat"}
+                  color={activeView === item.id ? "primary" : "default"}
+                  onClick={() => setActiveView(item.id)}
+                  className="justify-start h-14 text-lg"
+                  startContent={<LucideIcon name={item.icon} size={20} />}
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </nav>
+          </CardBody>
+        </Card>
       </aside>
 
       {/* Mobile Top Tab Navigation */}
