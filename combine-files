@@ -1,0 +1,141 @@
+#!/bin/bash
+#
+# A script to combine all relevant project files into a single text file,
+# ideal for providing context to AI models. It intelligently excludes noise
+# while allowing for flexible filtering by file type.
+# Works in any directory on macOS, with or without Git.
+
+# --- Configuration ---
+
+# Default output file name if no types are specified
+DEFAULT_OUTPUT_FILE="combined_all.txt"
+OUTPUT_FILE="$DEFAULT_OUTPUT_FILE"
+
+# --- Master list of all exclusion patterns (regex) ---
+ALL_EXCLUDE_PATTERNS=(
+    # Very verbose lock file
+    "^package-lock\.json$"
+    # Empty placeholder files
+    "\.gitkeep$"
+    # Non-textual binary, image, and font files
+    "\.svg$" "\.png$" "\.jpg$" "\.jpeg$" "\.gif$" "\.webp$" "\.ico$"
+    "\.woff$" "\.woff2$" "\.eot$" "\.ttf$"
+    # Core ignored directories
+    "^\.git/"
+    "^\.idea/"
+    "^node_modules/"
+    "^\.angular/"
+    "^dist/"
+    "^build/"
+    # Auto-generated code
+    "^src/gen/"
+)
+
+# --- Script Functions ---
+
+# Function to display help/usage information
+show_help() {
+    echo "Usage: $(basename "$0") [options] [file_type1 file_type2 ...]"
+    echo
+    echo "Combines relevant project files into a single text file."
+    echo "Intelligently uses 'git ls-files' in a Git repo, or 'find' otherwise."
+    echo "If a .gitignore file is present in a non-Git directory, it will be respected."
+    echo
+    echo "Arguments:"
+    echo "  [file_type]       Optional. A space-separated list of file extensions to include."
+    echo "                    Example: ts html feature"
+    echo
+    echo "Options:"
+    echo "  -o <output_file>  Specify the output file name."
+    echo "  -e <pattern>      Add a custom exclusion pattern (regex). Can be used multiple times."
+    echo "  -h                Show this help message."
+    echo
+}
+
+# --- Parse Command-Line Options ---
+while getopts "ho:e:" opt; do
+    case ${opt} in
+        h ) show_help; exit 0 ;;
+        o ) OUTPUT_FILE=$OPTARG ;;
+        e ) ALL_EXCLUDE_PATTERNS+=("$OPTARG") ;;
+        \? ) echo "Invalid option: -$OPTARG" 1>&2; show_help; exit 1 ;;
+    esac
+done
+shift "$((OPTIND-1))"
+FILE_TYPES=("$@")
+
+# --- Dynamic Output Filename Logic ---
+if [ ${#FILE_TYPES[@]} -gt 0 ] && [ "$OUTPUT_FILE" == "$DEFAULT_OUTPUT_FILE" ]; then
+    types_part=$(printf "%s-" "${FILE_TYPES[@]}")
+    types_part=${types_part%-}
+    OUTPUT_FILE="combined_${types_part}.txt"
+fi
+
+# --- Main Logic ---
+
+### CHANGE 1: Add the script's own output file to the exclusion list ###
+# This prevents the script from including its own output in subsequent runs.
+ALL_EXCLUDE_PATTERNS+=("^${OUTPUT_FILE}$")
+
+echo "Starting file combination process..."
+echo "Output will be saved to: $OUTPUT_FILE"
+
+# Create or clear the output file
+> "$OUTPUT_FILE"
+
+# 1. Get the initial list of all files
+FILE_LIST=""
+if git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+    echo "Git repository detected. Using 'git ls-files' for best accuracy."
+    FILE_LIST=$(git ls-files --cached --others --exclude-standard)
+else
+    echo "Not a Git repository. Using 'find' to locate files."
+    ### CHANGE 2: Normalize find output to remove leading './' ###
+    # This ensures consistency with git ls-files output for pattern matching.
+    FILE_LIST=$(find . -type f | sed 's|^\./||')
+    
+    # If a .gitignore exists, use it to filter the find results
+    # if [ -f ".gitignore" ]; then
+    #     echo "Found a .gitignore file, applying its rules."
+    #     FILE_LIST=$(echo "$FILE_LIST" | grep -v -f <(grep -vE '^\s*#|^\s*$' .gitignore))
+    # fi
+fi
+
+# 2. Apply the master exclusion list
+if [ ${#ALL_EXCLUDE_PATTERNS[@]} -gt 0 ]; then
+    EXCLUSION_PATTERN=$(printf "%s|" "${ALL_EXCLUDE_PATTERNS[@]}")
+    EXCLUSION_PATTERN=${EXCLUSION_PATTERN%|}
+    FILE_LIST=$(echo "$FILE_LIST" | grep -vE "$EXCLUSION_PATTERN")
+fi
+
+# 3. If file types were specified, apply that filter
+if [ ${#FILE_TYPES[@]} -gt 0 ]; then
+    TYPE_FILTER_PATTERN=$(printf "\\.%s$|" "${FILE_TYPES[@]}")
+    TYPE_FILTER_PATTERN=${TYPE_FILTER_PATTERN%|}
+    FILE_LIST=$(echo "$FILE_LIST" | grep -E "$TYPE_FILTER_PATTERN")
+fi
+
+# Check if any files remain after filtering
+if [ -z "$FILE_LIST" ]; then
+    echo "Warning: No files found to combine after applying all filters."
+    rm "$OUTPUT_FILE" # Clean up the empty file
+    exit 0
+fi
+
+# --- Combine Files into a Single Output ---
+FILE_COUNT=0
+echo "$FILE_LIST" | while IFS= read -r file; do
+    if [ -f "$file" ]; then
+        echo "--- START OF FILE: $file ---" >> "$OUTPUT_FILE"
+        cat "$file" >> "$OUTPUT_FILE" 2>/dev/null
+        echo -e "\n--- END OF FILE: $file ---\n" >> "$OUTPUT_FILE"
+        ((FILE_COUNT++))
+    fi
+done
+
+# --- Final Success Message ---
+SUCCESS_MESSAGE="✅ Success! Combined $FILE_COUNT files into '$OUTPUT_FILE'."
+if [ ${#FILE_TYPES[@]} -gt 0 ]; then
+    SUCCESS_MESSAGE+=" (Filtered for: ${FILE_TYPES[*]})."
+fi
+echo "$SUCCESS_MESSAGE"
