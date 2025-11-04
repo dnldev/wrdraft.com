@@ -1,5 +1,3 @@
-// in /components/SharedInfo.tsx
-
 import { LucideIcon } from "./LucideIcon";
 
 export function SharedInfo() {
@@ -31,7 +29,7 @@ export function SharedInfo() {
               </li>
               <li>
                 <strong className="text-white">Identify Win Conditions:</strong>{" "}
-                Are you a "Protect the Carry" comp? A "Dive" comp? Draft with a
+                Are you a &quot;Protect the Carry&quot; comp? A &quot;Dive&quot; comp? Draft with a
                 clear goal.
               </li>
               <li>
@@ -46,7 +44,7 @@ export function SharedInfo() {
                 </span>
                 ) or AP ADC (
                 <span className="bg-blue-600 text-blue-50 px-2.5 py-0.5 rounded-full font-semibold text-xs inline-block">
-                  Kai'Sa
+                  Kai&apos;Sa
                 </span>
                 ,{" "}
                 <span className="bg-blue-600 text-blue-50 px-2.5 py-0.5 rounded-full font-semibold text-xs inline-block">
@@ -67,8 +65,8 @@ export function SharedInfo() {
                   Protects your immobile ADCs.
                 </li>
                 <li>
-                  <strong className="text-red-300">Yuumi:</strong> A "simplify
-                  the game" ban.
+                  <strong className="text-red-300">Yuumi:</strong> A &quot;simplify
+                  the game&quot; ban.
                 </li>
                 <li>
                   <strong className="text-red-300">Blitzcrank / Thresh:</strong>{" "}
@@ -181,7 +179,7 @@ export function SharedInfo() {
               </span>
               ,{" "}
               <span className="bg-blue-600 text-blue-50 px-2.5 py-0.5 rounded-full font-semibold text-xs inline-block">
-                Kai'Sa
+                Kai&apos;Sa
               </span>
               )
             </p>
@@ -277,7 +275,7 @@ export function SharedInfo() {
             </h4>
             <p className="mb-4 text-sm">
               <strong className="font-bold text-orange-400">
-                Brand, Lux, Vel'Koz, Ahri
+                Brand, Lux, Vel&apos;Koz, Ahri
               </strong>
             </p>
             <h4 className="text-lg font-semibold text-white mb-2">

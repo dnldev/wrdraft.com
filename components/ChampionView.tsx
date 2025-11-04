@@ -1,100 +1,150 @@
-// in /components/ChampionView.tsx
 "use client";
 
-import { Champion, champions } from "@/data/championData";
-import { Button, Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
-import { useState } from "react";
+import { Champion } from "@/data/championData";
+import { Avatar, Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useMemo } from "react";
 import { ChampionGuide } from "./ChampionGuide";
 
-const adcChampions = champions.filter((c) => c.role.includes("ADC"));
-const supportChampions = champions.filter((c) => c.role.includes("Support"));
+interface ChampionViewProps {
+    adcs: Champion[];
+    supports: Champion[];
+}
 
-export function ChampionView() {
-  const [selectedChampion, setSelectedChampion] = useState<
-    Champion | undefined
-  >(adcChampions[0]);
-  const [activeRole, setActiveRole] = useState<"adc" | "support">("adc");
+export function ChampionView({ adcs, supports }: ChampionViewProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
 
-  const handleSelectChampion = (champion: Champion) => {
-    setSelectedChampion(champion);
-  };
+    const activeRole = (searchParams.get("role") as "adc" | "support") || "adc";
+    const selectedChampId = searchParams.get("champ") || adcs[0]?.id || "";
 
-  const currentList = activeRole === "adc" ? adcChampions : supportChampions;
+    const championData = useMemo(
+        () => ({
+            adc: adcs,
+            support: supports,
+        }),
+        [adcs, supports]
+    );
 
-  const handleTabChange = (key: React.Key) => {
-    const role = key as "adc" | "support";
-    setActiveRole(role);
+    const currentList =
+        activeRole === "adc" ? championData.adc : championData.support;
+    const allChampions = useMemo(
+        () => [...championData.adc, ...championData.support],
+        [championData]
+    );
 
-    if (role === "adc" && adcChampions.length > 0) {
-      setSelectedChampion(adcChampions[0]);
-    } else if (role === "support" && supportChampions.length > 0) {
-      setSelectedChampion(supportChampions[0]);
-    } else {
-      setSelectedChampion(undefined);
-    }
-  };
+    const selectedChampion =
+        allChampions.find((c) => c.id === selectedChampId) || currentList[0];
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 w-full">
-      {/* Champion Guide Content - Will be on the left for desktop */}
-      <div className="order-2 md:order-1 md:col-span-9">
-        {selectedChampion ? (
-          <ChampionGuide champion={selectedChampion} />
-        ) : (
-          <Card>
-            <CardBody>Select a champion to view their guide.</CardBody>
-          </Card>
-        )}
-      </div>
+    const handleSelectChampion = useCallback(
+        (champId: string) => {
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("champ", champId);
+            router.push(pathname + "?" + params.toString(), { scroll: false });
+        },
+        [pathname, router, searchParams]
+    );
 
-      {/* Champion List Sidebar - Will be on top for mobile, right for desktop */}
-      <div className="order-1 md:order-2 md:col-span-3">
-        <Card className="p-0">
-          <CardHeader className="p-0">
-            <Tabs
-              aria-label="Champion Roles"
-              color="primary"
-              variant="underlined"
-              fullWidth
-              selectedKey={activeRole}
-              onSelectionChange={handleTabChange}
-              classNames={{
-                tabList: "w-full rounded-t-lg p-0",
-                cursor: "w-full",
-                base: "w-full",
-                panel: "p-0",
-              }}
-            >
-              <Tab key="adc" title="ADCs" />
-              <Tab key="support" title="Supports" />
-            </Tabs>
-          </CardHeader>
-          <CardBody>
-            <div className="flex flex-col gap-2">
-              {currentList.map((champ) => {
-                const comfortSymbol = champ.comfort
-                  ? champ.comfort.split(" ")[0]
-                  : "";
-                return (
-                  <Button
-                    key={champ.id}
-                    variant={
-                      selectedChampion?.id === champ.id ? "solid" : "flat"
-                    }
-                    color={
-                      selectedChampion?.id === champ.id ? "primary" : "default"
-                    }
-                    className="justify-start h-12"
-                    onClick={() => handleSelectChampion(champ)}
-                  >
-                    {champ.name} {comfortSymbol}
-                  </Button>
-                );
-              })}
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-    </div>
-  );
+    const handleTabChange = useCallback(
+        (key: React.Key) => {
+            const role = key as "adc" | "support";
+            const params = new URLSearchParams(searchParams.toString());
+            params.set("role", role);
+
+            if (role === "adc" && championData.adc.length > 0) {
+                params.set("champ", championData.adc[0].id);
+            } else if (role === "support" && championData.support.length > 0) {
+                params.set("champ", championData.support[0].id);
+            }
+
+            router.push(pathname + "?" + params.toString(), { scroll: false });
+        },
+        [pathname, router, searchParams, championData]
+    );
+
+    return (
+        <div className="w-full space-y-8">
+            <Card>
+                <Tabs
+                    aria-label="Champion Roles"
+                    color="primary"
+                    variant="underlined"
+                    selectedKey={activeRole}
+                    onSelectionChange={handleTabChange}
+                    classNames={{
+                        tabList:
+                            "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+                        cursor: "w-full bg-primary",
+                        tab: "max-w-fit px-8 h-12",
+                        tabContent:
+                            "group-data-[selected=true]:text-primary text-lg font-semibold",
+                    }}
+                >
+                    <Tab key="adc" title="ADCs">
+                        <CardBody className="p-0">
+                            <div className="p-6 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
+                                {championData.adc.map((champ) => {
+                                    const isSelected = selectedChampion.id === champ.id;
+                                    return (
+                                        <Tooltip
+                                            content={champ.name}
+                                            key={champ.id}
+                                            placement="bottom"
+                                        >
+                                            <button onClick={() => handleSelectChampion(champ.id)}>
+                                                <Avatar
+                                                    src={champ.portraitUrl}
+                                                    alt={`${champ.name} portrait`}
+                                                    className={`w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
+                                                        isSelected
+                                                            ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                                            : "grayscale hover:grayscale-0"
+                                                    }`}
+                                                />
+                                            </button>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
+                        </CardBody>
+                    </Tab>
+                    <Tab key="support" title="Supports">
+                        <CardBody className="p-0">
+                            <div className="p-6 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
+                                {championData.support.map((champ) => {
+                                    const isSelected = selectedChampion.id === champ.id;
+                                    return (
+                                        <Tooltip
+                                            content={champ.name}
+                                            key={champ.id}
+                                            placement="bottom"
+                                        >
+                                            <button onClick={() => handleSelectChampion(champ.id)}>
+                                                <Avatar
+                                                    src={champ.portraitUrl}
+                                                    alt={`${champ.name} portrait`}
+                                                    className={`w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
+                                                        isSelected
+                                                            ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                                                            : "grayscale hover:grayscale-0"
+                                                    }`}
+                                                />
+                                            </button>
+                                        </Tooltip>
+                                    );
+                                })}
+                            </div>
+                        </CardBody>
+                    </Tab>
+                </Tabs>
+            </Card>
+
+            {selectedChampion && (
+                <div key={selectedChampion.id}>
+                    <ChampionGuide champion={selectedChampion} />
+                </div>
+            )}
+        </div>
+    );
 }

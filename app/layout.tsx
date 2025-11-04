@@ -6,23 +6,25 @@ import { Providers } from "./providers";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Wild Rift Dragon Lane Playbook",
-  description: "A data-driven playbook for Wild Rift bot laners.",
+    title: "Wild Rift Dragon Lane Playbook",
+    description: "A data-driven playbook for Wild Rift bot laners.",
 };
 
 export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
+                                       children,
+                                   }: Readonly<{
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-background text-foreground`}>
+    return (
+        <html lang="en" className="dark">
+        <body className={`${inter.className} bg-background text-foreground`}>
         <Providers>
-          {/* Add top padding for mobile, left padding for desktop */}
-          <div className="pt-16 md:pt-0 md:pl-64">{children}</div>
+            {children}
+            <footer className="text-center py-8 text-slate-500 text-sm md:pl-64">
+                <p>Wild Rift Dragon Lane Playbook</p>
+            </footer>
         </Providers>
-      </body>
-    </html>
-  );
+        </body>
+        </html>
+    );
 }

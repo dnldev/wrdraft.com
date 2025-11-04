@@ -1,5 +1,4 @@
-// in /components/SynergyTierList.tsx
-"use client";
+"use client"; // <-- THE FIX IS HERE
 
 import { Synergy, synergyData } from "@/data/synergyData";
 import { Accordion, AccordionItem, Card, Chip } from "@heroui/react";
@@ -36,7 +35,10 @@ export function SynergyTierList() {
         <AccordionItem
           key={adc}
           aria-label={adc}
-          title={<h3 className="text-xl font-bold text-white">{adc}</h3>}
+          title={adc} // <-- My previous fix (still correct)
+          classNames={{
+            title: "text-xl font-bold text-white", // <-- My previous fix (still correct)
+          }}
         >
           <div className="space-y-4">
             {synergies.map(({ support, rating, note }) => (
