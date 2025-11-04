@@ -1,5 +1,7 @@
-// in /components/DraftingInfo.tsx
+"use client";
+
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+
 import { LucideIcon } from "./LucideIcon";
 import { TierList } from "./TierList";
 

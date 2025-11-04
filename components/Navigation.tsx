@@ -1,9 +1,11 @@
 "use client";
 
-import { useQueryState } from "@/hooks/useQueryState";
 import { Button, Tab, Tabs } from "@heroui/react";
 import { icons } from "lucide-react";
 import React from "react";
+
+import { useQueryState } from "@/hooks/useQueryState";
+
 import { LucideIcon } from "./LucideIcon";
 
 export type MainView =

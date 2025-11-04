@@ -1,8 +1,9 @@
 // in /components/ChampionGrid.tsx
 "use client";
 
+import { Avatar,Tooltip } from "@heroui/react";
+
 import { Champion } from "@/data/championData";
-import { Tooltip, Avatar } from "@heroui/react";
 
 interface ChampionGridProps {
     champions: Champion[];

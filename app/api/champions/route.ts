@@ -1,6 +1,8 @@
-// in /app/api/champions/route.ts
-import { getConnectedRedisClient } from "@/lib/redis"; // <-- FIX: Import the function
 import { NextResponse } from "next/server";
+
+import { getConnectedRedisClient } from "@/lib/redis";
+
+export const dynamic = "force-static";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -11,9 +13,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    // FIX: Call the function to get the connected client
     const redis = await getConnectedRedisClient();
-
     const championsString = await redis.get(`champions:${role}`);
 
     if (!championsString) {

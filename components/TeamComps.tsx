@@ -1,6 +1,9 @@
-// in /components/TeamComps.tsx
+"use client";
+
+import { Card, CardBody, CardHeader, Chip,Divider } from "@heroui/react";
+
 import { TeamComposition } from "@/data/teamCompsData";
-import { Card, CardBody, CardHeader, Divider, Chip } from "@heroui/react";
+
 import { LucideIcon } from "./LucideIcon";
 
 const archetypeColors = {
