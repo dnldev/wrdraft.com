@@ -1,3 +1,4 @@
+// FILE: data/championData.ts
 /**
  * @file This file serves as the single source of truth for all champion data.
  * It uses a more structured format to support future features like a matchup calculator.
@@ -29,13 +30,6 @@ export interface Matchups {
   badAgainst: string[];
 }
 
-export interface Matchups {
-  userSynergies: string[];
-  metaSynergies: string[];
-  goodAgainst: string[];
-  badAgainst: string[];
-}
-
 export interface Champion {
   id: string;
   name: string;
@@ -43,7 +37,7 @@ export interface Champion {
   comfort: string | null;
   role: string;
   howToPlay: HowToPlayTip[];
-  matchups: Matchups; // This type is now updated
+  matchups: Matchups;
   builds: Build[];
 }
 
@@ -1598,5 +1592,550 @@ export const champions: Champion[] = [
         ],
       },
     ],
+  },
+  // --- START: Added Skeletal Champion Data ---
+  {
+    id: "corki",
+    name: "Corki",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Corki.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "vayne",
+    name: "Vayne",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Vayne.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "samira",
+    name: "Samira",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Samira.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "sivir",
+    name: "Sivir",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Sivir.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "twitch",
+    name: "Twitch",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Twitch.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "tristana",
+    name: "Tristana",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Tristana.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "draven",
+    name: "Draven",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Draven.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "zeri",
+    name: "Zeri",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zeri.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "kalista",
+    name: "Kalista",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Kalista.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "nilah",
+    name: "Nilah",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nilah.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "ezreal",
+    name: "Ezreal",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ezreal.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "karma",
+    name: "Karma",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Karma.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "maokai",
+    name: "Maokai",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Maokai.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "nautilus",
+    name: "Nautilus",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nautilus.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "rakan",
+    name: "Rakan",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Rakan.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "pyke",
+    name: "Pyke",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Pyke.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "senna",
+    name: "Senna",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Senna.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "alistar",
+    name: "Alistar",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Alistar.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "yuumi",
+    name: "Yuumi",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Yuumi.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "zyra",
+    name: "Zyra",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zyra.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "sona",
+    name: "Sona",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Sona.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "janna",
+    name: "Janna",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Janna.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "seraphine",
+    name: "Seraphine",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Seraphine.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "soraka",
+    name: "Soraka",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Soraka.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "ornn",
+    name: "Ornn",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ornn.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "galio",
+    name: "Galio",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Galio.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "blitzcrank",
+    name: "Blitzcrank",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Blitzcrank.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "singed",
+    name: "Singed",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Singed.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "amumu",
+    name: "Amumu",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Amumu.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "nunu",
+    name: "Nunu & Willump",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nunu.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "jarvaniv",
+    name: "Jarvan IV",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/JarvanIV.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "swain",
+    name: "Swain",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Swain.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "brand",
+    name: "Brand",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Brand.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "lux",
+    name: "Lux",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lux.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
   },
 ];
