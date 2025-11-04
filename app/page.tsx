@@ -1,46 +1,41 @@
-// in app/page.tsx
-"use client";
-
 import { BestPairings } from "@/components/BestPairings";
 import { ChampionView } from "@/components/ChampionView";
 import { DraftingInfo } from "@/components/DraftingInfo";
 import { MatchupCalculator } from "@/components/MatchupCalculator";
-import { MainView, Navigation } from "@/components/Navigation";
+import { Navigation } from "@/components/Navigation";
 import { TeamComps } from "@/components/TeamComps";
-import { useQueryState } from "@/hooks/useQueryState";
+import {
+    getChampionsByRole,
+    getSynergies,
+    getTeamComps,
+} from "@/lib/data-fetching";
+import React from "react";
 
-export default function HomePage() {
-  const [activeView, setActiveView] = useQueryState<MainView>(
-    "view",
-    "drafting"
-  );
+export default async function HomePage() {
+    const [adcs, supports, { synergiesByAdc, synergiesBySupport }, teamComps] =
+        await Promise.all([
+            getChampionsByRole("adc"),
+            getChampionsByRole("support"),
+            getSynergies(),
+            getTeamComps(),
+        ]);
 
-  const renderView = () => {
-    switch (activeView) {
-      case "drafting":
-        return <DraftingInfo />;
-      case "team-comps":
-        return <TeamComps />;
-      case "pairings":
-        return <BestPairings />;
-      case "champions":
-        return <ChampionView />;
-      case "calculator":
-        return <MatchupCalculator />;
-      default:
-        return <DraftingInfo />;
-    }
-  };
-
-  return (
-    <>
-      <Navigation activeView={activeView} setActiveView={setActiveView} />
-
-      <main className="max-w-7xl mx-auto p-4 md:p-6">{renderView()}</main>
-
-      <footer className="text-center py-8 text-slate-500 text-sm">
-        <p>Wild Rift Dragon Lane Playbook</p>
-      </footer>
-    </>
-  );
+    return (
+        <React.Suspense fallback={null}>
+            <Navigation
+                views={{
+                    drafting: <DraftingInfo />,
+                    "team-comps": <TeamComps teamComps={teamComps} />,
+                    pairings: (
+                        <BestPairings
+                            synergiesByAdc={synergiesByAdc}
+                            synergiesBySupport={synergiesBySupport}
+                        />
+                    ),
+                    champions: <ChampionView adcs={adcs} supports={supports} />,
+                    calculator: <MatchupCalculator />,
+                }}
+            />
+        </React.Suspense>
+    );
 }

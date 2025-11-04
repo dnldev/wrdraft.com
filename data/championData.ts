@@ -29,6 +29,13 @@ export interface Matchups {
   badAgainst: string[];
 }
 
+export interface Matchups {
+  userSynergies: string[];
+  metaSynergies: string[];
+  goodAgainst: string[];
+  badAgainst: string[];
+}
+
 export interface Champion {
   id: string;
   name: string;
@@ -36,7 +43,7 @@ export interface Champion {
   comfort: string | null;
   role: string;
   howToPlay: HowToPlayTip[];
-  matchups: Matchups;
+  matchups: Matchups; // This type is now updated
   builds: Build[];
 }
 
