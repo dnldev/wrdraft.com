@@ -4,6 +4,18 @@ import { TeamComposition } from "@/data/teamCompsData";
 import { getConnectedRedisClient } from "@/lib/redis";
 
 /**
+ * Fetches a single champion by its ID from Redis.
+ * @param {string} id The ID of the champion to fetch.
+ * @returns {Promise<Champion | null>} A promise that resolves to the champion object or null if not found.
+ */
+export async function getChampionById(id: string): Promise<Champion | null> {
+    console.log(`DEBUG (data-fetching): Fetching champion with id: ${id}`);
+    const redis = await getConnectedRedisClient();
+    const championString = await redis.get(`champion:${id}`);
+    return championString ? JSON.parse(championString) : null;
+}
+
+/**
  * Fetches champions from Redis by role.
  * @param {'adc' | 'support'} role The role to fetch champions for.
  * @returns {Promise<Champion[]>} A promise that resolves to an array of champions.
@@ -50,32 +62,35 @@ export async function getSynergies(): Promise<{
         return { synergiesByAdc: {}, synergiesBySupport: {} };
     }
 
-    const synergiesByAdc = synergyData.reduce((acc, current) => {
-        const key = current.adc;
-        if (!acc[key]) {
-            acc[key] = [];
-        }
-        acc[key].push(current);
-        return acc;
-    }, {} as Record<string, Synergy[]>);
+    const synergiesByAdc: Record<string, Synergy[]> = {};
+    const synergiesBySupport: Record<string, Synergy[]> = {};
 
-    const synergiesBySupport = synergyData.reduce((acc, current) => {
-        const key = current.support;
-        if (!acc[key]) {
-            acc[key] = [];
+    for (const synergy of synergyData) {
+        // Group by ADC
+        if (!synergiesByAdc[synergy.adc]) {
+            synergiesByAdc[synergy.adc] = [];
         }
-        acc[key].push(current);
-        return acc;
-    }, {} as Record<string, Synergy[]>);
+        synergiesByAdc[synergy.adc].push(synergy);
+
+        // Group by Support
+        if (!synergiesBySupport[synergy.support]) {
+            synergiesBySupport[synergy.support] = [];
+        }
+        synergiesBySupport[synergy.support].push(synergy);
+    }
 
     const ratingOrder = { Excellent: 0, Good: 1, Neutral: 2, Poor: 3 };
 
     for (const adc of Object.keys(synergiesByAdc)) {
-        synergiesByAdc[adc].sort((a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]);
+        synergiesByAdc[adc].sort(
+            (a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]
+        );
     }
 
     for (const support of Object.keys(synergiesBySupport)) {
-        synergiesBySupport[support].sort((a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]);
+        synergiesBySupport[support].sort(
+            (a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]
+        );
     }
 
     return { synergiesByAdc, synergiesBySupport };

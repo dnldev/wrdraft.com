@@ -1,0 +1,16 @@
+# Build artifacts
+.next/
+out/
+build/
+
+# Dependencies
+node_modules/
+
+# Lockfiles
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated
+next-env.d.ts
+coverage/

@@ -1,17 +1,22 @@
-// A simplified example of what this file would look like
-import { champions } from "@/data/championData"; // Import your data
+import { notFound } from "next/navigation";
 
-export default function ChampionPage({ params }: { params: { id: string } }) {
-  const champion = champions.find((c) => c.id === params.id);
+import { getChampionById } from "@/lib/data-fetching";
 
-  if (!champion) {
-    return <div>Champion not found</div>;
-  }
+export default async function ChampionPage({
+                                               params,
+                                           }: {
+    params: { id: string };
+}) {
+    const champion = await getChampionById(params.id);
 
-  return (
-    <div>
-      <h1>{champion.name}</h1>
-      {/* Render all the champion's details here using components */}
-    </div>
-  );
+    if (!champion) {
+        return notFound();
+    }
+
+    return (
+        <div>
+            <h1>{champion.name}</h1>
+            {/* Render all the champion's details here using components */}
+        </div>
+    );
 }

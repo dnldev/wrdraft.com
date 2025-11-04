@@ -2,6 +2,7 @@
 
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React from "react";
+
 import { LucideIcon } from "./LucideIcon";
 
 const tierListData = {

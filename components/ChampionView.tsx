@@ -1,9 +1,11 @@
 "use client";
 
-import { Champion } from "@/data/championData";
 import { Avatar, Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
+
+import { Champion } from "@/data/championData";
+
 import { ChampionGuide } from "./ChampionGuide";
 
 interface ChampionViewProps {

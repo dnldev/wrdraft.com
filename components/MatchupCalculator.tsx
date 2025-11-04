@@ -1,5 +1,7 @@
-// in /components/MatchupCalculator.tsx
+"use client";
+
 import { Button, Card, CardBody, CardHeader, Input } from "@heroui/react";
+
 import { LucideIcon } from "./LucideIcon";
 
 export function MatchupCalculator() {

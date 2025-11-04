@@ -1,6 +1,5 @@
 "use client";
 
-import { Synergy } from "@/data/synergyData";
 import {
     Accordion,
     AccordionItem,
@@ -11,6 +10,9 @@ import {
     Divider,
 } from "@heroui/react";
 import React from "react";
+
+import { Synergy } from "@/data/synergyData";
+
 import { LucideIcon } from "./LucideIcon";
 
 // --- Reusable Private Component for Featured Synergies ---

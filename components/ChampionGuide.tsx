@@ -1,5 +1,7 @@
-import { Champion } from "@/data/championData";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+
+import { Champion } from "@/data/championData";
+
 import { BuildPath } from "./BuildPath";
 
 export function ChampionGuide({ champion }: { champion: Champion }) {

@@ -1,3 +1,5 @@
+import React from "react";
+
 import { BestPairings } from "@/components/BestPairings";
 import { ChampionView } from "@/components/ChampionView";
 import { DraftingInfo } from "@/components/DraftingInfo";
@@ -9,7 +11,6 @@ import {
     getSynergies,
     getTeamComps,
 } from "@/lib/data-fetching";
-import React from "react";
 
 export default async function HomePage() {
     const [adcs, supports, { synergiesByAdc, synergiesBySupport }, teamComps] =
