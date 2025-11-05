@@ -47,44 +47,62 @@ export function ChampionSelector({
     setIsOpen(false);
   };
 
+  const handleClear = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent the main button from toggling the popover
+    onSelect(null);
+  };
+
   return (
     <div>
       <p className="text-sm font-semibold text-foreground/80 mb-2">{label}</p>
-      <button
-        type="button"
+      <div
         ref={refs.setReference}
         {...getReferenceProps()}
-        disabled={isDisabled}
-        className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50 disabled:opacity-50 disabled:cursor-not-allowed text-left"
+        aria-disabled={isDisabled}
+        className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50 aria-disabled:opacity-50 aria-disabled:cursor-not-allowed text-left"
       >
-        {selectedChampion ? (
-          <div className="flex items-center gap-3">
-            <Avatar
-              src={selectedChampion.portraitUrl}
-              alt={selectedChampion.name}
-              size="md"
-            />
-            <span className="font-bold text-white">
-              {selectedChampion.name}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center">
-              <LucideIcon
-                name="CircleQuestionMark"
-                size={20}
-                className="text-foreground/30"
+        <div className="flex items-center gap-3 flex-grow min-w-0">
+          {selectedChampion ? (
+            <>
+              <Avatar
+                src={selectedChampion.portraitUrl}
+                alt={selectedChampion.name}
+                size="md"
               />
-            </div>
-            <span className="text-foreground/60">Select Champion</span>
-          </div>
+              <span className="font-bold text-white truncate">
+                {selectedChampion.name}
+              </span>
+            </>
+          ) : (
+            <>
+              <div className="w-10 h-10 bg-background rounded-full flex items-center justify-center">
+                <LucideIcon
+                  name="CircleQuestionMark"
+                  size={20}
+                  className="text-foreground/30"
+                />
+              </div>
+              <span className="text-foreground/60">Select Champion</span>
+            </>
+          )}
+        </div>
+
+        {selectedChampion && !isDisabled ? (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="p-1 rounded-full hover:bg-white/20 transition-colors flex-shrink-0"
+            aria-label="Clear selection"
+          >
+            <LucideIcon name="X" size={16} className="text-foreground/70" />
+          </button>
+        ) : (
+          <LucideIcon
+            name={isOpen ? "ChevronUp" : "ChevronDown"}
+            className="transition-transform text-foreground/70 flex-shrink-0"
+          />
         )}
-        <LucideIcon
-          name={isOpen ? "ChevronUp" : "ChevronDown"}
-          className="transition-transform"
-        />
-      </button>
+      </div>
 
       {isOpen && (
         <FloatingFocusManager context={context} modal={false}>

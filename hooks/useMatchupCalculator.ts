@@ -8,6 +8,13 @@ import { calculateRecommendations, Recommendation } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { createTierMap } from "@/lib/utils";
 
+interface Selections {
+  alliedAdc: string | null;
+  alliedSupport: string | null;
+  enemyAdc: string | null;
+  enemySupport: string | null;
+}
+
 interface UseMatchupCalculatorProps {
   adcs: Champion[];
   supports: Champion[];
@@ -30,11 +37,11 @@ export function useMatchupCalculator({
   const [roleToCalculate, setRoleToCalculate] = useState<"adc" | "support">(
     "adc"
   );
-  const [selections, setSelections] = useState({
-    alliedAdc: null as string | null,
-    alliedSupport: null as string | null,
-    enemyAdc: null as string | null,
-    enemySupport: null as string | null,
+  const [selections, setSelections] = useState<Selections>({
+    alliedAdc: null,
+    alliedSupport: null,
+    enemyAdc: null,
+    enemySupport: null,
   });
 
   const [results, setResults] = useState<Recommendation[] | null>(null);
@@ -61,6 +68,12 @@ export function useMatchupCalculator({
   const handleRoleChange = (role: "adc" | "support") => {
     setRoleToCalculate(role);
     setResults(null);
+    // Clear the corresponding allied selection
+    setSelections((prev) => ({
+      ...prev,
+      ...(role === "adc" && { alliedAdc: null }),
+      ...(role === "support" && { alliedSupport: null }),
+    }));
   };
 
   const handleCalculate = () => {
