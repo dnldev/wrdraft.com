@@ -1,9 +1,9 @@
 import { TierListData } from "@/data/tierListData";
 
 /**
- * Creates a map of champion names to their meta tier.
- * @param {TierListData} tierList - The tier list data.
- * @returns {Map<string, string>} A map where keys are champion names and values are tiers.
+ * Creates a map of champion names to their meta tier for efficient lookups.
+ * @param {TierListData} tierList - The tier list data object from Redis.
+ * @returns {Map<string, string>} A map where keys are champion names and values are their respective tiers (e.g., 'S+', 'A').
  */
 export function createTierMap(tierList: TierListData): Map<string, string> {
   const map = new Map<string, string>();

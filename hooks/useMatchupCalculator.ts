@@ -24,6 +24,13 @@ interface UseMatchupCalculatorProps {
   tierList: TierListData;
 }
 
+/**
+ * A "headless" hook that manages the entire state and logic for the Matchup Calculator.
+ * It handles user selections, triggers calculations, and derives memoized data, returning
+ * everything the presentation components need to render the UI.
+ * @param {UseMatchupCalculatorProps} props - The raw data fetched from Redis, required for calculations and display.
+ * @returns {object} An object containing the calculator's state, derived data, and event handlers.
+ */
 export function useMatchupCalculator({
   adcs,
   supports,

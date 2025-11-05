@@ -24,6 +24,13 @@ interface MatchupCalculatorProps {
   tierList: TierListData;
 }
 
+/**
+ * The main component for the Matchup Calculator feature.
+ * It orchestrates the UI by initializing the `useMatchupCalculator` hook and passing
+ * the resulting state and handlers to its child presentational components.
+ * @param {MatchupCalculatorProps} props - The raw data fetched server-side, including champions and matrices.
+ * @returns {JSX.Element} The fully interactive Matchup Calculator UI.
+ */
 export function MatchupCalculator(props: MatchupCalculatorProps) {
   const {
     roleToCalculate,

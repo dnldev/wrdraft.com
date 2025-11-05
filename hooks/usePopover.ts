@@ -18,9 +18,10 @@ interface PopoverOptions {
 }
 
 /**
- * A hook to manage the state and positioning of a popover component.
- * @param {PopoverOptions} [options] - Configuration for the popover.
- * @returns An object with state and props for popover elements.
+ * A custom hook to manage the state and positioning for a popover element.
+ * Encapsulates logic from @floating-ui/react for positioning, interactions (click, dismiss), and accessibility.
+ * @param {PopoverOptions} [options] - Optional configuration for the popover's initial state and placement.
+ * @returns {object} An object containing state, refs, styles, and interaction props to be spread onto elements.
  */
 export function usePopover({
   initialOpen = false,
