@@ -32,8 +32,8 @@ async function main() {
       ...champ,
       matchups: {
         ...champ.matchups,
-        goodAgainst: newMatchups?.goodAgainst || [],
-        badAgainst: newMatchups?.badAgainst || [],
+        goodAgainst: newMatchups?.goodAgainst || champ.matchups.goodAgainst,
+        badAgainst: newMatchups?.badAgainst || champ.matchups.badAgainst,
       },
     };
     return mergedChampion;
