@@ -1,4 +1,3 @@
-// FILE: next.config.mjs (in your wild-rift-playbook project)
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactCompiler: true,

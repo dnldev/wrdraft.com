@@ -3,8 +3,9 @@
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React from "react";
 
-import { LucideIcon } from "@/components/core/LucideIcon";
 import { TierListData } from "@/data/tierListData";
+
+import { LucideIcon } from "../core/LucideIcon";
 
 const tierColors: {
   [key: string]: string; // Use string for dynamic class names
@@ -25,7 +26,7 @@ const TierRow: React.FC<TierRowProps> = ({ tier, champions }) => {
   const borderColorClass = tierColors[tier] || "border-default";
   return (
     <div
-      className={`bg-background rounded-xl p-4 border-l-4 ${borderColorClass}`}
+      className={`bg-background rounded-lg p-4 border-l-4 ${borderColorClass}`}
     >
       <h4 className="text-xl font-semibold text-white/90">{tier} Tier</h4>
       <p className="text-sm text-foreground/80 mt-1 leading-relaxed">
