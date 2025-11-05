@@ -3,10 +3,21 @@ import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { Synergy } from "@/data/synergyData";
 import { TeamComposition } from "@/data/teamCompsData";
+import { TierListData } from "@/data/tierListData";
 import { getConnectedRedisClient } from "@/lib/redis";
 
 export type SynergyMatrix = Record<string, Record<string, number>>;
 export type CounterMatrix = Record<string, Record<string, number>>;
+
+/**
+ * Fetches the meta tier list data from Redis.
+ * @returns {Promise<TierListData>} A promise that resolves to the tier list data.
+ */
+export async function getTierList(): Promise<TierListData> {
+  const redis = await getConnectedRedisClient();
+  const tierListString = await redis.get("data:tierlist");
+  return tierListString ? JSON.parse(tierListString) : { adc: {}, support: {} };
+}
 
 /**
  * Fetches the safe first pick data from Redis.

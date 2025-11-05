@@ -10,6 +10,7 @@ import { matchupData } from "../data/matchupData.js";
 import { matrixData } from "../data/matrixData.js";
 import { synergyData } from "../data/synergyData.js";
 import { teamCompsData } from "../data/teamCompsData.js";
+import { tierListData } from "../data/tierListData.js";
 
 dotenv.config({ path: ".env.development.local" });
 
@@ -65,9 +66,12 @@ async function main() {
   multi.set("firstPicks", JSON.stringify(firstPickData));
   console.log("- Staging first pick data...");
 
+  multi.set("data:tierlist", JSON.stringify(tierListData));
+  console.log("- Staging tier list data...");
+
   await multi.exec();
 
-  redis.destroy();
+  await redis.disconnect();
   console.log("\n✅ Data seeding complete!");
 }
 

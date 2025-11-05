@@ -1,11 +1,12 @@
+// FILE: app/page.tsx
 import React from "react";
 
-import { BestPairings } from "@/components/BestPairings";
-import { ChampionView } from "@/components/ChampionView";
-import { DraftingInfo } from "@/components/DraftingInfo";
-import { MatchupCalculator } from "@/components/MatchupCalculator";
-import { Navigation } from "@/components/Navigation";
-import { TeamComps } from "@/components/TeamComps";
+import { MatchupCalculator } from "@/components/calculator/MatchupCalculator";
+import { ChampionView } from "@/components/champions/ChampionView";
+import { Navigation } from "@/components/core/Navigation";
+import { DraftingInfo } from "@/components/drafting/DraftingInfo";
+import { BestPairings } from "@/components/pairings/BestPairings";
+import { TeamComps } from "@/components/team-comps/TeamComps";
 import {
   getAllChampions,
   getChampionsByRole,
@@ -14,6 +15,7 @@ import {
   getSynergies,
   getSynergyMatrix,
   getTeamComps,
+  getTierList,
 } from "@/lib/data-fetching";
 
 export default async function HomePage() {
@@ -26,6 +28,7 @@ export default async function HomePage() {
     synergyMatrix,
     counterMatrix,
     firstPicks,
+    tierList,
   ] = await Promise.all([
     getChampionsByRole("adc"),
     getChampionsByRole("support"),
@@ -35,13 +38,14 @@ export default async function HomePage() {
     getSynergyMatrix(),
     getCounterMatrix(),
     getFirstPicks(),
+    getTierList(),
   ]);
 
   return (
     <React.Suspense fallback={null}>
       <Navigation
         views={{
-          drafting: <DraftingInfo />,
+          drafting: <DraftingInfo tierList={tierList} />,
           "team-comps": <TeamComps teamComps={teamComps} />,
           pairings: (
             <BestPairings
@@ -58,6 +62,7 @@ export default async function HomePage() {
               synergyMatrix={synergyMatrix}
               counterMatrix={counterMatrix}
               firstPicks={firstPicks}
+              tierList={tierList}
             />
           ),
         }}
