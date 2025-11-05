@@ -1,11 +1,26 @@
-// in app/providers.tsx
 "use client";
 
 import { HeroUIProvider } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { ThemeProvider } from "next-themes";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
-  return <HeroUIProvider navigate={router.push}>{children}</HeroUIProvider>;
+  return (
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="hextech-arcane"
+      themes={[
+        "hextech-arcane",
+        "demacian-justice",
+        "spirit-blossom",
+        "freljordian-ice",
+        "shuriman-sun",
+        "celestial-peak",
+      ]}
+    >
+      <HeroUIProvider navigate={router.push}>{children}</HeroUIProvider>
+    </ThemeProvider>
+  );
 }

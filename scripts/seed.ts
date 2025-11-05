@@ -3,13 +3,13 @@ import "dotenv/config";
 import dotenv from "dotenv";
 import { createClient } from "redis";
 
-import { Champion, champions as baseChampions } from "../data/championData.js";
-import { firstPickData } from "../data/firstPickData.js";
-import { matchupData } from "../data/matchupData.js";
-import { matrixData } from "../data/matrixData.js";
-import { synergyData } from "../data/synergyData.js";
-import { teamCompsData } from "../data/teamCompsData.js";
-import { tierListData } from "../data/tierListData.js";
+import { Champion, champions as baseChampions } from "@/data/championData.js";
+import { firstPickData } from "@/data/firstPickData.js";
+import { matchupData } from "@/data/matchupData.js";
+import { matrixData } from "@/data/matrixData.js";
+import { synergyData } from "@/data/synergyData.js";
+import { teamCompsData } from "@/data/teamCompsData.js";
+import { tierListData } from "@/data/tierListData.js";
 
 dotenv.config({ path: ".env.development.local" });
 

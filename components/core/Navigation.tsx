@@ -18,6 +18,7 @@ export type MainView =
 interface NavItem {
   id: MainView;
   label: string;
+  mobileLabel: string;
   icon: keyof typeof icons;
 }
 
@@ -32,11 +33,36 @@ export function Navigation({ views }: NavigationProps) {
   );
 
   const navItems: NavItem[] = [
-    { id: "drafting", label: "Tier List", icon: "Swords" },
-    { id: "team-comps", label: "Team Comps", icon: "Users" },
-    { id: "pairings", label: "Pairings", icon: "Handshake" },
-    { id: "champions", label: "Champions", icon: "BookOpen" },
-    { id: "calculator", label: "Calculator", icon: "Calculator" },
+    {
+      id: "drafting",
+      label: "Tier List",
+      mobileLabel: "Tiers",
+      icon: "Swords",
+    },
+    {
+      id: "team-comps",
+      label: "Team Comps",
+      mobileLabel: "Comps",
+      icon: "Users",
+    },
+    {
+      id: "pairings",
+      label: "Pairings",
+      mobileLabel: "Pairs",
+      icon: "Handshake",
+    },
+    {
+      id: "champions",
+      label: "Champions",
+      mobileLabel: "Champs",
+      icon: "BookOpen",
+    },
+    {
+      id: "calculator",
+      label: "Calculator",
+      mobileLabel: "Calc",
+      icon: "Calculator",
+    },
   ];
 
   return (
@@ -53,10 +79,9 @@ export function Navigation({ views }: NavigationProps) {
           {navItems.map((item) => (
             <Button
               key={item.id}
-              variant="solid"
               color={activeView === item.id ? "primary" : "default"}
-              onClick={() => setActiveView(item.id)}
-              className="justify-start h-14 text-lg rounded-xl"
+              onPress={() => setActiveView(item.id)}
+              className="justify-start h-14 text-lg"
               startContent={<LucideIcon name={item.icon} size={20} />}
             >
               {item.label}
@@ -65,7 +90,7 @@ export function Navigation({ views }: NavigationProps) {
         </nav>
       </aside>
 
-      <div className="md:hidden p-2 bg-card border-b border-border sticky top-0 z-40">
+      <div className="md:hidden p-2 bg-content1 border-b border-divider sticky top-0 z-40">
         <Tabs
           aria-label="Mobile Navigation"
           selectedKey={activeView}
@@ -73,12 +98,22 @@ export function Navigation({ views }: NavigationProps) {
           color="primary"
           variant="underlined"
           fullWidth
+          classNames={{
+            tab: "py-4 h-auto cursor-pointer",
+            tabContent: "flex flex-col items-center gap-1 text-xs",
+          }}
         >
-          <Tab key="drafting" title="Drafting" />
-          <Tab key="team-comps" title="Comps" />
-          <Tab key="pairings" title="Pairings" />
-          <Tab key="champions" title="Champs" />
-          <Tab key="calculator" title="Calc" />
+          {navItems.map((item) => (
+            <Tab
+              key={item.id}
+              title={
+                <div className="flex flex-col items-center gap-1">
+                  <LucideIcon name={item.icon} size={20} />
+                  <span>{item.mobileLabel}</span>
+                </div>
+              }
+            />
+          ))}
         </Tabs>
       </div>
 
