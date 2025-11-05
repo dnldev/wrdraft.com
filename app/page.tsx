@@ -1,4 +1,3 @@
-// FILE: app/page.tsx
 import React from "react";
 
 import { MatchupCalculator } from "@/components/calculator/MatchupCalculator";

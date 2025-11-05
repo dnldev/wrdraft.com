@@ -1,4 +1,3 @@
-// FILE: hooks/useMatchupCalculator.ts
 import { useMemo, useState } from "react";
 
 import { Champion } from "@/data/championData";

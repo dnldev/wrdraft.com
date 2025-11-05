@@ -1,4 +1,3 @@
-// FILE: components/team-comps/TeamComps.tsx
 "use client";
 
 import { Card, CardBody, CardHeader, Chip, Divider } from "@heroui/react";

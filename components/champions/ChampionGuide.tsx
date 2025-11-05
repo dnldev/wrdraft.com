@@ -1,4 +1,3 @@
-// FILE: components/champions/ChampionGuide.tsx
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 
 import { Champion } from "@/data/championData";

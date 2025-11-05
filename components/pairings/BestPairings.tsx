@@ -1,4 +1,3 @@
-// FILE: components/pairings/BestPairings.tsx
 "use client";
 
 import React from "react";

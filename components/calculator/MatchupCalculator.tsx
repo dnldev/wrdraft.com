@@ -1,4 +1,3 @@
-// FILE: components/calculator/MatchupCalculator.tsx
 "use client";
 
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";

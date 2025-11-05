@@ -1,4 +1,3 @@
-// FILE: lib/data-fetching.ts
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { Synergy } from "@/data/synergyData";

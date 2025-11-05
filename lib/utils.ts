@@ -1,4 +1,3 @@
-// FILE: lib/utils.ts
 import { TierListData } from "@/data/tierListData";
 
 /**

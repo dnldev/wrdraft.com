@@ -1,4 +1,3 @@
-// FILE: lib/calculator.ts
 import { Champion } from "@/data/championData";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";

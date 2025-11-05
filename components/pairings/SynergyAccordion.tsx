@@ -1,4 +1,3 @@
-// FILE: components/pairings/SynergyAccordion.tsx
 "use client";
 
 import {

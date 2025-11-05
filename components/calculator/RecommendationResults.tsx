@@ -1,4 +1,3 @@
-// FILE: components/calculator/RecommendationResults.tsx
 "use client";
 
 import {

@@ -1,4 +1,3 @@
-// FILE: data/matrixData.ts
 export const matrixData = {
   meta: {
     patch: "6.3b",

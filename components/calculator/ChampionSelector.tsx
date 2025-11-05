@@ -1,4 +1,3 @@
-// FILE: components/calculator/ChampionSelector.tsx
 "use client";
 
 import { FloatingFocusManager } from "@floating-ui/react";

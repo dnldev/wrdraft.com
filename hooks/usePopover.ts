@@ -1,4 +1,3 @@
-// FILE: hooks/usePopover.ts
 import {
   autoUpdate,
   flip,

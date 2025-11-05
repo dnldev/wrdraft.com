@@ -1,4 +1,3 @@
-// FILE: data/firstPickData.ts
 export interface FirstPick {
   name: string;
   rating: string;

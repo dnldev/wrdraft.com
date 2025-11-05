@@ -1,4 +1,3 @@
-// FILE: scripts/seed.ts
 import "dotenv/config";
 
 import dotenv from "dotenv";

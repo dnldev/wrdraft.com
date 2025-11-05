@@ -1,4 +1,3 @@
-// FILE: components/champions/ChampionView.tsx
 "use client";
 
 import { Avatar, Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";

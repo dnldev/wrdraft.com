@@ -7,7 +7,7 @@ import { act, renderHook } from "@testing-library/react";
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
-import { CounterMatrix,SynergyMatrix } from "@/lib/data-fetching";
+import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 
 import { useMatchupCalculator } from "./useMatchupCalculator";
 

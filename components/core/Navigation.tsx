@@ -1,4 +1,3 @@
-// FILE: components/core/Navigation.tsx
 "use client";
 
 import { Button, Tab, Tabs } from "@heroui/react";

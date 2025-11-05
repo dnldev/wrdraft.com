@@ -1,4 +1,3 @@
-// FILE: components/ChampionSelectorGrid.tsx
 "use client";
 
 import { Avatar, Tooltip } from "@heroui/react";

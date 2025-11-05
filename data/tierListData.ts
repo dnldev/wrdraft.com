@@ -1,4 +1,3 @@
-// FILE: data/tierListData.ts
 export interface TierListData {
   adc: Record<string, string[]>;
   support: Record<string, string[]>;

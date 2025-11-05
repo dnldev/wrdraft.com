@@ -1,4 +1,3 @@
-// FILE: data/championData.ts
 /**
  * @file This file serves as the single source of truth for all champion data.
  * It uses a more structured format to support future features like a matchup calculator.

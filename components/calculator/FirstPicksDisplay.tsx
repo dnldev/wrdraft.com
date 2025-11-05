@@ -1,4 +1,3 @@
-// FILE: components/FirstPicksDisplay.tsx
 "use client";
 
 import { Avatar, Card, CardBody, CardHeader, Divider } from "@heroui/react";
