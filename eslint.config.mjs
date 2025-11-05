@@ -1,28 +1,60 @@
-// in eslint.config.mjs
-
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
-import { defineConfig, globalIgnores } from "eslint/config";
+import { defineConfig } from "eslint/config";
+import simpleImportSort from "eslint-plugin-simple-import-sort";
+import unicorn from "eslint-plugin-unicorn";
+import prettierConfig from "eslint-config-prettier";
 
 const eslintConfig = defineConfig([
+  // Base Next.js configs
   ...nextVitals,
   ...nextTs,
 
-  // REMOVE THIS OBJECT FROM THE CONFIG ARRAY
-  // {
-  //   rules: {
-  //     "@next/next/no-img-element": "off",
-  //   },
-  // },
+  // Unicorn for additional rules and best practices
+  {
+    plugins: {
+      unicorn,
+    },
+    rules: {
+      ...unicorn.configs.recommended.rules,
+      // Disable rules that are too restrictive or conflict with Next.js/React patterns
+      "unicorn/prevent-abbreviations": "off", // Allows common abbreviations like `props`, `ref`, `env`
+      "unicorn/no-null": "off", // Null is idiomatic in React for empty renders
+      "unicorn/filename-case": "off", // Next.js uses conventions like `[id]` which this rule dislikes
+      "unicorn/no-useless-undefined": "off", // Can conflict with optional props
+      "unicorn/prefer-module": "off", // Next.js config files etc. may use CJS
+      "unicorn/prefer-top-level-await": "off", // Not always applicable or desired
+    },
+  },
 
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/",
-    "out/",
-    "build/**",
-    "next-env.d.ts",
-  ]),
+  // Simple import sort for consistent import order
+  {
+    plugins: {
+      "simple-import-sort": simpleImportSort,
+    },
+    rules: {
+      "simple-import-sort/imports": "error",
+      "simple-import-sort/exports": "error",
+    },
+  },
+
+  // Prettier config must be last to override other formatting rules
+  prettierConfig,
+
+  // Global ignores
+  {
+    ignores: [
+      "node_modules/",
+      ".next/",
+      "out/",
+      "build/",
+      "next-env.d.ts",
+      "eslint.config.mjs",
+      "postcss.config.mjs",
+      "tailwind.config.ts",
+      "next.config.mjs",
+    ],
+  },
 ]);
 
 export default eslintConfig;

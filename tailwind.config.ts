@@ -1,4 +1,3 @@
-// in tailwind.config.ts
 import type { Config } from "tailwindcss";
 
 const config: Config = {
@@ -6,14 +5,20 @@ const config: Config = {
     "./pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    // The path for HeroUI is now handled in globals.css via @source
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
+    borderRadius: {
+      none: "0px",
+      sm: "0.25rem", // 4px
+      DEFAULT: "0.5rem", // 8px
+      md: "0.5rem", // 8px
+      lg: "0.75rem", // 12px
+      full: "9999px",
+    },
     extend: {},
   },
   darkMode: "class",
-  plugins: [
-    // The HeroUI plugin is now handled in globals.css via @plugin
-  ],
+  plugins: [], // The heroui() plugin is REMOVED
 };
 export default config;

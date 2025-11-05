@@ -1,20 +1,21 @@
-// in /components/ChampionGuide.tsx
-import { Champion } from "@/data/championData";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+
+import { Champion } from "@/data/championData";
+
 import { BuildPath } from "./BuildPath";
 
 export function ChampionGuide({ champion }: { champion: Champion }) {
   const comfortSymbol = champion.comfort ? champion.comfort.split(" ")[0] : "";
 
   return (
-    <Card className="p-4 md:p-6 bg-transparent shadow-none">
-      <CardHeader>
+    <Card className="p-0 bg-content1 shadow-lg">
+      <CardHeader className="p-4 md:p-6">
         <div className="w-full">
           <h3 className="text-3xl font-bold text-white mb-2">
             {champion.name}{" "}
             <span
               className={
-                comfortSymbol === "★" ? "text-amber-400" : "text-slate-400"
+                comfortSymbol === "★" ? "text-primary" : "text-slate-400"
               }
             >
               {comfortSymbol}
@@ -23,10 +24,10 @@ export function ChampionGuide({ champion }: { champion: Champion }) {
           <p className="text-sm text-foreground/70">{champion.role}</p>
         </div>
       </CardHeader>
-      <Divider className="my-4" />
-      <CardBody className="space-y-8 pt-2">
+      <Divider />
+      <CardBody className="space-y-8 p-4 md:p-6">
         <div>
-          <h4 className="text-xl font-bold text-white mb-3">How to Play</h4>
+          <h4 className="text-2xl font-bold text-primary mb-4">How to Play</h4>
           <ul className="list-none space-y-4 text-foreground/80">
             {champion.howToPlay.map((item) => (
               <li key={item.tip}>
@@ -36,13 +37,16 @@ export function ChampionGuide({ champion }: { champion: Champion }) {
             ))}
           </ul>
         </div>
+
+        <Divider />
+
         <div>
-          <h4 className="text-xl font-bold text-white mb-4">
+          <h4 className="text-2xl font-bold text-primary mb-4">
             Matchups & Synergies
           </h4>
           <div className="space-y-4">
             <Card className="p-4 bg-background/50">
-              <h5 className="font-bold text-sky-400 mb-2">Ideal Synergies</h5>
+              <h5 className="font-bold text-warning mb-2">Ideal Synergies</h5>
               <p className="text-sm text-foreground/80">
                 <strong className="text-white">Your Pool:</strong>{" "}
                 {champion.matchups.userSynergies.join(", ")}
@@ -54,7 +58,7 @@ export function ChampionGuide({ champion }: { champion: Champion }) {
             </Card>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <Card className="p-4 bg-background/50">
-                <h5 className="font-bold text-green-400 mb-2">
+                <h5 className="font-bold text-success mb-2">
                   Good Against (You Counter)
                 </h5>
                 <p className="text-foreground/80">
@@ -62,8 +66,8 @@ export function ChampionGuide({ champion }: { champion: Champion }) {
                 </p>
               </Card>
               <Card className="p-4 bg-background/50">
-                <h5 className="font-bold text-red-400 mb-2">
-                  Difficult Matchups (You are Countered by)
+                <h5 className="font-bold text-danger mb-2">
+                  Bad Against (You are Countered by)
                 </h5>
                 <p className="text-foreground/80">
                   {champion.matchups.badAgainst.join(", ")}
@@ -72,8 +76,11 @@ export function ChampionGuide({ champion }: { champion: Champion }) {
             </div>
           </div>
         </div>
+
+        <Divider />
+
         <div>
-          <h4 className="text-xl font-bold text-white mb-3">Build Paths</h4>
+          <h4 className="text-2xl font-bold text-primary mb-4">Build Paths</h4>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {champion.builds.map((build) => (
               <BuildPath key={build.name} build={build} />

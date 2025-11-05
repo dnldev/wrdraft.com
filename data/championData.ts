@@ -30,8 +30,9 @@ export interface Matchups {
 }
 
 export interface Champion {
-  id: string; // Changed from number to string to match previous usage
+  id: string;
   name: string;
+  portraitUrl: string;
   comfort: string | null;
   role: string;
   howToPlay: HowToPlayTip[];
@@ -44,6 +45,8 @@ export const champions: Champion[] = [
   {
     id: "varus",
     name: "Varus",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Varus.png",
     comfort: "★ S+ Comfort",
     role: "ADC / Poke / Utility",
     howToPlay: [
@@ -167,6 +170,8 @@ export const champions: Champion[] = [
   {
     id: "jinx",
     name: "Jinx",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Jinx.png",
     comfort: "★ S+ Comfort",
     role: "ADC / Scaling / Hyper-carry",
     howToPlay: [
@@ -259,6 +264,8 @@ export const champions: Champion[] = [
   {
     id: "lucian",
     name: "Lucian",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lucian.png",
     comfort: "☆ S Comfort",
     role: "ADC / All-in / Poke",
     howToPlay: [
@@ -329,6 +336,8 @@ export const champions: Champion[] = [
   {
     id: "xayah",
     name: "Xayah",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Xayah.png",
     comfort: null,
     role: "ADC / Utility / All-in",
     howToPlay: [
@@ -409,6 +418,8 @@ export const champions: Champion[] = [
   {
     id: "jhin",
     name: "Jhin",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Jhin.png",
     comfort: null,
     role: "ADC / Poke / Utility",
     howToPlay: [
@@ -430,7 +441,7 @@ export const champions: Champion[] = [
       {
         tip: "R (Curtain Call)",
         description:
-          "Use this to start a fight from safety (the slow sets up your team) or to finish running enemies. Do not use it in the middle of a team fight.",
+          "Use this to start a fight from safety (the slow sets up your team) or to finish running enemies.",
       },
     ],
     matchups: {
@@ -489,6 +500,8 @@ export const champions: Champion[] = [
   {
     id: "missfortune",
     name: "Miss Fortune",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/MissFortune.png",
     comfort: null,
     role: "ADC / Poke / All-in",
     howToPlay: [
@@ -571,13 +584,15 @@ export const champions: Champion[] = [
   {
     id: "caitlyn",
     name: "Caitlyn",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Caitlyn.png",
     comfort: null,
     role: "ADC / Poke / Control",
     howToPlay: [
       {
         tip: "Range is Life",
         description:
-          "You have the longest base auto-attack range. Use this to harass the enemy every time they try to last-hit a minion.",
+          "You have the longest base auto-attack range. Use this to harass the enemy every time they try to last-hit.",
       },
       {
         tip: "Trap Combo",
@@ -680,6 +695,8 @@ export const champions: Champion[] = [
   {
     id: "kaisa",
     name: "Kai'Sa",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Kaisa.png",
     comfort: null,
     role: "ADC / All-in / Scaling",
     howToPlay: [
@@ -782,6 +799,8 @@ export const champions: Champion[] = [
   {
     id: "ashe",
     name: "Ashe",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ashe.png",
     comfort: null,
     role: "ADC / Utility / Poke",
     howToPlay: [
@@ -853,6 +872,8 @@ export const champions: Champion[] = [
   {
     id: "braum",
     name: "Braum",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Braum.png",
     comfort: null,
     role: "Support / Defensive Engage / Peel",
     howToPlay: [
@@ -940,6 +961,8 @@ export const champions: Champion[] = [
   {
     id: "nami",
     name: "Nami",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nami.png",
     comfort: "★ S+ Comfort",
     role: "Support / Poke / Sustain",
     howToPlay: [
@@ -1002,10 +1025,6 @@ export const champions: Champion[] = [
         ],
         boots: [
           {
-            name: "Ionian Boots of Lucidity",
-            icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3158.png",
-          },
-          {
             name: "Redemption Enchant",
             icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3107.png",
           },
@@ -1022,6 +1041,8 @@ export const champions: Champion[] = [
   {
     id: "milio",
     name: "Milio",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Milio.png",
     comfort: "★ S+ Comfort",
     role: "Support / Sustain / Peel",
     howToPlay: [
@@ -1083,10 +1104,6 @@ export const champions: Champion[] = [
         ],
         boots: [
           {
-            name: "Ionian Boots of Lucidity",
-            icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3158.png",
-          },
-          {
             name: "Redemption Enchant",
             icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3107.png",
           },
@@ -1103,6 +1120,8 @@ export const champions: Champion[] = [
   {
     id: "leona",
     name: "Leona",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Leona.png",
     comfort: "☆ S Comfort",
     role: "Support / All-in / Engage",
     howToPlay: [
@@ -1174,10 +1193,6 @@ export const champions: Champion[] = [
             name: "Locket Enchant",
             icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3190.png",
           },
-          {
-            name: "Redemption Enchant",
-            icon: "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/item/3107.png",
-          },
         ],
         situational: [
           {
@@ -1195,6 +1210,8 @@ export const champions: Champion[] = [
   {
     id: "bard",
     name: "Bard",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Bard.png",
     comfort: null,
     role: "Support / Roaming / Utility",
     howToPlay: [
@@ -1206,7 +1223,7 @@ export const champions: Champion[] = [
       {
         tip: "When to Roam",
         description:
-          "The only time you can roam is when your ADC has pushed the minion wave under the enemy tower. Drop a W (Health Pack) for them, then leave.",
+          "Only leave your ADC after helping them push the wave under the enemy tower. Drop a W (Health Pack) for them, then leave.",
       },
       {
         tip: "Q (Stun)",
@@ -1265,6 +1282,8 @@ export const champions: Champion[] = [
   {
     id: "zilean",
     name: "Zilean",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zilean.png",
     comfort: null,
     role: "Support / Poke / Utility",
     howToPlay: [
@@ -1350,6 +1369,8 @@ export const champions: Champion[] = [
   {
     id: "thresh",
     name: "Thresh",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Thresh.png",
     comfort: null,
     role: "Support / Utility / Catcher",
     howToPlay: [
@@ -1427,6 +1448,8 @@ export const champions: Champion[] = [
   {
     id: "morgana",
     name: "Morgana",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Morgana.png",
     comfort: null,
     role: "Support / Anti-CC / Catcher",
     howToPlay: [
@@ -1501,6 +1524,8 @@ export const champions: Champion[] = [
   {
     id: "lulu",
     name: "Lulu",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lulu.png",
     comfort: null,
     role: "Support / Peel / Enchanter",
     howToPlay: [
@@ -1566,5 +1591,549 @@ export const champions: Champion[] = [
         ],
       },
     ],
+  },
+  {
+    id: "corki",
+    name: "Corki",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Corki.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Nami", "Leona", "Thresh", "Lulu"],
+      metaSynergies: ["Karma", "Nautilus", "Rakan", "Alistar"],
+      goodAgainst: ["Ezreal", "Sivir", "Zeri"],
+      badAgainst: ["Caitlyn", "Draven", "Tristana", "Samira"],
+    },
+    builds: [],
+  },
+  {
+    id: "vayne",
+    name: "Vayne",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Vayne.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Lulu", "Nami", "Milio", "Janna"],
+      metaSynergies: ["Yuumi", "Soraka", "Karma"],
+      goodAgainst: ["Kai'Sa", "Sivir", "Twitch"],
+      badAgainst: ["Caitlyn", "Draven", "Lucian", "Ashe"],
+    },
+    builds: [],
+  },
+  {
+    id: "samira",
+    name: "Samira",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Samira.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Leona", "Thresh", "Braum"],
+      metaSynergies: ["Nautilus", "Alistar", "Rakan", "Pyke"],
+      goodAgainst: ["Ezreal", "Jhin", "Kai'Sa", "Sivir"],
+      badAgainst: ["Draven", "Ashe", "Caitlyn", "Janna", "Lulu"],
+    },
+    builds: [],
+  },
+  {
+    id: "sivir",
+    name: "Sivir",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Sivir.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Morgana", "Lulu", "Nami"],
+      metaSynergies: ["Yuumi", "Karma", "Seraphine"],
+      goodAgainst: ["Caitlyn", "Ezreal", "Blitzcrank"],
+      badAgainst: ["Vayne", "Lucian", "Draven", "Twitch"],
+    },
+    builds: [],
+  },
+  {
+    id: "twitch",
+    name: "Twitch",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Twitch.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Lulu", "Milio", "Janna"],
+      metaSynergies: ["Yuumi", "Karma", "Zilean"],
+      goodAgainst: ["Ashe", "Jhin", "Sivir"],
+      badAgainst: ["Lucian", "Draven", "Caitlyn", "Leona"],
+    },
+    builds: [],
+  },
+  {
+    id: "tristana",
+    name: "Tristana",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Tristana.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Leona", "Braum", "Thresh"],
+      metaSynergies: ["Alistar", "Nautilus", "Rakan"],
+      goodAgainst: ["Vayne", "Jinx", "Corki"],
+      badAgainst: ["Draven", "Caitlyn", "Ashe", "Samira"],
+    },
+    builds: [],
+  },
+  {
+    id: "draven",
+    name: "Draven",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Draven.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Leona", "Thresh", "Morgana"],
+      metaSynergies: ["Nautilus", "Pyke", "Blitzcrank"],
+      goodAgainst: ["Jinx", "Vayne", "Kai'Sa", "Ezreal"],
+      badAgainst: ["Caitlyn", "Ashe", "Varus", "Braum"],
+    },
+    builds: [],
+  },
+  {
+    id: "zeri",
+    name: "Zeri",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zeri.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Lulu", "Milio", "Nami"],
+      metaSynergies: ["Yuumi", "Karma", "Sona"],
+      goodAgainst: ["Ashe", "Sivir"],
+      badAgainst: ["Caitlyn", "Varus", "Jhin"],
+    },
+    builds: [],
+  },
+  {
+    id: "kalista",
+    name: "Kalista",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Kalista.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Thresh", "Leona", "Braum"],
+      metaSynergies: ["Alistar", "Nautilus", "Blitzcrank"],
+      goodAgainst: ["Caitlyn", "Jinx"],
+      badAgainst: ["Ashe", "Varus", "Leona"],
+    },
+    builds: [],
+  },
+  {
+    id: "nilah",
+    name: "Nilah",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nilah.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Leona", "Nami", "Lulu"],
+      metaSynergies: ["Rakan", "Taric", "Yuumi"],
+      goodAgainst: ["Ezreal", "Sivir", "Samira"],
+      badAgainst: ["Caitlyn", "Ashe", "Draven"],
+    },
+    builds: [],
+  },
+  {
+    id: "ezreal",
+    name: "Ezreal",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ezreal.png",
+    role: "ADC",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Nami", "Bard", "Lulu"],
+      metaSynergies: ["Karma", "Yuumi", "Lux"],
+      goodAgainst: ["Caitlyn", "Varus", "Xayah"],
+      badAgainst: ["Draven", "Lucian", "Samira", "Tristana"],
+    },
+    builds: [],
+  },
+  {
+    id: "karma",
+    name: "Karma",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Karma.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Ashe", "Varus", "Ezreal"],
+      metaSynergies: ["Jhin", "Sivir", "Ziggs"],
+      goodAgainst: ["Braum", "Tahm Kench", "Soraka"],
+      badAgainst: ["Nami", "Leona", "Nautilus", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "maokai",
+    name: "Maokai",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Maokai.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Miss Fortune", "Jhin", "Xayah"],
+      metaSynergies: ["Kai'Sa", "Samira", "Tristana"],
+      goodAgainst: ["Rakan", "Braum", "Tahm Kench"],
+      badAgainst: ["Janna", "Morgana", "Zyra"],
+    },
+    builds: [],
+  },
+  {
+    id: "nautilus",
+    name: "Nautilus",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nautilus.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Lucian", "Jhin", "Kai'Sa", "Xayah"],
+      metaSynergies: ["Samira", "Draven", "Tristana"],
+      goodAgainst: ["Yuumi", "Soraka", "Sona", "Nami"],
+      badAgainst: ["Morgana", "Janna", "Braum", "Alistar"],
+    },
+    builds: [],
+  },
+  {
+    id: "rakan",
+    name: "Rakan",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Rakan.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Xayah", "Kai'Sa", "Lucian"],
+      metaSynergies: ["Samira", "Tristana", "Jhin"],
+      goodAgainst: ["Braum", "Soraka", "Sona"],
+      badAgainst: ["Janna", "Morgana", "Leona"],
+    },
+    builds: [],
+  },
+  {
+    id: "pyke",
+    name: "Pyke",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Pyke.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Jhin", "Lucian"],
+      metaSynergies: ["Draven", "Samira", "Kai'Sa"],
+      goodAgainst: ["Soraka", "Sona", "Yuumi", "Janna"],
+      badAgainst: ["Leona", "Nautilus", "Alistar", "Braum"],
+    },
+    builds: [],
+  },
+  {
+    id: "senna",
+    name: "Senna",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Senna.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Ashe", "Jhin", "Caitlyn"],
+      metaSynergies: ["Sivir", "Varus"],
+      goodAgainst: ["Soraka", "Sona", "Braum"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "alistar",
+    name: "Alistar",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Alistar.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Lucian", "Kai'Sa", "Xayah"],
+      metaSynergies: ["Samira", "Tristana", "Draven"],
+      goodAgainst: ["Leona", "Nautilus", "Pyke", "Rakan"],
+      badAgainst: ["Morgana", "Janna", "Braum", "Lulu"],
+    },
+    builds: [],
+  },
+  {
+    id: "yuumi",
+    name: "Yuumi",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Yuumi.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Jinx", "Lucian", "Ashe"],
+      metaSynergies: ["Vayne", "Twitch", "Zeri"],
+      goodAgainst: ["Soraka", "Braum"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Thresh"],
+    },
+    builds: [],
+  },
+  {
+    id: "zyra",
+    name: "Zyra",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zyra.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Jhin", "Ashe", "Varus"],
+      metaSynergies: ["Miss Fortune", "Ezreal"],
+      goodAgainst: ["Soraka", "Sona", "Braum", "Alistar"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Brand"],
+    },
+    builds: [],
+  },
+  {
+    id: "sona",
+    name: "Sona",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Sona.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Jinx", "Ashe", "Caitlyn"],
+      metaSynergies: ["Ezreal", "Vayne", "Twitch"],
+      goodAgainst: ["Soraka", "Yuumi"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "janna",
+    name: "Janna",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Janna.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Jinx", "Ashe", "Caitlyn"],
+      metaSynergies: ["Vayne", "Twitch", "Kog'Maw"],
+      goodAgainst: ["Leona", "Nautilus", "Alistar", "Rakan"],
+      badAgainst: ["Nami", "Sona", "Soraka", "Zyra"],
+    },
+    builds: [],
+  },
+  {
+    id: "seraphine",
+    name: "Seraphine",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Seraphine.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Jhin", "Ashe", "Caitlyn"],
+      metaSynergies: ["Miss Fortune", "Ezreal", "Sivir"],
+      goodAgainst: ["Braum", "Sona", "Soraka"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "soraka",
+    name: "Soraka",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Soraka.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Ashe", "Caitlyn", "Jinx"],
+      metaSynergies: ["Ezreal", "Varus", "Vayne"],
+      goodAgainst: ["Nami", "Sona", "Janna"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "ornn",
+    name: "Ornn",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ornn.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Miss Fortune", "Jhin", "Xayah"],
+      metaSynergies: ["Yasuo", "Samira", "Kalista"],
+      goodAgainst: ["Braum", "Alistar", "Leona"],
+      badAgainst: ["Morgana", "Janna", "Vayne"],
+    },
+    builds: [],
+  },
+  {
+    id: "galio",
+    name: "Galio",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Galio.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Xayah", "Kai'Sa", "Miss Fortune"],
+      metaSynergies: ["Samira", "Tristana", "Yasuo"],
+      goodAgainst: ["Rakan", "Alistar", "Leona"],
+      badAgainst: ["Morgana", "Janna", "Braum"],
+    },
+    builds: [],
+  },
+  {
+    id: "blitzcrank",
+    name: "Blitzcrank",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Blitzcrank.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Jinx", "Caitlyn", "Jhin"],
+      metaSynergies: ["Draven", "Tristana", "Kai'Sa"],
+      goodAgainst: ["Soraka", "Sona", "Yuumi", "Nami"],
+      badAgainst: ["Morgana", "Leona", "Alistar", "Sivir"],
+    },
+    builds: [],
+  },
+  {
+    id: "singed",
+    name: "Singed",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Singed.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Jhin"],
+      metaSynergies: ["Cassiopeia"],
+      goodAgainst: ["Braum", "Rakan"],
+      badAgainst: ["Janna", "Leona", "Vayne"],
+    },
+    builds: [],
+  },
+  {
+    id: "amumu",
+    name: "Amumu",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Amumu.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Miss Fortune", "Kai'Sa", "Jhin"],
+      metaSynergies: ["Samira", "Tristana", "Yasuo"],
+      goodAgainst: ["Soraka", "Sona", "Yuumi"],
+      badAgainst: ["Morgana", "Janna", "Olaf"],
+    },
+    builds: [],
+  },
+  {
+    id: "nunu",
+    name: "Nunu & Willump",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nunu.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Jhin", "Ashe"],
+      metaSynergies: ["Karthus", "Twitch"],
+      goodAgainst: ["Rakan", "Pyke"],
+      badAgainst: ["Morgana", "Janna", "Alistar"],
+    },
+    builds: [],
+  },
+  {
+    id: "jarvaniv",
+    name: "Jarvan IV",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/JarvanIV.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Miss Fortune", "Jhin", "Xayah"],
+      metaSynergies: ["Samira", "Kai'Sa", "Yasuo"],
+      goodAgainst: ["Soraka", "Sona", "Zyra"],
+      badAgainst: ["Janna", "Alistar", "Vayne"],
+    },
+    builds: [],
+  },
+  {
+    id: "swain",
+    name: "Swain",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Swain.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Jhin", "Ashe", "Caitlyn"],
+      metaSynergies: ["Samira", "Varus", "Miss Fortune"],
+      goodAgainst: ["Braum", "Soraka", "Sona"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "brand",
+    name: "Brand",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Brand.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Jhin", "Ashe"],
+      metaSynergies: ["Varus", "Miss Fortune"],
+      goodAgainst: ["Soraka", "Sona", "Yuumi", "Zyra"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "lux",
+    name: "Lux",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lux.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: ["Caitlyn", "Jhin", "Ashe", "Varus"],
+      metaSynergies: ["Ezreal", "Miss Fortune"],
+      goodAgainst: ["Soraka", "Sona", "Yuumi", "Braum"],
+      badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
   },
 ];

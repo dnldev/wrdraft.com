@@ -1,6 +1,11 @@
+"use client";
+
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
-import { LucideIcon } from "./LucideIcon";
-import { TierList } from "./TierList"; // Import the new component
+
+import { TierListData } from "@/data/tierListData";
+
+import { LucideIcon } from "../core/LucideIcon";
+import { TierList } from "./TierList";
 
 const mindsetTips = [
   {
@@ -21,14 +26,14 @@ const mindsetTips = [
   },
 ];
 
-export function DraftingInfo() {
+export function DraftingInfo({ tierList }: { tierList: TierListData }) {
   return (
     <div className="space-y-12">
-      <TierList />
+      <TierList tierList={tierList} />
       <Card className="p-0">
         <CardHeader className="flex items-center justify-center gap-3 p-4 md:p-6">
-          <LucideIcon name="Swords" className="text-red-400" />
-          <h2 className="text-3xl font-bold text-red-400 text-center">
+          <LucideIcon name="Swords" className="text-danger" />
+          <h2 className="text-3xl font-bold text-danger text-center">
             Drafting Strategy
           </h2>
         </CardHeader>
@@ -36,14 +41,14 @@ export function DraftingInfo() {
         <CardBody className="p-4 md:p-6 space-y-8">
           <div>
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <LucideIcon name="BrainCircuit" className="text-sky-400" />
+              <LucideIcon name="BrainCircuit" className="text-primary" />
               The Drafting Mindset
             </h3>
             <div className="space-y-3">
               {mindsetTips.map((tip) => (
                 <div key={tip.title} className="flex items-start gap-3">
                   <div className="pt-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-sky-400"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                   </div>
                   <p className="text-foreground/80">
                     <strong className="text-white">{tip.title}:</strong>{" "}
@@ -60,22 +65,22 @@ export function DraftingInfo() {
               </h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <strong className="text-red-300">Zed / Akali / Fizz:</strong>{" "}
+                  <strong className="text-danger">Zed / Akali / Fizz:</strong>{" "}
                   Hyper-mobile assassins that delete your immobile ADCs.
                 </li>
                 <li>
-                  <strong className="text-red-300">Yuumi:</strong> Makes divers
+                  <strong className="text-danger">Yuumi:</strong> Makes divers
                   like <strong className="text-yellow-300">Aatrox</strong>{" "}
                   unkillable.
                 </li>
                 <li>
-                  <strong className="text-red-300">
+                  <strong className="text-danger">
                     Blitzcrank / Nautilus / Thresh:
                   </strong>{" "}
                   Hook champions that punish squishy enchanters.
                 </li>
                 <li>
-                  <strong className="text-red-300">Draven:</strong> Ban him if
+                  <strong className="text-danger">Draven:</strong> Ban him if
                   you want a safe, scaling lane.
                 </li>
               </ul>

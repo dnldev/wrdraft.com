@@ -1,7 +1,8 @@
 // in /components/BuildPath.tsx
-import { Build, Item } from "@/data/championData";
 import Image from "next/image";
 import React from "react";
+
+import { Build, Item } from "@/data/championData";
 
 interface BuildPathProps {
   build: Build;

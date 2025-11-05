@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
-import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ["latin"] });
+import { GeistSans } from "geist/font/sans";
+import type { Metadata } from "next";
+
+import { ThemeSwitcher } from "@/components/core/ThemeSwitcher";
+
+import { Providers } from "./providers";
 
 export const metadata: Metadata = {
   title: "Wild Rift Dragon Lane Playbook",
@@ -16,11 +18,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
-      <body className={`${inter.className} bg-background text-foreground`}>
+    <html lang="en" className="hextech-arcane" suppressHydrationWarning>
+      <body className={`${GeistSans.className} bg-background text-foreground`}>
         <Providers>
-          {/* Add top padding for mobile, left padding for desktop */}
-          <div className="pt-16 md:pt-0 md:pl-64">{children}</div>
+          {children}
+          <footer className="text-center py-8 text-slate-500 text-sm md:pl-64 flex justify-center items-center gap-4">
+            <p>Wild Rift Dragon Lane Playbook</p>
+            <ThemeSwitcher />
+          </footer>
         </Providers>
       </body>
     </html>
