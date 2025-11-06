@@ -1,6 +1,6 @@
 "use client";
 
-import { FloatingFocusManager } from "@floating-ui/react";
+import { FloatingFocusManager, FloatingPortal } from "@floating-ui/react";
 import { Avatar, Card } from "@heroui/react";
 import React from "react";
 
@@ -54,11 +54,12 @@ export function ChampionSelector({
   return (
     <div>
       <p className="text-sm font-semibold text-foreground/80 mb-2">{label}</p>
-      <div
+      <button
+        type="button"
         ref={refs.setReference}
         {...getReferenceProps()}
-        aria-disabled={isDisabled}
-        className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50 aria-disabled:opacity-50 aria-disabled:cursor-not-allowed text-left"
+        disabled={isDisabled}
+        className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50 disabled:opacity-50 disabled:cursor-not-allowed text-left"
       >
         <div className="flex items-center gap-3 flex-grow min-w-0">
           {selectedChampion ? (
@@ -101,26 +102,28 @@ export function ChampionSelector({
             className="transition-transform text-foreground/70 flex-shrink-0"
           />
         )}
-      </div>
+      </button>
 
       {isOpen && (
-        <FloatingFocusManager context={context} modal={false}>
-          <div
-            // eslint-disable-next-line
-            ref={refs.setFloating}
-            style={floatingStyles}
-            {...getFloatingProps()}
-            className="z-50"
-          >
-            <Card className="w-[340px] max-h-80 overflow-y-auto p-0">
-              <ChampionSelectorGrid
-                champions={champions}
-                selectedChampionName={selectedChampionName}
-                onSelect={handleSelect}
-              />
-            </Card>
-          </div>
-        </FloatingFocusManager>
+        <FloatingPortal>
+          <FloatingFocusManager context={context} modal={false}>
+            <div
+              // eslint-disable-next-line
+              ref={refs.setFloating}
+              style={floatingStyles}
+              {...getFloatingProps()}
+              className="z-50"
+            >
+              <Card className="w-[95vw] sm:max-w-[300px] overflow-y-auto p-0">
+                <ChampionSelectorGrid
+                  champions={champions}
+                  selectedChampionName={selectedChampionName}
+                  onSelect={handleSelect}
+                />
+              </Card>
+            </div>
+          </FloatingFocusManager>
+        </FloatingPortal>
       )}
     </div>
   );
