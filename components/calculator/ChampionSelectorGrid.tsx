@@ -83,14 +83,8 @@ export function ChampionSelectorGrid({
   };
 
   const sortedChampions = useMemo(() => {
-    return champions.toSorted((a, b) => {
-      const aIsComfort = a.comfort !== null;
-      const bIsComfort = b.comfort !== null;
-      if (aIsComfort && !bIsComfort) return -1;
-      if (!aIsComfort && bIsComfort) return 1;
-
-      return a.name.localeCompare(b.name);
-    });
+    // Sort champions alphabetically by name for predictable ordering.
+    return champions.toSorted((a, b) => a.name.localeCompare(b.name));
   }, [champions]);
 
   const hasSelection = selectedChampionName !== null;

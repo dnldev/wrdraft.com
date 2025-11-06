@@ -3,6 +3,7 @@ import "dotenv/config";
 import dotenv from "dotenv";
 import { createClient } from "redis";
 
+import { categoryData } from "@/data/categoryData.js";
 import { Champion, champions as baseChampions } from "@/data/championData.js";
 import { firstPickData } from "@/data/firstPickData.js";
 import { matchupData } from "@/data/matchupData.js";
@@ -68,9 +69,12 @@ async function main() {
   multi.set("data:tierlist", JSON.stringify(tierListData));
   console.log("- Staging tier list data...");
 
+  multi.set("data:categories", JSON.stringify(categoryData));
+  console.log("- Staging champion category data...");
+
   await multi.exec();
 
-  await redis.disconnect();
+  redis.destroy();
   console.log("\n✅ Data seeding complete!");
 }
 

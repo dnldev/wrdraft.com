@@ -3,6 +3,7 @@
 import { Button, Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
 import React from "react";
 
+import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 
 import { ChampionSelector } from "./ChampionSelector";
@@ -18,6 +19,7 @@ interface CalculatorFormProps {
   adcs: Champion[];
   supports: Champion[];
   allChampions: Champion[];
+  categories: RoleCategories[];
   championMap: Map<string, Champion>;
   selections: Selections;
   onSelectionChange: (role: keyof Selections, name: string | null) => void;
@@ -32,6 +34,7 @@ export function CalculatorForm({
   adcs,
   supports,
   allChampions,
+  categories,
   championMap,
   selections,
   onSelectionChange,
@@ -41,6 +44,11 @@ export function CalculatorForm({
   isCalculating,
   isSelectionEmpty,
 }: CalculatorFormProps) {
+  const adcCategories = categories.find((c) => c.name === "ADC")?.categories;
+  const supportCategories = categories.find(
+    (c) => c.name === "Support"
+  )?.categories;
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
       <Card className="p-4 w-full">
@@ -53,6 +61,7 @@ export function CalculatorForm({
           <ChampionSelector
             label="ADC"
             champions={adcs}
+            categories={adcCategories}
             selectedChampionName={selections.alliedAdc}
             onSelect={(name) => onSelectionChange("alliedAdc", name)}
             championMap={championMap}
@@ -61,6 +70,7 @@ export function CalculatorForm({
           <ChampionSelector
             label="Support"
             champions={supports}
+            categories={supportCategories}
             selectedChampionName={selections.alliedSupport}
             onSelect={(name) => onSelectionChange("alliedSupport", name)}
             championMap={championMap}
@@ -108,6 +118,7 @@ export function CalculatorForm({
           <ChampionSelector
             label="ADC"
             champions={allChampions.filter((c) => c.role.includes("ADC"))}
+            categories={adcCategories}
             selectedChampionName={selections.enemyAdc}
             onSelect={(name) => onSelectionChange("enemyAdc", name)}
             championMap={championMap}
@@ -115,6 +126,7 @@ export function CalculatorForm({
           <ChampionSelector
             label="Support"
             champions={allChampions.filter((c) => c.role.includes("Support"))}
+            categories={supportCategories}
             selectedChampionName={selections.enemySupport}
             onSelect={(name) => onSelectionChange("enemySupport", name)}
             championMap={championMap}

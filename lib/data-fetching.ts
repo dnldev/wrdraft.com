@@ -1,3 +1,4 @@
+import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { Synergy } from "@/data/synergyData";
@@ -7,6 +8,16 @@ import { getConnectedRedisClient } from "@/lib/redis";
 
 export type SynergyMatrix = Record<string, Record<string, number>>;
 export type CounterMatrix = Record<string, Record<string, number>>;
+
+/**
+ * Fetches champion category data from Redis.
+ * @returns {Promise<RoleCategories[]>} A promise that resolves to the category data.
+ */
+export async function getCategories(): Promise<RoleCategories[]> {
+  const redis = await getConnectedRedisClient();
+  const categoriesString = await redis.get("data:categories");
+  return categoriesString ? JSON.parse(categoriesString) : [];
+}
 
 /**
  * Fetches the meta tier list data from Redis.

@@ -38,8 +38,8 @@ export function usePopover({
     whileElementsMounted: (reference, floating, update) =>
       autoUpdate(reference, floating, update, {
         ancestorScroll: true,
-        ancestorResize: true, // This is the fix: track resize events of parent elements.
-        elementResize: true, // And track resize of the reference/floating elements themselves.
+        ancestorResize: true,
+        elementResize: true,
       }),
     middleware: [
       offset(5),

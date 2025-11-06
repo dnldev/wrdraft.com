@@ -8,6 +8,7 @@ import { BestPairings } from "@/components/pairings/BestPairings";
 import { TeamComps } from "@/components/team-comps/TeamComps";
 import {
   getAllChampions,
+  getCategories,
   getChampionsByRole,
   getCounterMatrix,
   getFirstPicks,
@@ -28,6 +29,7 @@ export default async function HomePage() {
     counterMatrix,
     firstPicks,
     tierList,
+    categories,
   ] = await Promise.all([
     getChampionsByRole("adc"),
     getChampionsByRole("support"),
@@ -38,6 +40,7 @@ export default async function HomePage() {
     getCounterMatrix(),
     getFirstPicks(),
     getTierList(),
+    getCategories(),
   ]);
 
   return (
@@ -62,6 +65,7 @@ export default async function HomePage() {
               counterMatrix={counterMatrix}
               firstPicks={firstPicks}
               tierList={tierList}
+              categories={categories}
             />
           ),
         }}

@@ -3,6 +3,7 @@
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React from "react";
 
+import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
@@ -22,6 +23,7 @@ interface MatchupCalculatorProps {
   counterMatrix: CounterMatrix;
   firstPicks: FirstPickData;
   tierList: TierListData;
+  categories: RoleCategories[];
 }
 
 /**
@@ -65,6 +67,7 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
             adcs={props.adcs}
             supports={props.supports}
             allChampions={props.allChampions}
+            categories={props.categories}
             championMap={championMap}
             selections={selections}
             onSelectionChange={handleSelectionChange}
