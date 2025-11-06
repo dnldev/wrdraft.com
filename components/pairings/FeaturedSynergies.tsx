@@ -28,8 +28,12 @@ const SynergyCard: React.FC<SynergyCardProps> = ({
     warning: "border-warning",
   }[tierColor];
 
-  const adcText = `${adc}${adcComfort ? ` ${adcComfort}` : ""}`;
-  const supportText = `${support}${supportComfort ? ` ${supportComfort}` : ""}`;
+  // Extracted logic to resolve nested template literals
+  const adcComfortText = adcComfort ? ` ${adcComfort}` : "";
+  const supportComfortText = supportComfort ? ` ${supportComfort}` : "";
+
+  const adcText = `${adc}${adcComfortText}`;
+  const supportText = `${support}${supportComfortText}`;
 
   return (
     <Card className={`p-4 border-l-4 ${borderColorClass}`}>

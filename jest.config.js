@@ -5,6 +5,7 @@ const jestConfig = {
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
   },
+  coverageReporters: ["json", "lcov", "text", "clover"],
 };
 
 export default jestConfig;
