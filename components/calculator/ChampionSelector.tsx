@@ -2,12 +2,14 @@
 
 import { FloatingFocusManager, FloatingPortal } from "@floating-ui/react";
 import { Avatar, Card } from "@heroui/react";
-import React from "react";
+import React, { useMemo, useState } from "react";
 
+import { Category } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { usePopover } from "@/hooks/usePopover";
 
 import { LucideIcon } from "../core/LucideIcon";
+import { SwipeableTabs } from "../core/SwipeableTabs";
 import { ChampionSelectorGrid } from "./ChampionSelectorGrid";
 
 interface ChampionSelectorProps {
@@ -16,6 +18,7 @@ interface ChampionSelectorProps {
   onSelect: (name: string | null) => void;
   championMap: Map<string, Champion>;
   label: string;
+  categories?: Category[];
   isDisabled?: boolean;
 }
 
@@ -25,6 +28,7 @@ export function ChampionSelector({
   onSelect,
   championMap,
   label,
+  categories = [],
   isDisabled = false,
 }: ChampionSelectorProps) {
   const {
@@ -37,9 +41,33 @@ export function ChampionSelector({
     getReferenceProps,
   } = usePopover();
 
+  const [activeCategory, setActiveCategory] = useState("All");
+
   const selectedChampion = selectedChampionName
     ? championMap.get(selectedChampionName)
     : null;
+
+  const categoryTabs = useMemo(() => {
+    return ["All", ...categories.map((c) => c.name)].map((name) => ({
+      key: name,
+      title: name,
+    }));
+  }, [categories]);
+
+  const filteredChampions = useMemo(() => {
+    if (activeCategory === "All") {
+      return champions;
+    }
+    const categoryData = categories.find((cat) => cat.name === activeCategory);
+    if (!categoryData) {
+      return champions;
+    }
+
+    const championsInCategory = new Set(categoryData.champions);
+    return champions.filter((champion) =>
+      championsInCategory.has(champion.name)
+    );
+  }, [champions, activeCategory, categories]);
 
   const handleSelect = (name: string | null) => {
     onSelect(name);
@@ -47,13 +75,12 @@ export function ChampionSelector({
   };
 
   const handleClear = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent the main button from toggling the popover
+    e.stopPropagation();
     onSelect(null);
   };
 
   return (
     <div>
-      <p className="text-sm font-semibold text-foreground/80 mb-2">{label}</p>
       <button
         type="button"
         ref={refs.setReference}
@@ -82,7 +109,7 @@ export function ChampionSelector({
                   className="text-foreground/30"
                 />
               </div>
-              <span className="text-foreground/60">Select Champion</span>
+              <span className="text-foreground/60">{label}</span>
             </>
           )}
         </div>
@@ -108,18 +135,37 @@ export function ChampionSelector({
         <FloatingPortal>
           <FloatingFocusManager context={context} modal={false}>
             <div
-              // eslint-disable-next-line
+              // eslint-disable-next-line react-hooks/refs
               ref={refs.setFloating}
               style={floatingStyles}
               {...getFloatingProps()}
               className="z-50"
             >
-              <Card className="w-[95vw] sm:max-w-[300px] overflow-y-auto p-0">
-                <ChampionSelectorGrid
-                  champions={champions}
-                  selectedChampionName={selectedChampionName}
-                  onSelect={handleSelect}
-                />
+              <Card className="w-[95vw] sm:max-w-[300px] p-0 flex flex-col min-h-64 max-h-[80vh]">
+                {categories.length > 0 && (
+                  <div className="p-1 border-b border-divider sticky top-0 bg-content1 z-10">
+                    <SwipeableTabs
+                      aria-label="Champion Categories"
+                      size="sm"
+                      color="primary"
+                      items={categoryTabs}
+                      selectedKey={activeCategory}
+                      onSelectionChange={(key) =>
+                        setActiveCategory(key as string)
+                      }
+                      classNames={{
+                        tabList: "bg-transparent p-0",
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="overflow-y-auto flex-grow min-h-0">
+                  <ChampionSelectorGrid
+                    champions={filteredChampions}
+                    selectedChampionName={selectedChampionName}
+                    onSelect={handleSelect}
+                  />
+                </div>
               </Card>
             </div>
           </FloatingFocusManager>

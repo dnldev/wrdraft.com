@@ -57,9 +57,9 @@ export function CalculatorForm({
             Your Team
           </h3>
         </CardHeader>
-        <CardBody className="p-0 space-y-6">
+        <CardBody className="p-0 space-y-4">
           <ChampionSelector
-            label="ADC"
+            label="Allied ADC"
             champions={adcs}
             categories={adcCategories}
             selectedChampionName={selections.alliedAdc}
@@ -68,7 +68,7 @@ export function CalculatorForm({
             isDisabled={roleToCalculate === "adc"}
           />
           <ChampionSelector
-            label="Support"
+            label="Allied Support"
             champions={supports}
             categories={supportCategories}
             selectedChampionName={selections.alliedSupport}
@@ -114,9 +114,9 @@ export function CalculatorForm({
             Enemy Team
           </h3>
         </CardHeader>
-        <CardBody className="p-0 space-y-6">
+        <CardBody className="p-0 space-y-4">
           <ChampionSelector
-            label="ADC"
+            label="Enemy ADC"
             champions={allChampions.filter((c) => c.role.includes("ADC"))}
             categories={adcCategories}
             selectedChampionName={selections.enemyAdc}
@@ -124,7 +124,7 @@ export function CalculatorForm({
             championMap={championMap}
           />
           <ChampionSelector
-            label="Support"
+            label="Enemy Support"
             champions={allChampions.filter((c) => c.role.includes("Support"))}
             categories={supportCategories}
             selectedChampionName={selections.enemySupport}
