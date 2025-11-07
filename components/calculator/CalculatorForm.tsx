@@ -1,19 +1,37 @@
 "use client";
 
-import { Button, Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
+import { Card, CardBody, CardHeader, Tab, Tabs } from "@heroui/react";
 import React from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
+import { Selections } from "@/hooks/useMatchupCalculator";
 
 import { ChampionSelector } from "./ChampionSelector";
 
-interface Selections {
-  alliedAdc: string | null;
-  alliedSupport: string | null;
-  enemyAdc: string | null;
-  enemySupport: string | null;
-}
+type RoleToCalculate = "adc" | "support" | "both";
+
+// A definitive list of the original 18 champions in your curated pool.
+const coreChampionNames = new Set([
+  "Varus",
+  "Jinx",
+  "Lucian",
+  "Xayah",
+  "Jhin",
+  "Miss Fortune",
+  "Caitlyn",
+  "Kai'Sa",
+  "Ashe",
+  "Braum",
+  "Nami",
+  "Milio",
+  "Leona",
+  "Bard",
+  "Zilean",
+  "Thresh",
+  "Morgana",
+  "Lulu",
+]);
 
 interface CalculatorFormProps {
   adcs: Champion[];
@@ -23,13 +41,16 @@ interface CalculatorFormProps {
   championMap: Map<string, Champion>;
   selections: Selections;
   onSelectionChange: (role: keyof Selections, name: string | null) => void;
-  roleToCalculate: "adc" | "support";
-  onRoleChange: (role: "adc" | "support") => void;
-  onCalculate: () => void;
+  roleToCalculate: RoleToCalculate;
+  onRoleChange: (role: RoleToCalculate) => void;
   isCalculating: boolean;
-  isSelectionEmpty: boolean;
 }
 
+/**
+ * A form component that contains the champion selectors for the calculator.
+ * @param {CalculatorFormProps} props - The component's props.
+ * @returns {JSX.Element}
+ */
 export function CalculatorForm({
   adcs,
   supports,
@@ -40,14 +61,18 @@ export function CalculatorForm({
   onSelectionChange,
   roleToCalculate,
   onRoleChange,
-  onCalculate,
   isCalculating,
-  isSelectionEmpty,
 }: CalculatorFormProps) {
   const adcCategories = categories.find((c) => c.name === "ADC")?.categories;
   const supportCategories = categories.find(
     (c) => c.name === "Support"
   )?.categories;
+
+  // Filter the champion pools to only include your core 18 champions for allied selections.
+  const coreAdcs = adcs.filter((champ) => coreChampionNames.has(champ.name));
+  const coreSupports = supports.filter((champ) =>
+    coreChampionNames.has(champ.name)
+  );
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
@@ -58,24 +83,34 @@ export function CalculatorForm({
           </h3>
         </CardHeader>
         <CardBody className="p-0 space-y-4">
-          <ChampionSelector
-            label="Allied ADC"
-            champions={adcs}
-            categories={adcCategories}
-            selectedChampionName={selections.alliedAdc}
-            onSelect={(name) => onSelectionChange("alliedAdc", name)}
-            championMap={championMap}
-            isDisabled={roleToCalculate === "adc"}
-          />
-          <ChampionSelector
-            label="Allied Support"
-            champions={supports}
-            categories={supportCategories}
-            selectedChampionName={selections.alliedSupport}
-            onSelect={(name) => onSelectionChange("alliedSupport", name)}
-            championMap={championMap}
-            isDisabled={roleToCalculate === "support"}
-          />
+          <div>
+            <ChampionSelector
+              label="Allied ADC"
+              champions={coreAdcs}
+              categories={adcCategories}
+              selectedChampionName={selections.alliedAdc}
+              onSelect={(name) => onSelectionChange("alliedAdc", name)}
+              championMap={championMap}
+              isDisabled={
+                roleToCalculate === "adc" || roleToCalculate === "both"
+              }
+              isLoading={isCalculating}
+            />
+          </div>
+          <div>
+            <ChampionSelector
+              label="Allied Support"
+              champions={coreSupports}
+              categories={supportCategories}
+              selectedChampionName={selections.alliedSupport}
+              onSelect={(name) => onSelectionChange("alliedSupport", name)}
+              championMap={championMap}
+              isDisabled={
+                roleToCalculate === "support" || roleToCalculate === "both"
+              }
+              isLoading={isCalculating}
+            />
+          </div>
         </CardBody>
       </Card>
 
@@ -86,25 +121,14 @@ export function CalculatorForm({
           </h3>
           <Tabs
             selectedKey={roleToCalculate}
-            onSelectionChange={(key) => onRoleChange(key as "adc" | "support")}
+            onSelectionChange={(key) => onRoleChange(key as RoleToCalculate)}
             color="primary"
             aria-label="Role to calculate"
           >
             <Tab key="adc" title="ADC" />
             <Tab key="support" title="Support" />
+            <Tab key="both" title="Both" />
           </Tabs>
-        </div>
-        <div className="flex justify-center">
-          <Button
-            color="primary"
-            size="lg"
-            className="font-bold w-full md:w-auto"
-            onPress={onCalculate}
-            isLoading={isCalculating}
-            isDisabled={isSelectionEmpty}
-          >
-            Calculate Best Pick
-          </Button>
         </div>
       </div>
 
@@ -115,22 +139,28 @@ export function CalculatorForm({
           </h3>
         </CardHeader>
         <CardBody className="p-0 space-y-4">
-          <ChampionSelector
-            label="Enemy ADC"
-            champions={allChampions.filter((c) => c.role.includes("ADC"))}
-            categories={adcCategories}
-            selectedChampionName={selections.enemyAdc}
-            onSelect={(name) => onSelectionChange("enemyAdc", name)}
-            championMap={championMap}
-          />
-          <ChampionSelector
-            label="Enemy Support"
-            champions={allChampions.filter((c) => c.role.includes("Support"))}
-            categories={supportCategories}
-            selectedChampionName={selections.enemySupport}
-            onSelect={(name) => onSelectionChange("enemySupport", name)}
-            championMap={championMap}
-          />
+          <div>
+            <ChampionSelector
+              label="Enemy ADC"
+              champions={allChampions.filter((c) => c.role.includes("ADC"))}
+              categories={adcCategories}
+              selectedChampionName={selections.enemyAdc}
+              onSelect={(name) => onSelectionChange("enemyAdc", name)}
+              championMap={championMap}
+              isLoading={isCalculating}
+            />
+          </div>
+          <div>
+            <ChampionSelector
+              label="Enemy Support"
+              champions={allChampions.filter((c) => c.role.includes("Support"))}
+              categories={supportCategories}
+              selectedChampionName={selections.enemySupport}
+              onSelect={(name) => onSelectionChange("enemySupport", name)}
+              championMap={championMap}
+              isLoading={isCalculating}
+            />
+          </div>
         </CardBody>
       </Card>
     </div>

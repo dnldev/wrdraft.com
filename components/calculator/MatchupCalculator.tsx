@@ -34,11 +34,6 @@ interface MatchupCalculatorProps {
  * @returns {JSX.Element} The fully interactive Matchup Calculator UI.
  */
 export function MatchupCalculator(props: MatchupCalculatorProps) {
-  // DEBUG: Log props received from the parent (app/page.tsx)
-  console.log("DEBUG (MatchupCalculator): Received props", {
-    hasCategories: !!props.categories,
-  });
-
   const {
     roleToCalculate,
     selections,
@@ -48,7 +43,6 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     championTierMap,
     handleSelectionChange,
     handleRoleChange,
-    handleCalculate,
     isSelectionEmpty,
     currentFirstPicks,
   } = useMatchupCalculator(props);
@@ -78,15 +72,17 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
             onSelectionChange={handleSelectionChange}
             roleToCalculate={roleToCalculate}
             onRoleChange={handleRoleChange}
-            onCalculate={handleCalculate}
             isCalculating={isCalculating}
-            isSelectionEmpty={isSelectionEmpty}
           />
         </CardBody>
       </Card>
 
       {results && (
-        <RecommendationResults results={results} tierMap={championTierMap} />
+        <RecommendationResults
+          results={results}
+          tierMap={championTierMap}
+          selections={selections}
+        />
       )}
 
       {isSelectionEmpty && !results && (
@@ -94,7 +90,7 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
           firstPicks={currentFirstPicks}
           championMap={championMap}
           tierMap={championTierMap}
-          role={roleToCalculate}
+          role={roleToCalculate === "both" ? "adc" : roleToCalculate}
         />
       )}
     </div>

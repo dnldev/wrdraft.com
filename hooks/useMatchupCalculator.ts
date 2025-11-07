@@ -2,13 +2,20 @@ import { useMemo, useState } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
-import { FirstPickData } from "@/data/firstPickData";
+import { FirstPick, FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
-import { calculateRecommendations, Recommendation } from "@/lib/calculator";
+import {
+  calculatePairRecommendations,
+  calculateRecommendations,
+  PairRecommendation,
+  Recommendation,
+} from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { createTierMap } from "@/lib/utils";
 
-interface Selections {
+import { useDebounce } from "./useDebounce";
+
+export interface Selections {
   alliedAdc: string | null;
   alliedSupport: string | null;
   enemyAdc: string | null;
@@ -26,26 +33,84 @@ interface UseMatchupCalculatorProps {
   categories: RoleCategories[];
 }
 
+type RoleToCalculate = "adc" | "support" | "both";
+
+interface CalculationContext {
+  selections: Selections;
+  synergyMatrix: SynergyMatrix;
+  counterMatrix: CounterMatrix;
+  categories: RoleCategories[];
+  adcs: Champion[];
+  supports: Champion[];
+}
+
 /**
- * A "headless" hook that manages the entire state and logic for the Matchup Calculator.
- * It handles user selections, triggers calculations, and derives memoized data, returning
- * everything the presentation components need to render the UI.
- * @param {UseMatchupCalculatorProps} props - The raw data fetched from Redis, required for calculations and display.
- * @returns {object} An object containing the calculator's state, derived data, and event handlers.
+ * Defines the contract for a calculation strategy, encapsulating all mode-specific logic.
  */
-export function useMatchupCalculator({
-  adcs,
-  supports,
-  allChampions,
-  synergyMatrix,
-  counterMatrix,
-  firstPicks,
-  tierList,
-  categories,
-}: UseMatchupCalculatorProps) {
-  const [roleToCalculate, setRoleToCalculate] = useState<"adc" | "support">(
-    "adc"
-  );
+interface CalculationStrategy {
+  calculate: (
+    context: CalculationContext
+  ) => (Recommendation | PairRecommendation)[];
+  getFirstPicks: (firstPicks: FirstPickData) => FirstPick[];
+  getSelectionsToClear: () => Partial<Selections>;
+  getNextRoleOnSelection?: (
+    selectionRole: keyof Selections
+  ) => RoleToCalculate | null;
+}
+
+/**
+ * A manifest of calculation strategies, implementing the Strategy Pattern.
+ */
+const calculationStrategies: Record<RoleToCalculate, CalculationStrategy> = {
+  adc: {
+    calculate: (context) =>
+      calculateRecommendations({
+        ...context,
+        roleToCalculate: "adc",
+        championPool: context.adcs,
+      }),
+    getFirstPicks: (firstPicks) => firstPicks.adcs,
+    getSelectionsToClear: () => ({ alliedAdc: null }),
+  },
+  support: {
+    calculate: (context) =>
+      calculateRecommendations({
+        ...context,
+        roleToCalculate: "support",
+        championPool: context.supports,
+      }),
+    getFirstPicks: (firstPicks) => firstPicks.supports,
+    getSelectionsToClear: () => ({ alliedSupport: null }),
+  },
+  both: {
+    calculate: (context) => calculatePairRecommendations(context),
+    getFirstPicks: (firstPicks) => firstPicks.adcs,
+    getSelectionsToClear: () => ({ alliedAdc: null, alliedSupport: null }),
+    getNextRoleOnSelection: (selectionRole) => {
+      if (selectionRole === "alliedAdc") return "support";
+      if (selectionRole === "alliedSupport") return "adc";
+      return null;
+    },
+  },
+};
+
+/**
+ * Manages the state and logic for the Matchup Calculator using the Strategy Pattern.
+ */
+export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
+  const {
+    adcs,
+    supports,
+    allChampions,
+    firstPicks,
+    tierList,
+    categories,
+    synergyMatrix,
+    counterMatrix,
+  } = props;
+
+  const [roleToCalculate, setRoleToCalculate] =
+    useState<RoleToCalculate>("adc");
   const [selections, setSelections] = useState<Selections>({
     alliedAdc: null,
     alliedSupport: null,
@@ -53,60 +118,64 @@ export function useMatchupCalculator({
     enemySupport: null,
   });
 
-  const [results, setResults] = useState<Recommendation[] | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
+  const debouncedSelections = useDebounce(selections, 1500);
+  const currentStrategy = calculationStrategies[roleToCalculate];
+  const isSelectionEmpty = Object.values(selections).every((s) => s === null);
 
   const championMap = useMemo(() => {
     const map = new Map<string, Champion>();
-    for (const champ of allChampions) {
-      map.set(champ.name, champ);
-    }
+    for (const champ of allChampions) map.set(champ.name, champ);
     return map;
   }, [allChampions]);
 
   const championTierMap = useMemo(() => createTierMap(tierList), [tierList]);
 
   const handleSelectionChange = (
-    role: keyof typeof selections,
+    role: keyof Selections,
     name: string | null
   ) => {
     setSelections((prev) => ({ ...prev, [role]: name }));
-    setResults(null);
+    if (name) {
+      const nextRole = currentStrategy.getNextRoleOnSelection?.(role);
+      if (nextRole) setRoleToCalculate(nextRole);
+    }
   };
 
-  const handleRoleChange = (role: "adc" | "support") => {
+  const handleRoleChange = (role: RoleToCalculate) => {
     setRoleToCalculate(role);
-    setResults(null);
-    setSelections((prev) => ({
-      ...prev,
-      ...(role === "adc" && { alliedAdc: null }),
-      ...(role === "support" && { alliedSupport: null }),
-    }));
+    const selectionsToClear =
+      calculationStrategies[role].getSelectionsToClear();
+    setSelections((prev) => ({ ...prev, ...selectionsToClear }));
   };
 
-  const handleCalculate = () => {
-    setIsCalculating(true);
-    setResults(null);
-
-    const championPool = roleToCalculate === "adc" ? adcs : supports;
-    const recommendations = calculateRecommendations({
-      roleToCalculate,
-      championPool,
-      selections,
+  const results = useMemo(() => {
+    if (isSelectionEmpty) return null;
+    const context = {
+      adcs,
+      supports,
+      selections: debouncedSelections,
       synergyMatrix,
       counterMatrix,
       categories,
-    });
+    };
+    return currentStrategy.calculate(context);
+  }, [
+    debouncedSelections,
+    isSelectionEmpty,
+    adcs,
+    supports,
+    synergyMatrix,
+    counterMatrix,
+    categories,
+    currentStrategy,
+  ]);
 
-    setTimeout(() => {
-      setResults(recommendations);
-      setIsCalculating(false);
-    }, 300);
-  };
-
-  const isSelectionEmpty = Object.values(selections).every((s) => s === null);
-  const currentFirstPicks =
-    roleToCalculate === "adc" ? firstPicks.adcs : firstPicks.supports;
+  const isCalculating = useMemo(() => {
+    return (
+      !isSelectionEmpty &&
+      JSON.stringify(selections) !== JSON.stringify(debouncedSelections)
+    );
+  }, [selections, debouncedSelections, isSelectionEmpty]);
 
   return {
     roleToCalculate,
@@ -117,8 +186,7 @@ export function useMatchupCalculator({
     championTierMap,
     handleSelectionChange,
     handleRoleChange,
-    handleCalculate,
     isSelectionEmpty,
-    currentFirstPicks,
+    currentFirstPicks: currentStrategy.getFirstPicks(firstPicks),
   };
 }
