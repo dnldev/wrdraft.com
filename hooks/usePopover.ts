@@ -4,6 +4,7 @@ import {
   offset,
   Placement,
   shift,
+  size,
   useClick,
   useDismiss,
   useFloating,
@@ -20,6 +21,7 @@ interface PopoverOptions {
 /**
  * A custom hook to manage the state and positioning for a popover element.
  * Encapsulates logic from @floating-ui/react for positioning, interactions (click, dismiss), and accessibility.
+ * It includes robust auto-updating for scroll and resize events.
  * @param {PopoverOptions} [options] - Optional configuration for the popover's initial state and placement.
  * @returns {object} An object containing state, refs, styles, and interaction props to be spread onto elements.
  */
@@ -33,13 +35,26 @@ export function usePopover({
     placement,
     open: isOpen,
     onOpenChange: setIsOpen,
-    whileElementsMounted: autoUpdate,
+    whileElementsMounted: (reference, floating, update) =>
+      autoUpdate(reference, floating, update, {
+        ancestorScroll: true,
+        ancestorResize: true,
+        elementResize: true,
+      }),
     middleware: [
       offset(5),
       flip({
         fallbackAxisSideDirection: "end",
       }),
       shift(),
+      size({
+        apply({ availableHeight, elements }) {
+          Object.assign(elements.floating.style, {
+            maxHeight: `${availableHeight}px`,
+          });
+        },
+        padding: 10,
+      }),
     ],
   });
 
