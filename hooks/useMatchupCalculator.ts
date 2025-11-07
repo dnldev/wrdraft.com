@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
@@ -22,6 +23,7 @@ interface UseMatchupCalculatorProps {
   counterMatrix: CounterMatrix;
   firstPicks: FirstPickData;
   tierList: TierListData;
+  categories: RoleCategories[];
 }
 
 /**
@@ -39,6 +41,7 @@ export function useMatchupCalculator({
   counterMatrix,
   firstPicks,
   tierList,
+  categories,
 }: UseMatchupCalculatorProps) {
   const [roleToCalculate, setRoleToCalculate] = useState<"adc" | "support">(
     "adc"
@@ -74,7 +77,6 @@ export function useMatchupCalculator({
   const handleRoleChange = (role: "adc" | "support") => {
     setRoleToCalculate(role);
     setResults(null);
-    // Clear the corresponding allied selection
     setSelections((prev) => ({
       ...prev,
       ...(role === "adc" && { alliedAdc: null }),
@@ -93,6 +95,7 @@ export function useMatchupCalculator({
       selections,
       synergyMatrix,
       counterMatrix,
+      categories,
     });
 
     setTimeout(() => {

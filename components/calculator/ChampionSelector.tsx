@@ -81,14 +81,17 @@ export function ChampionSelector({
 
   return (
     <div>
-      <button
-        type="button"
-        ref={refs.setReference}
-        {...getReferenceProps()}
-        disabled={isDisabled}
-        className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50 disabled:opacity-50 disabled:cursor-not-allowed text-left"
+      <div
+        className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50"
+        aria-disabled={isDisabled}
       >
-        <div className="flex items-center gap-3 flex-grow min-w-0">
+        <button
+          type="button"
+          ref={refs.setReference}
+          {...getReferenceProps()}
+          disabled={isDisabled}
+          className="flex items-center gap-3 flex-grow min-w-0 disabled:opacity-50 disabled:cursor-not-allowed text-left"
+        >
           {selectedChampion ? (
             <>
               <Avatar
@@ -112,7 +115,7 @@ export function ChampionSelector({
               <span className="text-foreground/60">{label}</span>
             </>
           )}
-        </div>
+        </button>
 
         {selectedChampion && !isDisabled ? (
           <button
@@ -124,12 +127,19 @@ export function ChampionSelector({
             <LucideIcon name="X" size={16} className="text-foreground/70" />
           </button>
         ) : (
-          <LucideIcon
-            name={isOpen ? "ChevronUp" : "ChevronDown"}
-            className="transition-transform text-foreground/70 flex-shrink-0"
-          />
+          <button
+            type="button"
+            onClick={() => setIsOpen(!isOpen)}
+            disabled={isDisabled}
+            className="disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <LucideIcon
+              name={isOpen ? "ChevronUp" : "ChevronDown"}
+              className="transition-transform text-foreground/70 flex-shrink-0"
+            />
+          </button>
         )}
-      </button>
+      </div>
 
       {isOpen && (
         <FloatingPortal>

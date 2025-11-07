@@ -1,3 +1,4 @@
+import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
@@ -15,130 +16,206 @@ interface Selections {
   enemySupport?: string | null;
 }
 
-/**
- * Calculates the synergy score for a single champion.
- * @returns An object with the score and reason, or null if no synergy exists.
- */
+type Archetype = "Poke" | "Engage" | "Sustain" | "Unknown";
+type BreakdownItem = { reason: string; value: number };
+
+const archetypeMap = {
+  Hypercarry: "Sustain",
+  "Lane Bully": "Engage",
+  "Caster/Utility": "Poke",
+  "Mobile/Skirmisher": "Engage",
+  Enchanter: "Sustain",
+  Engage: "Engage",
+  "Poke/Mage": "Poke",
+  Catcher: "Engage",
+};
+
+function getLaneArchetype(
+  adcName: string | null,
+  supportName: string | null,
+  categories: RoleCategories[]
+): Archetype {
+  const supportRole = categories.find((r) => r.name === "Support");
+  if (supportName) {
+    for (const category of supportRole?.categories || []) {
+      if (category.champions.includes(supportName)) {
+        return archetypeMap[
+          category.name as keyof typeof archetypeMap
+        ] as Archetype;
+      }
+    }
+  }
+  const adcRole = categories.find((r) => r.name === "ADC");
+  if (adcName) {
+    for (const category of adcRole?.categories || []) {
+      if (category.champions.includes(adcName)) {
+        return archetypeMap[
+          category.name as keyof typeof archetypeMap
+        ] as Archetype;
+      }
+    }
+  }
+  return "Unknown";
+}
+
+function getArchetypeScore(
+  allied: Archetype,
+  enemy: Archetype
+): BreakdownItem | null {
+  const archetypeScoreValue = 2;
+  if (allied === "Unknown" || enemy === "Unknown") return null;
+  if (allied === enemy)
+    return { value: 0, reason: `Archetype Mirror (${allied})` };
+
+  const advantages: Partial<Record<Archetype, Archetype>> = {
+    Poke: "Engage",
+    Engage: "Sustain",
+    Sustain: "Poke",
+  };
+
+  if (advantages[allied] === enemy) {
+    return {
+      value: archetypeScoreValue,
+      reason: `Archetype Advantage (${allied} > ${enemy})`,
+    };
+  }
+  return {
+    value: -archetypeScoreValue,
+    reason: `Archetype Disadvantage (${allied} < ${enemy})`,
+  };
+}
+
 function getSynergyScore(
-  champion: Champion,
-  roleToCalculate: "adc" | "support",
-  selections: Selections,
+  adc: string | null,
+  support: string | null,
+  roleToCalc: "adc" | "support",
   synergyMatrix: SynergyMatrix
-): { value: number; reason: string } | null {
-  if (roleToCalculate === "adc" && selections.alliedSupport) {
-    const score = synergyMatrix[champion.name]?.[selections.alliedSupport] ?? 0;
-    return score === 0
-      ? null
-      : { value: score, reason: `Synergy with ${selections.alliedSupport}` };
-  }
-  if (roleToCalculate === "support" && selections.alliedAdc) {
-    const score = synergyMatrix[selections.alliedAdc]?.[champion.name] ?? 0;
-    return score === 0
-      ? null
-      : { value: score, reason: `Synergy with ${selections.alliedAdc}` };
-  }
-  return null;
+): BreakdownItem | null {
+  if (!adc || !support) return null;
+  const score = synergyMatrix[adc]?.[support] ?? 0;
+  if (score === 0) return null;
+  const partner = roleToCalc === "adc" ? support : adc;
+  return { value: score, reason: `Synergy with ${partner}` };
 }
 
-/**
- * Calculates the counter scores against enemy champions.
- * @returns An array of score objects with their reasons.
- */
-function getCounterScores(
-  champion: Champion,
-  selections: Selections,
+function getCounterScore(
+  championName: string,
+  opponentName: string | null,
   counterMatrix: CounterMatrix
-): { value: number; reason: string }[] {
-  const scores = [];
-  if (selections.enemyAdc) {
-    const score = counterMatrix[champion.name]?.[selections.enemyAdc] ?? 0;
-    if (score !== 0) {
-      scores.push({
-        value: score,
-        reason: `Matchup vs ${selections.enemyAdc}`,
-      });
-    }
-  }
-  if (selections.enemySupport) {
-    const score = counterMatrix[champion.name]?.[selections.enemySupport] ?? 0;
-    if (score !== 0) {
-      scores.push({
-        value: score,
-        reason: `Matchup vs ${selections.enemySupport}`,
-      });
-    }
-  }
-  return scores;
+): BreakdownItem | null {
+  if (!opponentName) return null;
+  const score = counterMatrix[championName]?.[opponentName] ?? 0;
+  if (score === 0) return null;
+  return { value: score, reason: `Matchup vs ${opponentName}` };
 }
 
-/**
- * Calculates matchup recommendations based on weighted scores.
- */
+function sortRecommendations(
+  recommendations: Recommendation[]
+): Recommendation[] {
+  return recommendations.toSorted((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const aIsComfort = a.champion.comfort !== null;
+    const bIsComfort = b.champion.comfort !== null;
+    if (aIsComfort && !bIsComfort) return -1;
+    if (!aIsComfort && bIsComfort) return 1;
+    return 0;
+  });
+}
+
+function calculateScoresForChampion(
+  champion: Champion,
+  context: {
+    roleToCalculate: "adc" | "support";
+    selections: Selections;
+    synergyMatrix: SynergyMatrix;
+    counterMatrix: CounterMatrix;
+    categories: RoleCategories[];
+    enemyLaneArchetype: Archetype;
+  }
+): Recommendation {
+  const {
+    roleToCalculate,
+    selections,
+    synergyMatrix,
+    counterMatrix,
+    categories,
+    enemyLaneArchetype,
+  } = context;
+
+  const prospectiveAdc =
+    roleToCalculate === "adc" ? champion.name : selections.alliedAdc;
+  const prospectiveSupport =
+    roleToCalculate === "support" ? champion.name : selections.alliedSupport;
+
+  // FIX: Use nullish coalescing to safely handle undefined values before passing to the function.
+  const prospectiveArchetype = getLaneArchetype(
+    prospectiveAdc ?? null,
+    prospectiveSupport ?? null,
+    categories
+  );
+
+  const breakdown = [
+    getArchetypeScore(prospectiveArchetype, enemyLaneArchetype),
+    getSynergyScore(
+      prospectiveAdc ?? null,
+      prospectiveSupport ?? null,
+      roleToCalculate,
+      synergyMatrix
+    ),
+    getCounterScore(champion.name, selections.enemyAdc ?? null, counterMatrix),
+    getCounterScore(
+      champion.name,
+      selections.enemySupport ?? null,
+      counterMatrix
+    ),
+  ].filter((item): item is BreakdownItem => item !== null);
+
+  const score = breakdown.reduce((acc, item) => acc + item.value, 0);
+
+  return { champion, score, breakdown };
+}
+
 export function calculateRecommendations({
   roleToCalculate,
   championPool,
   selections,
   synergyMatrix,
   counterMatrix,
+  categories,
 }: {
   roleToCalculate: "adc" | "support";
   championPool: Champion[];
   selections: Selections;
   synergyMatrix: SynergyMatrix;
   counterMatrix: CounterMatrix;
+  categories: RoleCategories[];
 }): Recommendation[] {
   const selectedChampionNames = new Set(
     Object.values(selections).filter(Boolean)
   );
-
   const availableChampions = championPool.filter(
     (champ) => !selectedChampionNames.has(champ.name)
   );
 
-  const results = availableChampions.map((champion) => {
-    const breakdown: { value: number; reason: string }[] = [];
-    let score = 0;
-
-    const synergy = getSynergyScore(
-      champion,
-      roleToCalculate,
-      selections,
-      synergyMatrix
-    );
-    if (synergy) {
-      breakdown.push(synergy);
-    }
-
-    const counters = getCounterScores(champion, selections, counterMatrix);
-    breakdown.push(...counters);
-
-    for (const item of breakdown) {
-      score += item.value;
-    }
-
-    return { champion, score, breakdown };
-  });
-
-  const filteredResults = results.filter(
-    (result) => result.breakdown.length > 0
+  // FIX: Use nullish coalescing to safely handle undefined values before passing to the function.
+  const enemyLaneArchetype = getLaneArchetype(
+    selections.enemyAdc ?? null,
+    selections.enemySupport ?? null,
+    categories
   );
 
-  return filteredResults.toSorted((a, b) => {
-    // Primary sort: by score, descending
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
+  const scoringContext = {
+    roleToCalculate,
+    selections,
+    synergyMatrix,
+    counterMatrix,
+    categories,
+    enemyLaneArchetype,
+  };
 
-    // Secondary sort: comfort picks first
-    const aIsComfort = a.champion.comfort !== null;
-    const bIsComfort = b.champion.comfort !== null;
+  const results = availableChampions
+    .map((champion) => calculateScoresForChampion(champion, scoringContext))
+    .filter((result) => result.breakdown.length > 0 && result.score !== 0);
 
-    if (aIsComfort && !bIsComfort) {
-      return -1; // a comes first
-    }
-    if (!aIsComfort && bIsComfort) {
-      return 1; // b comes first
-    }
-    return 0; // maintain order
-  });
+  return sortRecommendations(results);
 }

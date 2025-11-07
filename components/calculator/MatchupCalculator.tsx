@@ -34,6 +34,11 @@ interface MatchupCalculatorProps {
  * @returns {JSX.Element} The fully interactive Matchup Calculator UI.
  */
 export function MatchupCalculator(props: MatchupCalculatorProps) {
+  // DEBUG: Log props received from the parent (app/page.tsx)
+  console.log("DEBUG (MatchupCalculator): Received props", {
+    hasCategories: !!props.categories,
+  });
+
   const {
     roleToCalculate,
     selections,
