@@ -6,42 +6,22 @@ import { Navigation } from "@/components/core/Navigation";
 import { DraftingInfo } from "@/components/drafting/DraftingInfo";
 import { BestPairings } from "@/components/pairings/BestPairings";
 import { TeamComps } from "@/components/team-comps/TeamComps";
-import {
-  getAllChampions,
-  getCategories,
-  getChampionsByRole,
-  getCounterMatrix,
-  getFirstPicks,
-  getSynergies,
-  getSynergyMatrix,
-  getTeamComps,
-  getTierList,
-} from "@/lib/data-fetching";
+import { getPlaybookData } from "@/lib/data-fetching";
 
 export default async function HomePage() {
-  const [
+  const {
     adcs,
     supports,
     allChampions,
-    { synergiesByAdc, synergiesBySupport },
+    synergiesByAdc,
+    synergiesBySupport,
     teamComps,
     synergyMatrix,
     counterMatrix,
     firstPicks,
     tierList,
     categories,
-  ] = await Promise.all([
-    getChampionsByRole("adc"),
-    getChampionsByRole("support"),
-    getAllChampions(),
-    getSynergies(),
-    getTeamComps(),
-    getSynergyMatrix(),
-    getCounterMatrix(),
-    getFirstPicks(),
-    getTierList(),
-    getCategories(),
-  ]);
+  } = await getPlaybookData();
 
   return (
     <React.Suspense fallback={null}>

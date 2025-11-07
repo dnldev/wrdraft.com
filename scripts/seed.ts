@@ -3,14 +3,9 @@ import "dotenv/config";
 import dotenv from "dotenv";
 import { createClient } from "redis";
 
-import { categoryData } from "@/data/categoryData.js";
-import { Champion, champions as baseChampions } from "@/data/championData.js";
-import { firstPickData } from "@/data/firstPickData.js";
+import { champions as baseChampions } from "@/data/championData.js";
+import { dataManifest } from "@/data/data-manifest.js";
 import { matchupData } from "@/data/matchupData.js";
-import { matrixData } from "@/data/matrixData.js";
-import { synergyData } from "@/data/synergyData.js";
-import { teamCompsData } from "@/data/teamCompsData.js";
-import { tierListData } from "@/data/tierListData.js";
 
 dotenv.config({ path: ".env.development.local" });
 
@@ -26,10 +21,11 @@ async function main() {
   await redis.flushAll();
   console.log("Cleared existing Redis data.");
 
+  const multi = redis.multi();
+
   const fullChampionsData = baseChampions.map((champ) => {
     const newMatchups = matchupData.find((m) => m.name === champ.name);
-
-    const mergedChampion: Champion = {
+    return {
       ...champ,
       matchups: {
         ...champ.matchups,
@@ -37,44 +33,28 @@ async function main() {
         badAgainst: newMatchups?.badAgainst || champ.matchups.badAgainst,
       },
     };
-    return mergedChampion;
   });
-
-  const multi = redis.multi();
 
   for (const champion of fullChampionsData) {
     multi.set(`champion:${champion.id}`, JSON.stringify(champion));
-    console.log(`- Staging merged data for champion: ${champion.name}`);
   }
+  console.log("- Staging individual champion data...");
 
   const adcs = fullChampionsData.filter((c) => c.role.includes("ADC"));
   const supports = fullChampionsData.filter((c) => c.role.includes("Support"));
   multi.set("champions:adc", JSON.stringify(adcs));
   multi.set("champions:support", JSON.stringify(supports));
-  console.log("- Staging merged ADC and Support lists...");
+  console.log("- Staging ADC and Support lists...");
 
-  multi.set("synergies", JSON.stringify(synergyData));
-  console.log("- Staging all synergy data...");
-
-  multi.set("teamcomps", JSON.stringify(teamCompsData));
-  console.log("- Staging team composition data...");
-
-  multi.set("matrix:synergy", JSON.stringify(matrixData.synergyMatrix));
-  multi.set("matrix:counter", JSON.stringify(matrixData.counterMatrix));
-  console.log("- Staging calculator matrix data...");
-
-  multi.set("firstPicks", JSON.stringify(firstPickData));
-  console.log("- Staging first pick data...");
-
-  multi.set("data:tierlist", JSON.stringify(tierListData));
-  console.log("- Staging tier list data...");
-
-  multi.set("data:categories", JSON.stringify(categoryData));
-  console.log("- Staging champion category data...");
+  console.log("\nStaging data from manifest...");
+  for (const [key, data] of Object.entries(dataManifest)) {
+    multi.set(key, JSON.stringify(data));
+    console.log(`- Staging data for key: ${key}`);
+  }
 
   await multi.exec();
 
-  redis.destroy();
+  await redis.disconnect();
   console.log("\n✅ Data seeding complete!");
 }
 
