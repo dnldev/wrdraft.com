@@ -10,12 +10,12 @@ import {
  * A dictionary of concise explanations for breakdown reasons.
  */
 const explanationSnippets = {
-  Comfort: (value: number) => `Comfort Pick (+${value})`,
-  ArchetypeAdvantage: (value: number) => `Archetype > (+${value})`,
-  ArchetypeDisadvantage: (value: number) => `Archetype < (${value})`,
-  Synergy: (value: number) => `Synergy (+${value})`,
+  Comfort: (value: number) => `Comfort Pick +${value}`,
+  ArchetypeAdvantage: (value: number) => `Archetype +${value}`,
+  ArchetypeDisadvantage: (value: number) => `Archetype ${value}`,
+  Synergy: (value: number) => `Synergy +${value}`,
   Counter: (value: number) =>
-    value > 0 ? `Counter (+${value})` : `Counter (${value})`,
+    value > 0 ? `Counter +${value}` : `Counter ${value}`,
 };
 
 /**
@@ -79,7 +79,9 @@ function getArchetypeExplanationSentence(
   if (!archetypeItem) return null;
 
   if (archetypeItem.value > 0) {
-    const match = archetypeItem.reason.match(/\(([\w/]+) > ([\w/]+)\)/);
+    const match = new RegExp(/\(([\w/]+) > ([\w/]+)\)/).exec(
+      archetypeItem.reason
+    );
     return match
       ? archetypeExplanations[
           `${match[1]}-${match[2]}` as keyof typeof archetypeExplanations
@@ -87,7 +89,9 @@ function getArchetypeExplanationSentence(
       : null;
   }
   if (archetypeItem.value < 0) {
-    const match = archetypeItem.reason.match(/\(([\w/]+) < ([\w/]+)\)/);
+    const match = new RegExp(/\(([\w/]+) < ([\w/]+)\)/).exec(
+      archetypeItem.reason
+    );
     return match
       ? archetypeExplanations[
           `${match[1]}-${match[2]}` as keyof typeof archetypeExplanations
