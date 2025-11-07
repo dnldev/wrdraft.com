@@ -2,6 +2,7 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import { defineConfig } from "eslint/config";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
+import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
 import prettierConfig from "eslint-config-prettier";
 
@@ -10,6 +11,16 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
 
+  // SonarJS plugin for bug detection and code smells
+  {
+    plugins: {
+      sonarjs,
+    },
+    rules: {
+      ...sonarjs.configs.recommended.rules,
+    },
+  },
+
   // Unicorn for additional rules and best practices
   {
     plugins: {
@@ -17,13 +28,12 @@ const eslintConfig = defineConfig([
     },
     rules: {
       ...unicorn.configs.recommended.rules,
-      // Disable rules that are too restrictive or conflict with Next.js/React patterns
-      "unicorn/prevent-abbreviations": "off", // Allows common abbreviations like `props`, `ref`, `env`
-      "unicorn/no-null": "off", // Null is idiomatic in React for empty renders
-      "unicorn/filename-case": "off", // Next.js uses conventions like `[id]` which this rule dislikes
-      "unicorn/no-useless-undefined": "off", // Can conflict with optional props
-      "unicorn/prefer-module": "off", // Next.js config files etc. may use CJS
-      "unicorn/prefer-top-level-await": "off", // Not always applicable or desired
+      "unicorn/prevent-abbreviations": "off",
+      "unicorn/no-null": "off",
+      "unicorn/filename-case": "off",
+      "unicorn/no-useless-undefined": "off",
+      "unicorn/prefer-module": "off",
+      "unicorn/prefer-top-level-await": "off",
     },
   },
 
@@ -48,11 +58,14 @@ const eslintConfig = defineConfig([
       ".next/",
       "out/",
       "build/",
+      "coverage/", // Ignore test coverage reports
+      "scripts/", // Ignore utility scripts
       "next-env.d.ts",
       "eslint.config.mjs",
       "postcss.config.mjs",
       "tailwind.config.ts",
       "next.config.mjs",
+      "sonar-project.js",
     ],
   },
 ]);

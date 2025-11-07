@@ -14,6 +14,8 @@ export interface HowToPlayTip {
   description: string;
 }
 
+export type ComfortTier = "S+" | "S" | "A" | "B" | null;
+
 export interface Build {
   name: string;
   runes: string;
@@ -33,7 +35,7 @@ export interface Champion {
   id: string;
   name: string;
   portraitUrl: string;
-  comfort: string | null;
+  comfort: ComfortTier; // Updated type
   role: string;
   howToPlay: HowToPlayTip[];
   matchups: Matchups;
@@ -47,7 +49,7 @@ export const champions: Champion[] = [
     name: "Varus",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Varus.png",
-    comfort: "★ S+ Comfort",
+    comfort: "S+", // Your Main
     role: "ADC / Poke / Utility",
     howToPlay: [
       {
@@ -172,7 +174,7 @@ export const champions: Champion[] = [
     name: "Jinx",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Jinx.png",
-    comfort: "★ S+ Comfort",
+    comfort: "S+", // Your Main
     role: "ADC / Scaling / Hyper-carry",
     howToPlay: [
       {
@@ -266,7 +268,7 @@ export const champions: Champion[] = [
     name: "Lucian",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lucian.png",
-    comfort: "☆ S Comfort",
+    comfort: "A", // Your Pocket Pick
     role: "ADC / All-in / Poke",
     howToPlay: [
       {
@@ -874,7 +876,7 @@ export const champions: Champion[] = [
     name: "Braum",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Braum.png",
-    comfort: null,
+    comfort: "A", // Your Pocket Pick
     role: "Support / Defensive Engage / Peel",
     howToPlay: [
       {
@@ -963,7 +965,7 @@ export const champions: Champion[] = [
     name: "Nami",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nami.png",
-    comfort: "★ S+ Comfort",
+    comfort: "S+", // Your Main
     role: "Support / Poke / Sustain",
     howToPlay: [
       {
@@ -1043,7 +1045,7 @@ export const champions: Champion[] = [
     name: "Milio",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Milio.png",
-    comfort: "★ S+ Comfort",
+    comfort: "S+", // Your Main
     role: "Support / Sustain / Peel",
     howToPlay: [
       {
@@ -1122,7 +1124,7 @@ export const champions: Champion[] = [
     name: "Leona",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Leona.png",
-    comfort: "☆ S Comfort",
+    comfort: "A", // Your Pocket Pick
     role: "Support / All-in / Engage",
     howToPlay: [
       {
@@ -1710,7 +1712,7 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zeri.png",
     role: "ADC",
-    comfort: null,
+    comfort: "A", // Your Pocket Pick
     howToPlay: [],
     matchups: {
       userSynergies: ["Lulu", "Milio", "Nami"],

@@ -1,0 +1,36 @@
+# A well-balanced Codecov configuration for a public project.
+# It enforces high quality on new code while preventing overall coverage from dropping.
+
+coverage:
+  status:
+    # Project-wide coverage settings
+    project:
+      default:
+        # The 'auto' target means the overall project coverage must not decrease.
+        target: auto
+        # A 1% threshold allows for minor fluctuations in coverage without failing the check.
+        threshold: 1%
+
+    # Settings for the coverage of new code in a pull request (the "patch")
+    patch:
+      default:
+        # Enforce that all new code introduced in a PR must be at least 90% tested.
+        # This is a high standard that ensures new features are high quality.
+        # You can raise this to 100% for an even stricter policy.
+        target: 90%
+
+comment:
+  # The layout of the comment that Codecov posts on a pull request.
+  layout: "reach, diff, flags, files, footer"
+  # 'default' behavior posts a new comment and hides old ones.
+  behavior: default
+  # 'false' ensures a comment is always posted, even if coverage doesn't change. This provides consistent feedback.
+  require_changes: false
+  # 'false' ensures the full project coverage is always visible in the comment.
+  hide_project_coverage: false
+
+# Configuration for GitHub-specific features.
+github_checks:
+  # 'false' disables the noisy line-by-line annotations in the "Files Changed" tab of a pull request.
+  # This provides a cleaner review experience. The Codecov browser extension is a better tool for this.
+  annotations: false

@@ -3,6 +3,7 @@
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React from "react";
 
+import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
@@ -22,6 +23,7 @@ interface MatchupCalculatorProps {
   counterMatrix: CounterMatrix;
   firstPicks: FirstPickData;
   tierList: TierListData;
+  categories: RoleCategories[];
 }
 
 /**
@@ -41,7 +43,6 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     championTierMap,
     handleSelectionChange,
     handleRoleChange,
-    handleCalculate,
     isSelectionEmpty,
     currentFirstPicks,
   } = useMatchupCalculator(props);
@@ -65,20 +66,23 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
             adcs={props.adcs}
             supports={props.supports}
             allChampions={props.allChampions}
+            categories={props.categories}
             championMap={championMap}
             selections={selections}
             onSelectionChange={handleSelectionChange}
             roleToCalculate={roleToCalculate}
             onRoleChange={handleRoleChange}
-            onCalculate={handleCalculate}
             isCalculating={isCalculating}
-            isSelectionEmpty={isSelectionEmpty}
           />
         </CardBody>
       </Card>
 
       {results && (
-        <RecommendationResults results={results} tierMap={championTierMap} />
+        <RecommendationResults
+          results={results}
+          tierMap={championTierMap}
+          selections={selections}
+        />
       )}
 
       {isSelectionEmpty && !results && (
@@ -86,7 +90,7 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
           firstPicks={currentFirstPicks}
           championMap={championMap}
           tierMap={championTierMap}
-          role={roleToCalculate}
+          role={roleToCalculate === "both" ? "adc" : roleToCalculate}
         />
       )}
     </div>
