@@ -20,6 +20,7 @@ interface ChampionSelectorProps {
   label: string;
   categories?: Category[];
   isDisabled?: boolean;
+  isLoading?: boolean;
 }
 
 export function ChampionSelector({
@@ -30,6 +31,7 @@ export function ChampionSelector({
   label,
   categories = [],
   isDisabled = false,
+  isLoading = false,
 }: ChampionSelectorProps) {
   const {
     isOpen,
@@ -80,7 +82,7 @@ export function ChampionSelector({
   };
 
   return (
-    <div>
+    <div className={isLoading ? "opacity-50 transition-opacity" : ""}>
       <div
         className="w-full p-3 bg-content1 rounded-lg flex items-center justify-between transition-colors hover:bg-default/50"
         aria-disabled={isDisabled}
