@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
       attribute="class"
-      defaultTheme="hextech-arcane"
+      defaultTheme="spirit-blossom"
       themes={[
         "hextech-arcane",
         "demacian-justice",

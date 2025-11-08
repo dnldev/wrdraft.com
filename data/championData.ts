@@ -1599,12 +1599,23 @@ export const champions: Champion[] = [
     name: "Corki",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Corki.png",
-    role: "ADC",
-    comfort: null,
-    howToPlay: [],
+    role: "ADC / Caster / Poke",
+    comfort: "B",
+    howToPlay: [
+      {
+        tip: "Mid-Game Power Spike",
+        description:
+          "Your main strength is your mid-game burst with Trinity Force and your ultimate. Look for skirmishes around objectives.",
+      },
+      {
+        tip: "The Package",
+        description:
+          "The Package is a game-changing ability. Use it to cut off enemies in teamfights or roam for ganks. Don't waste it on wave clearing.",
+      },
+    ],
     matchups: {
-      userSynergies: ["Nami", "Leona", "Thresh", "Lulu"],
-      metaSynergies: ["Karma", "Nautilus", "Rakan", "Alistar"],
+      userSynergies: ["Nami", "Leona", "Thresh", "Lulu", "Karma"],
+      metaSynergies: ["Nautilus", "Rakan", "Alistar"],
       goodAgainst: ["Ezreal", "Sivir", "Zeri"],
       badAgainst: ["Caitlyn", "Draven", "Tristana", "Samira"],
     },
@@ -1695,14 +1706,25 @@ export const champions: Champion[] = [
     name: "Draven",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Draven.png",
-    role: "ADC",
-    comfort: null,
-    howToPlay: [],
+    role: "ADC / Lane Bully",
+    comfort: "B",
+    howToPlay: [
+      {
+        tip: "Juggle Axes",
+        description:
+          "Your entire damage output relies on catching your Spinning Axes (Q). Practice moving after each auto-attack to control where they will land.",
+      },
+      {
+        tip: "Snowball Early",
+        description:
+          "You are one of the strongest early-game ADCs. You must play aggressively with your support to get kills and cash in your passive gold.",
+      },
+    ],
     matchups: {
-      userSynergies: ["Leona", "Thresh", "Morgana"],
-      metaSynergies: ["Nautilus", "Pyke", "Blitzcrank"],
-      goodAgainst: ["Jinx", "Vayne", "Kai'Sa", "Ezreal"],
-      badAgainst: ["Caitlyn", "Ashe", "Varus", "Braum"],
+      userSynergies: ["Leona", "Thresh", "Morgana", "Nautilus"],
+      metaSynergies: ["Pyke", "Blitzcrank", "Rakan"],
+      goodAgainst: ["Jinx", "Vayne", "Kai'Sa", "Ezreal", "Samira"],
+      badAgainst: ["Caitlyn", "Ashe", "Varus", "Braum", "Nilah"],
     },
     builds: [],
   },
@@ -1711,14 +1733,25 @@ export const champions: Champion[] = [
     name: "Zeri",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Zeri.png",
-    role: "ADC",
-    comfort: "A", // Your Pocket Pick
-    howToPlay: [],
+    role: "ADC / Hypercarry",
+    comfort: "A",
+    howToPlay: [
+      {
+        tip: "Kite with Q",
+        description:
+          "Your Q is your auto-attack. Use it while moving to constantly kite enemies. Your actual auto-attack is a slow and execute.",
+      },
+      {
+        tip: "Engage with Ultimate",
+        description:
+          "Your ultimate provides a massive speed and damage boost. Use it to engage teamfights where you can hit multiple enemies.",
+      },
+    ],
     matchups: {
-      userSynergies: ["Lulu", "Milio", "Nami"],
-      metaSynergies: ["Yuumi", "Karma", "Sona"],
-      goodAgainst: ["Ashe", "Sivir"],
-      badAgainst: ["Caitlyn", "Varus", "Jhin"],
+      userSynergies: ["Lulu", "Milio", "Nami", "Yuumi"],
+      metaSynergies: ["Karma", "Sona", "Janna"],
+      goodAgainst: ["Ashe", "Sivir", "Jhin"],
+      badAgainst: ["Caitlyn", "Varus", "Nilah", "Yasuo"],
     },
     builds: [],
   },
@@ -1759,14 +1792,25 @@ export const champions: Champion[] = [
     name: "Ezreal",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Ezreal.png",
-    role: "ADC",
-    comfort: null,
-    howToPlay: [],
+    role: "ADC / Caster / Poke",
+    comfort: "B",
+    howToPlay: [
+      {
+        tip: "Poke with Mystic Shot",
+        description:
+          "Your Q (Mystic Shot) is your primary damage and poke tool. It applies on-hit effects and reduces your other cooldowns.",
+      },
+      {
+        tip: "Use Arcane Shift Defensively",
+        description:
+          "Your E (Arcane Shift) is your main escape tool. Avoid using it aggressively unless you are certain you can secure a kill and get out safely.",
+      },
+    ],
     matchups: {
-      userSynergies: ["Nami", "Bard", "Lulu"],
-      metaSynergies: ["Karma", "Yuumi", "Lux"],
-      goodAgainst: ["Caitlyn", "Varus", "Xayah"],
-      badAgainst: ["Draven", "Lucian", "Samira", "Tristana"],
+      userSynergies: ["Nami", "Bard", "Lulu", "Karma"],
+      metaSynergies: ["Yuumi", "Lux", "Seraphine"],
+      goodAgainst: ["Caitlyn", "Varus", "Xayah", "Ashe"],
+      badAgainst: ["Draven", "Lucian", "Samira", "Tristana", "Sivir"],
     },
     builds: [],
   },
@@ -1776,7 +1820,7 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Karma.png",
     role: "Support",
-    comfort: null,
+    comfort: "B",
     howToPlay: [],
     matchups: {
       userSynergies: ["Caitlyn", "Ashe", "Varus", "Ezreal"],
@@ -1792,7 +1836,7 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Maokai.png",
     role: "Support",
-    comfort: null,
+    comfort: "B",
     howToPlay: [],
     matchups: {
       userSynergies: ["Miss Fortune", "Jhin", "Xayah"],
@@ -1808,7 +1852,7 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Nautilus.png",
     role: "Support",
-    comfort: null,
+    comfort: "B",
     howToPlay: [],
     matchups: {
       userSynergies: ["Lucian", "Jhin", "Kai'Sa", "Xayah"],
@@ -1936,7 +1980,7 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Janna.png",
     role: "Support",
-    comfort: null,
+    comfort: "B",
     howToPlay: [],
     matchups: {
       userSynergies: ["Jinx", "Ashe", "Caitlyn"],
@@ -2016,7 +2060,7 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Blitzcrank.png",
     role: "Support",
-    comfort: null,
+    comfort: "B",
     howToPlay: [],
     matchups: {
       userSynergies: ["Jinx", "Caitlyn", "Jhin"],
@@ -2128,13 +2172,40 @@ export const champions: Champion[] = [
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lux.png",
     role: "Support",
-    comfort: null,
+    comfort: "B",
     howToPlay: [],
     matchups: {
       userSynergies: ["Caitlyn", "Jhin", "Ashe", "Varus"],
       metaSynergies: ["Ezreal", "Miss Fortune"],
       goodAgainst: ["Soraka", "Sona", "Yuumi", "Braum"],
       badAgainst: ["Leona", "Nautilus", "Blitzcrank", "Pyke"],
+    },
+    builds: [],
+  },
+  {
+    id: "akshan",
+    name: "Akshan",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Akshan.png",
+    role: "ADC / Skirmisher / Assassin",
+    comfort: "A",
+    howToPlay: [
+      {
+        tip: "Trade with Passive",
+        description:
+          "Always look for a quick auto-attack, Q, auto-attack trade to proc your passive shield and bonus damage, then swing away with E.",
+      },
+      {
+        tip: "Roam with Camouflage",
+        description:
+          "After pushing the lane, use your W's camouflage to roam to mid lane or with your jungler for surprise ganks. Your revive passive can turn skirmishes.",
+      },
+    ],
+    matchups: {
+      userSynergies: ["Leona", "Braum", "Thresh", "Nautilus"],
+      metaSynergies: ["Pyke", "Rakan", "Galio"],
+      goodAgainst: ["Vayne", "Kai'Sa", "Ezreal"],
+      badAgainst: ["Caitlyn", "Draven", "Varus", "Ashe", "Leona"],
     },
     builds: [],
   },

@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { dataManifest } from "@/data/data-manifest";
@@ -10,6 +12,9 @@ import { getConnectedRedisClient } from "@/lib/redis";
 export type SynergyMatrix = Record<string, Record<string, number>>;
 export type CounterMatrix = Record<string, Record<string, number>>;
 
+/**
+ * Defines the shape of the object returned by our main data loader.
+ */
 interface PlaybookData {
   adcs: Champion[];
   supports: Champion[];
@@ -24,6 +29,12 @@ interface PlaybookData {
   categories: RoleCategories[];
 }
 
+/**
+ * Parses the results of a redis.mGet command into a structured object.
+ * @param {string[]} keys - The array of keys that were fetched.
+ * @param {(string | null)[]} results - The array of stringified JSON results from Redis.
+ * @returns {Record<string, unknown>} A map of keys to their parsed JavaScript objects.
+ */
 function parseRedisMGet(
   keys: string[],
   results: (string | null)[]
@@ -35,39 +46,46 @@ function parseRedisMGet(
   return parsedData;
 }
 
+/**
+ * Processes a raw array of synergy data into objects grouped and sorted by role using Lodash.
+ * @param {Synergy[] | null} synergyData - The raw array of synergies.
+ * @returns {{ synergiesByAdc: Record<string, Synergy[]>, synergiesBySupport: Record<string, Synergy[]> }}
+ */
 function processSynergies(synergyData: Synergy[] | null): {
   synergiesByAdc: Record<string, Synergy[]>;
   synergiesBySupport: Record<string, Synergy[]>;
 } {
-  const synergiesByAdc: Record<string, Synergy[]> = {};
-  const synergiesBySupport: Record<string, Synergy[]> = {};
-  if (!synergyData) return { synergiesByAdc, synergiesBySupport };
-
-  const ratingOrder = { Excellent: 0, Good: 1, Neutral: 2, Poor: 3 };
-
-  for (const synergy of synergyData) {
-    if (!synergiesByAdc[synergy.adc]) synergiesByAdc[synergy.adc] = [];
-    synergiesByAdc[synergy.adc].push(synergy);
-
-    if (!synergiesBySupport[synergy.support])
-      synergiesBySupport[synergy.support] = [];
-    synergiesBySupport[synergy.support].push(synergy);
+  if (!synergyData) {
+    return { synergiesByAdc: {}, synergiesBySupport: {} };
   }
 
-  for (const adc of Object.keys(synergiesByAdc)) {
-    synergiesByAdc[adc].sort(
-      (a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]
-    );
-  }
-  for (const support of Object.keys(synergiesBySupport)) {
-    synergiesBySupport[support].sort(
-      (a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]
-    );
-  }
+  const ratingOrder: Record<Synergy["rating"], number> = {
+    Excellent: 0,
+    Good: 1,
+    Neutral: 2,
+    Poor: 3,
+  };
+
+  const sortSynergies = (synergies: Synergy[]) =>
+    _.sortBy(synergies, (s) => ratingOrder[s.rating]);
+
+  const synergiesByAdc = _.mapValues(
+    _.groupBy(synergyData, "adc"),
+    sortSynergies
+  );
+
+  const synergiesBySupport = _.mapValues(
+    _.groupBy(synergyData, "support"),
+    sortSynergies
+  );
 
   return { synergiesByAdc, synergiesBySupport };
 }
 
+/**
+ * Fetches all necessary data for the main page in a single, efficient batch operation.
+ * @returns {Promise<PlaybookData>} A promise that resolves to an object containing all page data.
+ */
 export async function getPlaybookData(): Promise<PlaybookData> {
   const redis = await getConnectedRedisClient();
 

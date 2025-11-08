@@ -50,10 +50,7 @@ export function Navigation({ views }: NavigationProps) {
     "view",
     "drafting"
   );
-  const [[direction, prevActiveView], setNavigationState] = useState([
-    0,
-    activeView,
-  ]);
+  const [[direction], setNavigationState] = useState([0]);
 
   const navItems: NavItem[] = [
     {
@@ -89,18 +86,18 @@ export function Navigation({ views }: NavigationProps) {
   ];
 
   const changeView = (newView: MainView) => {
-    const currentIndex = navItems.findIndex(
-      (item) => item.id === prevActiveView
-    );
+    if (newView === activeView) return;
+
+    const currentIndex = navItems.findIndex((item) => item.id === activeView);
     const newIndex = navItems.findIndex((item) => item.id === newView);
     const newDirection = newIndex > currentIndex ? 1 : -1;
 
-    setNavigationState([newDirection, newView]);
+    setNavigationState([newDirection]);
     setActiveView(newView);
   };
 
   const handlePanEnd = (
-    event: MouseEvent | TouchEvent | PointerEvent,
+    _event: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo
   ) => {
     const swipeThreshold = 50;
@@ -169,22 +166,29 @@ export function Navigation({ views }: NavigationProps) {
       </div>
 
       <MotionMain onPanEnd={handlePanEnd}>
-        <AnimatePresence initial={false} custom={direction} mode="wait">
-          <motion.div
-            key={activeView}
-            custom={direction}
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{
-              x: { type: "spring", stiffness: 300, damping: 30 },
-              opacity: { duration: 0.2 },
-            }}
-          >
-            {views[activeView]}
-          </motion.div>
-        </AnimatePresence>
+        <div style={{ position: "relative", minHeight: "100vh" }}>
+          <AnimatePresence initial={false} custom={direction}>
+            <motion.div
+              key={activeView}
+              style={{
+                position: "absolute",
+                width: "100%",
+                height: "100%",
+              }}
+              custom={direction}
+              variants={variants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+              }}
+            >
+              {views[activeView]}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </MotionMain>
     </>
   );

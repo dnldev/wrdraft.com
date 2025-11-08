@@ -24,12 +24,12 @@ const mockProps = {
   firstPicks: { adcs: [], supports: [] } as FirstPickData,
   tierList: { adc: {}, support: {} } as TierListData,
   categories: [] as RoleCategories[],
+  bannedChampions: new Set<string>(),
 };
 
 describe("useMatchupCalculator", () => {
   it("should initialize with default state", () => {
     const { result } = renderHook(() => useMatchupCalculator(mockProps));
-    expect(result.current.roleToCalculate).toBe("adc");
     expect(result.current.selections.alliedAdc).toBeNull();
     expect(result.current.results).toBeNull();
     expect(result.current.isCalculating).toBe(false);
@@ -43,16 +43,28 @@ describe("useMatchupCalculator", () => {
     expect(result.current.selections.enemySupport).toBe("Nami");
   });
 
-  it("should clear the correct allied champion selection when the role is toggled", () => {
+  it("should not clear selections on its own", () => {
     const { result } = renderHook(() => useMatchupCalculator(mockProps));
     act(() => {
       result.current.handleSelectionChange("alliedAdc", "Jinx");
     });
     expect(result.current.selections.alliedAdc).toBe("Jinx");
     act(() => {
-      result.current.handleRoleChange("adc");
+      result.current.handleSelectionChange("enemyAdc", "SomeOtherADC");
     });
-    expect(result.current.roleToCalculate).toBe("adc");
-    expect(result.current.selections.alliedAdc).toBeNull();
+    expect(result.current.selections.alliedAdc).toBe("Jinx");
+  });
+
+  it("should correctly identify when selections are empty", () => {
+    const { result } = renderHook(() => useMatchupCalculator(mockProps));
+    expect(result.current.isSelectionEmpty).toBe(true);
+    act(() => {
+      result.current.handleSelectionChange("alliedAdc", "Jinx");
+    });
+    expect(result.current.isSelectionEmpty).toBe(false);
+    act(() => {
+      result.current.handleSelectionChange("alliedAdc", null);
+    });
+    expect(result.current.isSelectionEmpty).toBe(true);
   });
 });

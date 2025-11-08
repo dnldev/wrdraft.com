@@ -1,17 +1,10 @@
+import _ from "lodash";
+
 import { RoleCategories } from "@/data/categoryData";
 import { Champion, ComfortTier } from "@/data/championData";
 import { Selections } from "@/hooks/useMatchupCalculator";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
-
-/**
- * Represents a single champion recommendation.
- */
-export interface Recommendation {
-  champion: Champion;
-  score: number;
-  breakdown: { reason: string; value: number }[];
-}
 
 /**
  * Represents a recommended ADC and Support pair.
@@ -26,7 +19,7 @@ export interface PairRecommendation {
 export type Archetype = "Poke" | "Engage" | "Sustain" | "Unknown";
 export type BreakdownItem = { reason: string; value: number };
 
-const archetypeMap = {
+const archetypeMap: Record<string, Archetype> = {
   Hypercarry: "Sustain",
   "Lane Bully": "Engage",
   "Caster/Utility": "Poke",
@@ -37,18 +30,15 @@ const archetypeMap = {
   Catcher: "Engage",
 };
 
-// Define the point values for each comfort tier.
 const comfortScores: Record<NonNullable<ComfortTier>, number> = {
-  "S+": 3, // Main
+  "S+": 3,
   S: 2,
-  A: 1, // Pocket Pick
+  A: 1,
   B: 0,
 };
 
 /**
  * Calculates a score based on the champion's comfort tier.
- * @param {Champion} champion - The champion to score.
- * @returns {BreakdownItem | null} The comfort score breakdown, or null.
  */
 function getComfortScore(champion: Champion): BreakdownItem | null {
   if (!champion.comfort) {
@@ -72,9 +62,7 @@ function getLaneArchetype(
   if (supportName) {
     for (const category of supportRole?.categories || []) {
       if (category.champions.includes(supportName)) {
-        return archetypeMap[
-          category.name as keyof typeof archetypeMap
-        ] as Archetype;
+        return archetypeMap[category.name];
       }
     }
   }
@@ -82,9 +70,7 @@ function getLaneArchetype(
   if (adcName) {
     for (const category of adcRole?.categories || []) {
       if (category.champions.includes(adcName)) {
-        return archetypeMap[
-          category.name as keyof typeof archetypeMap
-        ] as Archetype;
+        return archetypeMap[category.name];
       }
     }
   }
@@ -150,119 +136,7 @@ function getCounterScore(
 }
 
 /**
- * Sorts single champion recommendations by score, then by comfort.
- */
-function sortRecommendations(
-  recommendations: Recommendation[]
-): Recommendation[] {
-  return recommendations.toSorted((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
-    const aIsComfort = a.champion.comfort !== null;
-    const bIsComfort = b.champion.comfort !== null;
-    if (aIsComfort && !bIsComfort) return -1;
-    if (!aIsComfort && bIsComfort) return 1;
-    return 0;
-  });
-}
-
-/**
- * Calculates the total score and breakdown for a single champion candidate.
- */
-function calculateScoresForChampion(
-  champion: Champion,
-  context: {
-    roleToCalculate: "adc" | "support";
-    selections: Selections;
-    synergyMatrix: SynergyMatrix;
-    counterMatrix: CounterMatrix;
-    categories: RoleCategories[];
-    enemyLaneArchetype: Archetype;
-  }
-): Recommendation {
-  const {
-    roleToCalculate,
-    selections,
-    synergyMatrix,
-    counterMatrix,
-    categories,
-    enemyLaneArchetype,
-  } = context;
-
-  const prospectiveAdc =
-    roleToCalculate === "adc" ? champion.name : selections.alliedAdc;
-  const prospectiveSupport =
-    roleToCalculate === "support" ? champion.name : selections.alliedSupport;
-
-  const prospectiveArchetype = getLaneArchetype(
-    prospectiveAdc,
-    prospectiveSupport,
-    categories
-  );
-
-  const breakdown = [
-    getComfortScore(champion),
-    getArchetypeScore(prospectiveArchetype, enemyLaneArchetype),
-    getSynergyScore(prospectiveAdc, prospectiveSupport, synergyMatrix),
-    getCounterScore(champion.name, selections.enemyAdc, counterMatrix),
-    getCounterScore(champion.name, selections.enemySupport, counterMatrix),
-  ].filter((item): item is BreakdownItem => item !== null);
-
-  const score = breakdown.reduce((acc, item) => acc + item.value, 0);
-
-  return { champion, score, breakdown };
-}
-
-/**
- * Calculates single champion recommendations by orchestrating scoring and sorting.
- */
-export function calculateRecommendations({
-  roleToCalculate,
-  championPool,
-  selections,
-  synergyMatrix,
-  counterMatrix,
-  categories,
-}: {
-  roleToCalculate: "adc" | "support";
-  championPool: Champion[];
-  selections: Selections;
-  synergyMatrix: SynergyMatrix;
-  counterMatrix: CounterMatrix;
-  categories: RoleCategories[];
-}): Recommendation[] {
-  const selectedChampionNames = new Set(
-    Object.values(selections).filter(Boolean)
-  );
-  const availableChampions = championPool.filter(
-    (champ) => !selectedChampionNames.has(champ.name)
-  );
-
-  const enemyLaneArchetype = getLaneArchetype(
-    selections.enemyAdc,
-    selections.enemySupport,
-    categories
-  );
-
-  const scoringContext = {
-    roleToCalculate,
-    selections,
-    synergyMatrix,
-    counterMatrix,
-    categories,
-    enemyLaneArchetype,
-  };
-
-  const results = availableChampions
-    .map((champion) => calculateScoresForChampion(champion, scoringContext))
-    .filter((result) => result.breakdown.length > 0 && result.score !== 0);
-
-  return sortRecommendations(results);
-}
-
-/**
- * Calculates the score and breakdown for a single ADC/Support pair.
+ * Calculates the total score and breakdown for a single ADC/Support pair.
  */
 function calculateScoreForPair(context: {
   adc: Champion;
@@ -310,19 +184,24 @@ function calculateScoreForPair(context: {
 }
 
 /**
- * Generates an array of all possible ADC and Support pairs.
+ * Generates an array of all possible ADC and Support pairs based on selections using Lodash.
  */
 function getAllPairs(
   adcs: Champion[],
-  supports: Champion[]
+  supports: Champion[],
+  selections: Selections,
+  championMap: Map<string, Champion>
 ): { adc: Champion; support: Champion }[] {
-  const pairs: { adc: Champion; support: Champion }[] = [];
-  for (const adc of adcs) {
-    for (const support of supports) {
-      pairs.push({ adc, support });
-    }
-  }
-  return pairs;
+  const adcsToIterate = selections.alliedAdc
+    ? [championMap.get(selections.alliedAdc)!].filter(Boolean)
+    : adcs;
+  const supportsToIterate = selections.alliedSupport
+    ? [championMap.get(selections.alliedSupport)!].filter(Boolean)
+    : supports;
+
+  return _.flatMap(adcsToIterate, (adc) =>
+    supportsToIterate.map((support) => ({ adc, support }))
+  );
 }
 
 /**
@@ -335,6 +214,7 @@ export function calculatePairRecommendations(context: {
   synergyMatrix: SynergyMatrix;
   counterMatrix: CounterMatrix;
   categories: RoleCategories[];
+  championMap: Map<string, Champion>;
 }): PairRecommendation[] {
   const {
     adcs,
@@ -343,6 +223,7 @@ export function calculatePairRecommendations(context: {
     synergyMatrix,
     counterMatrix,
     categories,
+    championMap,
   } = context;
 
   const enemyLaneArchetype = getLaneArchetype(
@@ -351,7 +232,7 @@ export function calculatePairRecommendations(context: {
     categories
   );
 
-  const allPossiblePairs = getAllPairs(adcs, supports);
+  const allPossiblePairs = getAllPairs(adcs, supports, selections, championMap);
 
   const recommendations = allPossiblePairs
     .map(({ adc, support }) => {
@@ -362,7 +243,7 @@ export function calculatePairRecommendations(context: {
         synergyMatrix,
         counterMatrix,
         categories,
-        enemyLaneArchetype,
+        enemyLaneArchetype, // Corrected spelling here
       });
     })
     .filter((pair): pair is PairRecommendation => pair !== null);
