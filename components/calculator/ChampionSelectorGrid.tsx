@@ -1,34 +1,27 @@
 "use client";
 
-import { Avatar, Tooltip } from "@heroui/react";
+import { Tooltip } from "@heroui/react";
+import Image from "next/image";
 import React, { memo, useMemo } from "react";
 
 import { Champion } from "@/data/championData";
 
-/**
- * Props for the ChampionAvatarButton component.
- * @interface ChampionAvatarButtonProps
- */
 interface ChampionAvatarButtonProps {
   champion: Champion;
   isSelected: boolean;
   hasSelection: boolean;
   isDisabled: boolean;
   onSelect: (name: string) => void;
+  priority: boolean;
 }
 
-/**
- * A memoized component that renders a single champion avatar button.
- * This component encapsulates the complex logic for styling based on selection state.
- * @param {ChampionAvatarButtonProps} props - The props for the component.
- * @returns {JSX.Element} The rendered champion button.
- */
 const ChampionAvatarButton = memo(function ChampionAvatarButton({
   champion,
   isSelected,
   hasSelection,
   isDisabled,
   onSelect,
+  priority,
 }: ChampionAvatarButtonProps) {
   const avatarClasses = [
     "w-12 h-12 transition-all duration-200 transform hover:scale-110",
@@ -53,10 +46,13 @@ const ChampionAvatarButton = memo(function ChampionAvatarButton({
         disabled={isDisabled}
         className="flex flex-col items-center gap-1.5 text-center outline-none"
       >
-        <Avatar
+        <Image
           src={champion.portraitUrl}
           alt={`${champion.name} portrait`}
-          className={avatarClasses}
+          width={48}
+          height={48}
+          priority={priority}
+          className={`rounded-full object-cover ${avatarClasses}`}
         />
         <span className={nameClasses}>{champion.name}</span>
       </button>
@@ -83,7 +79,6 @@ export function ChampionSelectorGrid({
   };
 
   const sortedChampions = useMemo(() => {
-    // Sort champions alphabetically by name for predictable ordering.
     return champions.toSorted((a, b) => a.name.localeCompare(b.name));
   }, [champions]);
 
@@ -95,7 +90,7 @@ export function ChampionSelectorGrid({
         isDisabled ? "cursor-not-allowed opacity-50" : ""
       }`}
     >
-      {sortedChampions.map((champ) => (
+      {sortedChampions.map((champ, index) => (
         <ChampionAvatarButton
           key={champ.id}
           champion={champ}
@@ -103,6 +98,7 @@ export function ChampionSelectorGrid({
           hasSelection={hasSelection}
           isDisabled={isDisabled}
           onSelect={handleSelect}
+          priority={index < 10}
         />
       ))}
     </div>

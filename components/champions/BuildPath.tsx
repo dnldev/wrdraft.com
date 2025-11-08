@@ -1,4 +1,3 @@
-// in /components/BuildPath.tsx
 import Image from "next/image";
 import React from "react";
 
@@ -14,8 +13,9 @@ const ItemImage = ({ item }: { item: Item }) => (
     alt={item.name}
     width={48}
     height={48}
-    className="item-img"
+    className="rounded-md"
     title={item.name}
+    unoptimized
   />
 );
 

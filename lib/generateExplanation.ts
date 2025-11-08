@@ -1,27 +1,21 @@
-import { Selections } from "@/hooks/useMatchupCalculator";
-
-import {
-  BreakdownItem,
-  PairRecommendation,
-  Recommendation,
-} from "./calculator";
+import { BreakdownItem, PairRecommendation } from "./calculator";
 
 /**
- * A dictionary of concise explanations for breakdown reasons.
+ * A dictionary of concise, data-driven snippets for the summary line.
  */
 const explanationSnippets = {
-  Comfort: (value: number) => `Comfort Pick +${value}`,
-  ArchetypeAdvantage: (value: number) => `Archetype +${value}`,
-  ArchetypeDisadvantage: (value: number) => `Archetype ${value}`,
-  Synergy: (value: number) => `Synergy +${value}`,
+  Comfort: (value: number) => `Comfort Pick (+${value})`,
+  Archetype: (value: number) =>
+    value > 0 ? `Archetype (+${value})` : `Archetype (${value})`,
+  Synergy: (value: number) => `Synergy (+${value})`,
   Counter: (value: number) =>
-    value > 0 ? `Counter +${value}` : `Counter ${value}`,
+    value > 0 ? `Counter (+${value})` : `Counter (${value})`,
 };
 
 /**
  * Generates a concise, scannable summary from a breakdown array.
  * @param {BreakdownItem[]} breakdown - The breakdown of scores.
- * @returns {string} A short, data-driven string.
+ * @returns {string} A short, data-driven string (e.g., "Comfort Pick (+3) | Archetype (+2)").
  */
 export function generateSummaryLine(breakdown: BreakdownItem[]): string {
   const parts: string[] = [];
@@ -30,26 +24,27 @@ export function generateSummaryLine(breakdown: BreakdownItem[]): string {
   if (comfort) parts.push(explanationSnippets.Comfort(comfort.value));
 
   const archetype = breakdown.find((b) => b.reason.includes("Archetype"));
-  if (archetype) {
-    if (archetype.value > 0)
-      parts.push(explanationSnippets.ArchetypeAdvantage(archetype.value));
-    if (archetype.value < 0)
-      parts.push(explanationSnippets.ArchetypeDisadvantage(archetype.value));
+  if (archetype && archetype.value !== 0) {
+    parts.push(explanationSnippets.Archetype(archetype.value));
   }
 
   const synergy = breakdown.find((b) => b.reason.includes("Synergy"));
   if (synergy) parts.push(explanationSnippets.Synergy(synergy.value));
 
-  const counterTotal = breakdown
-    .filter((b) => b.reason.includes("vs"))
-    .reduce((acc, item) => acc + item.value, 0);
+  let counterTotal = 0;
+  for (const item of breakdown) {
+    if (item.reason.includes("vs")) {
+      counterTotal += item.value;
+    }
+  }
+
   if (counterTotal !== 0) parts.push(explanationSnippets.Counter(counterTotal));
 
   return parts.join(" | ");
 }
 
 /**
- * A dictionary of strategic explanations for each archetype matchup.
+ * A dictionary of detailed strategic explanations for each archetype matchup.
  */
 const archetypeExplanations = {
   "Poke-Engage":
@@ -68,20 +63,13 @@ const archetypeExplanations = {
     "Both lanes share the same archetype. This matchup will be determined by skill, cooldown management, and which side can execute their strategy more effectively.",
 };
 
-/**
- * Generates the explanation sentence for the archetype matchup.
- * @param {BreakdownItem | undefined} archetypeItem - The archetype breakdown item.
- * @returns {string | null} The generated sentence or null.
- */
 function getArchetypeExplanationSentence(
   archetypeItem: BreakdownItem | undefined
 ): string | null {
   if (!archetypeItem) return null;
 
   if (archetypeItem.value > 0) {
-    const match = new RegExp(/\(([\w/]+) > ([\w/]+)\)/).exec(
-      archetypeItem.reason
-    );
+    const match = archetypeItem.reason.match(/\((\w+) > (\w+)\)/);
     return match
       ? archetypeExplanations[
           `${match[1]}-${match[2]}` as keyof typeof archetypeExplanations
@@ -89,9 +77,7 @@ function getArchetypeExplanationSentence(
       : null;
   }
   if (archetypeItem.value < 0) {
-    const match = new RegExp(/\(([\w/]+) < ([\w/]+)\)/).exec(
-      archetypeItem.reason
-    );
+    const match = archetypeItem.reason.match(/\((\w+) < (\w+)\)/);
     return match
       ? archetypeExplanations[
           `${match[1]}-${match[2]}` as keyof typeof archetypeExplanations
@@ -101,92 +87,72 @@ function getArchetypeExplanationSentence(
   return archetypeExplanations.Mirror;
 }
 
-/**
- * Generates the explanation sentence for the lane synergy.
- * @param {BreakdownItem | undefined} synergyItem - The synergy breakdown item.
- * @param {string} adcName - The name of the ADC.
- * @param {string} supportName - The name of the Support.
- * @returns {string | null} The generated sentence or null.
- */
 function getSynergyExplanationSentence(
   synergyItem: BreakdownItem | undefined,
   adcName: string,
   supportName: string
 ): string | null {
   if (synergyItem && synergyItem.value >= 2) {
-    return `Furthermore, ${adcName} and ${supportName} have excellent lane synergy, allowing them to effectively execute their game plan.`;
+    return `${adcName} and ${supportName} have excellent lane synergy, allowing them to effectively execute their game plan.`;
   }
   return null;
 }
 
-/**
- * Generates the explanation sentence for the most impactful counter matchup.
- * @param {BreakdownItem[]} counterItems - The array of counter breakdown items.
- * @returns {string | null} The generated sentence or null.
- */
 function getCounterExplanationSentence(
   counterItems: BreakdownItem[]
 ): string | null {
-  const positiveCounters = counterItems.filter((c) => c.value > 0);
-  if (positiveCounters.length > 0) {
-    const mainCounter = positiveCounters.toSorted(
-      (a, b) => b.value - a.value
-    )[0];
-    const [who, whom] = mainCounter.reason.split(" vs ");
+  if (counterItems.length === 0) {
+    return null;
+  }
+
+  let mainCounter = counterItems[0];
+  for (const item of counterItems) {
+    if (Math.abs(item.value) > Math.abs(mainCounter.value)) {
+      mainCounter = item;
+    }
+  }
+
+  const [who, whom] = mainCounter.reason.split(" vs ");
+
+  if (mainCounter.value > 0) {
     return `Specifically, ${who} provides a strong individual counter into ${whom}, disrupting their effectiveness in lane.`;
   }
-  return null;
+  return `However, be aware that ${whom} is a significant counter to ${who}, which could create challenges in that specific matchup.`;
 }
 
-/**
- * Generates a full, multi-line strategic explanation for a recommended pair.
- * @param {PairRecommendation} recommendation - The pair recommendation object.
- * @returns {string} A formatted string explaining the recommendation.
- */
 export function generatePairExplanation(
   recommendation: PairRecommendation
 ): string {
   const { adc, support, breakdown } = recommendation;
-  const archetypeItem = breakdown.find((b) => b.reason.includes("Archetype"));
-  const synergyItem = breakdown.find((b) => b.reason.includes("Synergy"));
-  const counterItems = breakdown.filter((b) => b.reason.includes("vs"));
-  const sentences = [
-    getArchetypeExplanationSentence(archetypeItem),
-    getSynergyExplanationSentence(synergyItem, adc.name, support.name),
-    getCounterExplanationSentence(counterItems),
-  ].filter((sentence): sentence is string => sentence !== null);
+  const sentences: string[] = [];
+
+  const archetypeSentence = getArchetypeExplanationSentence(
+    breakdown.find((b) => b.reason.includes("Archetype"))
+  );
+  if (archetypeSentence) sentences.push(archetypeSentence);
+
+  const synergySentence = getSynergyExplanationSentence(
+    breakdown.find((b) => b.reason.includes("Synergy")),
+    adc.name,
+    support.name
+  );
+  if (synergySentence) {
+    const prefix = sentences.length > 0 ? "Furthermore, " : "";
+    sentences.push(
+      prefix +
+        synergySentence.charAt(0).toLowerCase() +
+        synergySentence.slice(1)
+    );
+  }
+
+  const counterSentence = getCounterExplanationSentence(
+    breakdown.filter((b) => b.reason.includes("vs"))
+  );
+  if (counterSentence) sentences.push(counterSentence);
+
   if (sentences.length === 0) {
     return "This is a generally balanced lane combination with minor advantages.";
   }
-  return sentences.join("\n\n");
-}
 
-/**
- * Generates a full strategic explanation for a single champion recommendation.
- * @param {Recommendation} recommendation - The single recommendation object.
- * @param {Selections} selections - The current champion selections.
- * @returns {string} A formatted string explaining the recommendation.
- */
-export function generateSingleExplanation(
-  recommendation: Recommendation,
-  selections: Selections
-): string {
-  const { champion, breakdown } = recommendation;
-  const partner = selections.alliedAdc || selections.alliedSupport;
-  const sentences: string[] = [];
-  const archetypeItem = breakdown.find((b) => b.reason.includes("Archetype"));
-  sentences.push(getArchetypeExplanationSentence(archetypeItem) || "");
-  const synergyItem = breakdown.find((b) => b.reason.includes("Synergy"));
-  if (synergyItem && synergyItem.value >= 2 && partner) {
-    sentences.push(
-      `This pick creates an excellent lane synergy with ${partner}, allowing you to effectively execute your game plan.`
-    );
-  }
-  const counterItems = breakdown.filter((b) => b.reason.includes("vs"));
-  sentences.push(getCounterExplanationSentence(counterItems) || "");
-  const filteredSentences = sentences.filter(Boolean);
-  if (filteredSentences.length === 0) {
-    return `Picking ${champion.name} provides a generally favorable matchup in this scenario.`;
-  }
-  return filteredSentences.join("\n\n");
+  return sentences.join("\n\n");
 }

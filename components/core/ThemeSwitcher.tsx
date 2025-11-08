@@ -8,7 +8,7 @@ import {
   DropdownTrigger,
 } from "@heroui/react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { LucideIcon } from "./LucideIcon";
 
@@ -21,7 +21,7 @@ const favoriteThemes = [
   { key: "celestial-peak", label: "Celestial Peak Blue ★" },
 ];
 
-export const ThemeSwitcher = () => {
+export const ThemeSwitcher = React.memo(function ThemeSwitcherComponent() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
 
@@ -60,4 +60,4 @@ export const ThemeSwitcher = () => {
       </DropdownMenu>
     </Dropdown>
   );
-};
+});

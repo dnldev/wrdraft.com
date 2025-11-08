@@ -1,11 +1,13 @@
 import React from "react";
 
-import { MatchupCalculator } from "@/components/calculator/MatchupCalculator";
-import { ChampionView } from "@/components/champions/ChampionView";
 import { Navigation } from "@/components/core/Navigation";
-import { DraftingInfo } from "@/components/drafting/DraftingInfo";
-import { BestPairings } from "@/components/pairings/BestPairings";
-import { TeamComps } from "@/components/team-comps/TeamComps";
+import {
+  MemoizedBestPairings,
+  MemoizedChampionView,
+  MemoizedDraftingInfo,
+  MemoizedMatchupCalculator,
+  MemoizedTeamComps,
+} from "@/components/views";
 import { getPlaybookData } from "@/lib/data-fetching";
 
 export default async function HomePage() {
@@ -23,31 +25,34 @@ export default async function HomePage() {
     categories,
   } = await getPlaybookData();
 
+  // The calculator now receives all the data as props and manages its own state internally.
+  const calculatorView = (
+    <MemoizedMatchupCalculator
+      adcs={adcs}
+      supports={supports}
+      allChampions={allChampions}
+      synergyMatrix={synergyMatrix}
+      counterMatrix={counterMatrix}
+      firstPicks={firstPicks}
+      tierList={tierList}
+      categories={categories}
+    />
+  );
+
   return (
     <React.Suspense fallback={null}>
       <Navigation
         views={{
-          drafting: <DraftingInfo tierList={tierList} />,
-          "team-comps": <TeamComps teamComps={teamComps} />,
+          drafting: <MemoizedDraftingInfo tierList={tierList} />,
+          "team-comps": <MemoizedTeamComps teamComps={teamComps} />,
           pairings: (
-            <BestPairings
+            <MemoizedBestPairings
               synergiesByAdc={synergiesByAdc}
               synergiesBySupport={synergiesBySupport}
             />
           ),
-          champions: <ChampionView adcs={adcs} supports={supports} />,
-          calculator: (
-            <MatchupCalculator
-              adcs={adcs}
-              supports={supports}
-              allChampions={allChampions}
-              synergyMatrix={synergyMatrix}
-              counterMatrix={counterMatrix}
-              firstPicks={firstPicks}
-              tierList={tierList}
-              categories={categories}
-            />
-          ),
+          champions: <MemoizedChampionView adcs={adcs} supports={supports} />,
+          calculator: calculatorView,
         }}
       />
     </React.Suspense>

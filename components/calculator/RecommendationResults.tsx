@@ -13,15 +13,16 @@ import {
 import React from "react";
 
 import { Selections } from "@/hooks/useMatchupCalculator";
-import { PairRecommendation, Recommendation } from "@/lib/calculator";
+import { PairRecommendation } from "@/lib/calculator";
 import {
   generatePairExplanation,
-  generateSingleExplanation,
   generateSummaryLine,
 } from "@/lib/generateExplanation";
 
 /**
  * Determines the color for the score chip based on the score value.
+ * @param {number} score - The recommendation score.
+ * @returns {"success" | "danger" | "default"} The color for the Chip component.
  */
 function getScoreColor(score: number): "success" | "danger" | "default" {
   if (score > 0) return "success";
@@ -31,6 +32,8 @@ function getScoreColor(score: number): "success" | "danger" | "default" {
 
 /**
  * A title component for an AccordionItem, showing a recommended pair.
+ * @param {object} props - The component props.
+ * @returns {JSX.Element}
  */
 const PairTitle = ({
   item,
@@ -63,63 +66,15 @@ const PairTitle = ({
 );
 
 /**
- * A title component for an AccordionItem, showing a single champion recommendation.
- */
-const SingleTitle = ({
-  item,
-  index,
-  tierMap,
-}: {
-  item: Recommendation;
-  index: number;
-  tierMap: Map<string, string>;
-}) => (
-  <div className="flex w-full items-center gap-4">
-    <Avatar
-      src={item.champion.portraitUrl}
-      className="w-12 h-12"
-      alt={item.champion.name}
-    />
-    <div className="flex-grow space-y-1">
-      <h4 className="text-lg font-bold text-white leading-tight">
-        {index + 1}. {item.champion.name}
-        {tierMap.get(item.champion.name) && (
-          <Chip size="sm" variant="flat" className="ml-2 text-xs">
-            {tierMap.get(item.champion.name)} Tier
-          </Chip>
-        )}
-      </h4>
-      <p className="text-xs text-foreground/70">
-        {generateSummaryLine(item.breakdown)}
-      </p>
-    </div>
-    <Chip
-      color={getScoreColor(item.score)}
-      variant="shadow"
-      className="font-bold shrink-0"
-    >
-      Score: {item.score}
-    </Chip>
-  </div>
-);
-
-/**
- * A type guard to determine if a recommendation is for a pair.
- */
-function isPairRecommendation(
-  res: Recommendation | PairRecommendation
-): res is PairRecommendation {
-  return "adc" in res && "support" in res;
-}
-
-/**
- * Renders a list of recommendations as an expandable accordion.
+ * Renders a list of pair recommendations as an expandable accordion.
+ * @param {object} props - The component props.
+ * @returns {JSX.Element}
  */
 export const RecommendationResults: React.FC<{
-  results: (Recommendation | PairRecommendation)[];
+  results: PairRecommendation[];
   tierMap: Map<string, string>;
   selections: Selections;
-}> = ({ results, tierMap, selections }) => {
+}> = ({ results }) => {
   return (
     <Card>
       <CardHeader>
@@ -128,34 +83,17 @@ export const RecommendationResults: React.FC<{
       <Divider />
       <CardBody className="p-2">
         <Accordion selectionMode="multiple">
-          {results.map((item, index) => {
-            if (isPairRecommendation(item)) {
-              return (
-                <AccordionItem
-                  key={`${item.adc.id}-${item.support.id}`}
-                  aria-label={`Recommendation for ${item.adc.name} and ${item.support.name}`}
-                  title={<PairTitle item={item} index={index} />}
-                >
-                  <p className="text-sm text-foreground/80 whitespace-pre-wrap px-2 pb-2">
-                    {generatePairExplanation(item)}
-                  </p>
-                </AccordionItem>
-              );
-            }
-            return (
-              <AccordionItem
-                key={item.champion.id}
-                aria-label={`Recommendation for ${item.champion.name}`}
-                title={
-                  <SingleTitle item={item} index={index} tierMap={tierMap} />
-                }
-              >
-                <p className="text-sm text-foreground/80 whitespace-pre-wrap px-2 pb-2">
-                  {generateSingleExplanation(item, selections)}
-                </p>
-              </AccordionItem>
-            );
-          })}
+          {results.map((item, index) => (
+            <AccordionItem
+              key={`${item.adc.id}-${item.support.id}`}
+              aria-label={`Recommendation for ${item.adc.name} and ${item.support.name}`}
+              title={<PairTitle item={item} index={index} />}
+            >
+              <p className="text-sm text-foreground/80 whitespace-pre-wrap px-2 pb-2">
+                {generatePairExplanation(item)}
+              </p>
+            </AccordionItem>
+          ))}
         </Accordion>
         {results.length === 0 && (
           <p className="text-foreground/70 text-center p-4">
