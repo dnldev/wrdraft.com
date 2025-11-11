@@ -1,4 +1,49 @@
+import { RoleCategories } from "@/data/categoryData";
 import { TierListData } from "@/data/tierListData";
+
+export type Archetype = "Poke" | "Engage" | "Sustain" | "Unknown";
+
+const archetypeMap: Record<string, Archetype> = {
+  Hypercarry: "Sustain",
+  "Lane Bully": "Engage",
+  "Caster/Utility": "Poke",
+  "Mobile/Skirmisher": "Engage",
+  Enchanter: "Sustain",
+  Engage: "Engage",
+  "Poke/Mage": "Poke",
+  Catcher: "Engage",
+};
+
+/**
+ * Determines the strategic archetype of a bot lane duo.
+ * @param adcName - The name of the ADC.
+ * @param supportName - The name of the Support.
+ * @param categories - The list of all role categories.
+ * @returns {Archetype} The determined archetype for the lane.
+ */
+export function getLaneArchetype(
+  adcName: string | null,
+  supportName: string | null,
+  categories: readonly RoleCategories[]
+): Archetype {
+  const supportRole = categories.find((r) => r.name === "Support");
+  if (supportName) {
+    for (const category of supportRole?.categories || []) {
+      if (category.champions.includes(supportName)) {
+        return archetypeMap[category.name];
+      }
+    }
+  }
+  const adcRole = categories.find((r) => r.name === "ADC");
+  if (adcName) {
+    for (const category of adcRole?.categories || []) {
+      if (category.champions.includes(adcName)) {
+        return archetypeMap[category.name];
+      }
+    }
+  }
+  return "Unknown";
+}
 
 /**
  * Creates a map of champion names to their meta tier for efficient lookups.

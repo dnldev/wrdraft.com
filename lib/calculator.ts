@@ -2,7 +2,8 @@ import { flatMap } from "lodash-es";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion, ComfortTier } from "@/data/championData";
-import { Selections } from "@/hooks/useMatchupCalculator";
+import { Archetype, getLaneArchetype } from "@/lib/utils";
+import { Selections } from "@/types/draft";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
 
@@ -13,19 +14,10 @@ export interface PairRecommendation {
   readonly breakdown: BreakdownItem[];
 }
 
-export type Archetype = "Poke" | "Engage" | "Sustain" | "Unknown";
-export type BreakdownItem = { readonly reason: string; readonly value: number };
-
-const archetypeMap: Record<string, Archetype> = {
-  Hypercarry: "Sustain",
-  "Lane Bully": "Engage",
-  "Caster/Utility": "Poke",
-  "Mobile/Skirmisher": "Engage",
-  Enchanter: "Sustain",
-  Engage: "Engage",
-  "Poke/Mage": "Poke",
-  Catcher: "Engage",
-};
+export interface BreakdownItem {
+  readonly reason: string;
+  readonly value: number;
+}
 
 const comfortScores: Record<NonNullable<ComfortTier>, number> = {
   "S+": 3,
@@ -42,30 +34,6 @@ function getComfortScore(champion: Champion): BreakdownItem | null {
   return score > 0
     ? { value: score, reason: `Comfort Pick (${champion.comfort})` }
     : null;
-}
-
-function getLaneArchetype(
-  adcName: string | null,
-  supportName: string | null,
-  categories: readonly RoleCategories[]
-): Archetype {
-  const supportRole = categories.find((r) => r.name === "Support");
-  if (supportName) {
-    for (const category of supportRole?.categories || []) {
-      if (category.champions.includes(supportName)) {
-        return archetypeMap[category.name];
-      }
-    }
-  }
-  const adcRole = categories.find((r) => r.name === "ADC");
-  if (adcName) {
-    for (const category of adcRole?.categories || []) {
-      if (category.champions.includes(adcName)) {
-        return archetypeMap[category.name];
-      }
-    }
-  }
-  return "Unknown";
 }
 
 function getArchetypeScore(
@@ -102,7 +70,6 @@ function getSynergyScore(
 ): BreakdownItem | null {
   if (!adc || !support) return null;
   const score = synergyMatrix[adc]?.[support] ?? 0;
-  if (score === 0) return null;
   return { value: score, reason: `Synergy with ${support}` };
 }
 
@@ -113,11 +80,14 @@ function getCounterScore(
 ): BreakdownItem | null {
   if (!opponentName) return null;
   const score = counterMatrix[championName]?.[opponentName] ?? 0;
-  if (score === 0) return null;
   return { value: score, reason: `${championName} vs ${opponentName}` };
 }
 
-function calculateScoreForPair(context: {
+/**
+ * Analyzes a single ADC/Support pair and returns a full breakdown of their score,
+ * regardless of whether the score is positive, negative, or zero.
+ */
+export function analyzePair(context: {
   readonly adc: Champion;
   readonly support: Champion;
   readonly selections: Selections;
@@ -125,7 +95,7 @@ function calculateScoreForPair(context: {
   readonly counterMatrix: CounterMatrix;
   readonly categories: readonly RoleCategories[];
   readonly enemyLaneArchetype: Archetype;
-}): PairRecommendation | null {
+}): PairRecommendation {
   const {
     adc,
     support,
@@ -153,16 +123,12 @@ function calculateScoreForPair(context: {
     getCounterScore(support.name, selections.enemySupport, counterMatrix),
   ].filter((item): item is BreakdownItem => item !== null);
 
-  if (breakdown.length === 0) {
-    return null;
-  }
-
   let totalScore = 0;
   for (const item of breakdown) {
     totalScore += item.value;
   }
 
-  return totalScore > 0 ? { adc, support, score: totalScore, breakdown } : null;
+  return { adc, support, score: totalScore, breakdown };
 }
 
 function getAllPairs(
@@ -211,8 +177,8 @@ export function calculatePairRecommendations(context: {
   const allPossiblePairs = getAllPairs(adcsToIterate, supportsToIterate);
 
   const recommendations = allPossiblePairs
-    .map(({ adc, support }) => {
-      return calculateScoreForPair({
+    .map(({ adc, support }) =>
+      analyzePair({
         adc,
         support,
         selections,
@@ -220,9 +186,9 @@ export function calculatePairRecommendations(context: {
         counterMatrix,
         categories,
         enemyLaneArchetype,
-      });
-    })
-    .filter((pair): pair is PairRecommendation => pair !== null);
+      })
+    )
+    .filter((pair) => pair.score > 0);
 
   return recommendations.toSorted((a, b) => {
     if (b.score !== a.score) {

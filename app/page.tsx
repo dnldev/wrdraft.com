@@ -4,6 +4,7 @@ import { Navigation } from "@/components/core/Navigation";
 import {
   MemoizedBestPairings,
   MemoizedChampionView,
+  MemoizedDraftHistory,
   MemoizedDraftingInfo,
   MemoizedMatchupCalculator,
   MemoizedTeamComps,
@@ -23,6 +24,7 @@ export default async function HomePage() {
     firstPicks,
     tierList,
     categories,
+    draftHistory,
   } = await getPlaybookData();
 
   // The calculator now receives all the data as props and manages its own state internally.
@@ -39,6 +41,8 @@ export default async function HomePage() {
     />
   );
 
+  const championMap = new Map(allChampions.map((c) => [c.name, c]));
+
   return (
     <React.Suspense fallback={null}>
       <Navigation
@@ -53,6 +57,12 @@ export default async function HomePage() {
           ),
           champions: <MemoizedChampionView adcs={adcs} supports={supports} />,
           calculator: calculatorView,
+          history: (
+            <MemoizedDraftHistory
+              draftHistory={draftHistory}
+              championMap={championMap}
+            />
+          ),
         }}
       />
     </React.Suspense>

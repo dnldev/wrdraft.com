@@ -2,10 +2,12 @@
 
 import {
   Avatar,
+  Button,
   Chip,
   Modal,
   ModalBody,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   Progress,
 } from "@heroui/react";
@@ -17,6 +19,7 @@ import { DraftSummary } from "@/hooks/useMatchupCalculator";
 interface DraftSummaryModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
+  readonly onOpenLogResult: () => void;
   readonly summary: DraftSummary | null;
   readonly championMap: Map<string, Champion>;
 }
@@ -27,13 +30,25 @@ const getScoreColor = (score: number) => {
   return "default";
 };
 
+const BreakdownRow: React.FC<{
+  readonly label: string;
+  readonly value: number;
+}> = ({ label, value }) => (
+  <div className="flex justify-between items-center p-2 bg-content2 rounded-md">
+    <span className="text-foreground/80">{label}</span>
+    <Chip size="sm" color={getScoreColor(value)}>
+      {value > 0 ? `+${value}` : value}
+    </Chip>
+  </div>
+);
+
 /**
- * A modal that displays a detailed breakdown and estimated win chance for the complete 2v2 lane matchup.
- * It appears automatically when all four champion selections are filled.
+ * A modal that displays a detailed breakdown and estimated win chance for the 2v2 lane matchup.
  */
 export function DraftSummaryModal({
   isOpen,
   onClose,
+  onOpenLogResult,
   summary,
   championMap,
 }: DraftSummaryModalProps) {
@@ -118,24 +133,52 @@ export function DraftSummaryModal({
               />
             </div>
 
-            <div>
-              <p className="text-sm font-semibold text-white mb-2">Breakdown</p>
-              <div className="space-y-1 text-sm">
-                {breakdown.map((item) => (
-                  <div
-                    key={item.reason}
-                    className="flex justify-between items-center p-2 bg-content2 rounded-md"
-                  >
-                    <span className="text-foreground/80">{item.reason}</span>
-                    <Chip size="sm" color={getScoreColor(item.value)}>
-                      {item.value > 0 ? `+${item.value}` : item.value}
-                    </Chip>
-                  </div>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-semibold text-white mb-2">
+                  Synergy Analysis
+                </p>
+                <div className="space-y-1 text-sm">
+                  <BreakdownRow
+                    label="Your Team Synergy"
+                    value={
+                      breakdown.find((b) => b.reason === "Your Team Synergy")
+                        ?.value ?? 0
+                    }
+                  />
+                  <BreakdownRow
+                    label="Enemy Team Synergy"
+                    value={
+                      breakdown.find((b) => b.reason === "Enemy Team Synergy")
+                        ?.value ?? 0
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white mb-2">
+                  Lane Matchups
+                </p>
+                <div className="space-y-1 text-sm">
+                  {breakdown
+                    .filter((b) => b.reason.includes("vs"))
+                    .map((item) => (
+                      <BreakdownRow
+                        key={item.reason}
+                        label={item.reason}
+                        value={item.value}
+                      />
+                    ))}
+                </div>
               </div>
             </div>
           </div>
         </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onPress={onOpenLogResult} fullWidth>
+            Log Game Result
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );
