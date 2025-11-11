@@ -1,51 +1,170 @@
 "use client";
 
-import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
-import React from "react";
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Divider,
+  Tooltip,
+} from "@heroui/react";
+import React, { useMemo } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
-import { FirstPickData } from "@/data/firstPickData";
+import { FirstPick, FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
+import { useBanPhase } from "@/hooks/useBanPhase";
+import { useDraftSummaryModal } from "@/hooks/useDraftSummaryModal";
 import { useMatchupCalculator } from "@/hooks/useMatchupCalculator";
+import { PairRecommendation } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 
 import { LucideIcon } from "../core/LucideIcon";
+import { ThemeSwitcher } from "../core/ThemeSwitcher";
+import { BanPhase, LockedBansDisplay } from "./BanPhase";
+import { BanSelectorModal } from "./BanSelectorModal";
 import { CalculatorForm } from "./CalculatorForm";
+import { DraftSummaryModal } from "./DraftSummaryModal";
 import { FirstPicksDisplay } from "./FirstPicksDisplay";
 import { RecommendationResults } from "./RecommendationResults";
 
-interface MatchupCalculatorProps {
-  adcs: Champion[];
-  supports: Champion[];
-  allChampions: Champion[];
-  synergyMatrix: SynergyMatrix;
-  counterMatrix: CounterMatrix;
-  firstPicks: FirstPickData;
-  tierList: TierListData;
-  categories: RoleCategories[];
+interface CalculatorResultsContentProps {
+  readonly bansLocked: boolean;
+  readonly isSelectionEmpty: boolean;
+  readonly combinedFirstPicks: FirstPick[];
+  readonly championMap: Map<string, Champion>;
+  readonly championTierMap: Map<string, string>;
+  readonly results: PairRecommendation[] | null;
 }
 
 /**
- * The main component for the Matchup Calculator feature.
- * It orchestrates the UI by initializing the `useMatchupCalculator` hook and passing
- * the resulting state and handlers to its child presentational components.
- * @param {MatchupCalculatorProps} props - The raw data fetched server-side, including champions and matrices.
- * @returns {JSX.Element} The fully interactive Matchup Calculator UI.
+ * A sub-component to handle the conditional rendering of the calculator's main content area.
+ * It decides whether to show the first picks display or the recommendation results.
+ * This reduces the cognitive complexity of the main MatchupCalculator component.
+ */
+const CalculatorResultsContent: React.FC<CalculatorResultsContentProps> = ({
+  bansLocked,
+  isSelectionEmpty,
+  combinedFirstPicks,
+  championMap,
+  championTierMap,
+  results,
+}) => {
+  if (!bansLocked) {
+    return null;
+  }
+
+  return isSelectionEmpty ? (
+    <FirstPicksDisplay
+      firstPicks={combinedFirstPicks}
+      championMap={championMap}
+      tierMap={championTierMap}
+    />
+  ) : (
+    <RecommendationResults results={results || []} />
+  );
+};
+
+interface MatchupCalculatorProps {
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
+  readonly allChampions: Champion[];
+  readonly synergyMatrix: SynergyMatrix;
+  readonly counterMatrix: CounterMatrix;
+  readonly firstPicks: FirstPickData;
+  readonly tierList: TierListData;
+  readonly categories: RoleCategories[];
+}
+
+/**
+ * Orchestrates the entire drafting experience by composing the ban and pick phases.
+ * It uses the `useBanPhase` and `useMatchupCalculator` hooks to manage state
+ * and passes data down to presentational child components.
  */
 export function MatchupCalculator(props: MatchupCalculatorProps) {
   const {
-    roleToCalculate,
+    adcs,
+    supports,
+    allChampions,
+    synergyMatrix,
+    counterMatrix,
+    firstPicks,
+    tierList,
+    categories,
+  } = props;
+
+  const {
+    yourBans,
+    enemyBans,
+    bansLocked,
+    setBansLocked,
+    bannedChampions,
+    handleBanSelection,
+  } = useBanPhase();
+
+  const {
     selections,
     results,
     isCalculating,
     championMap,
     championTierMap,
     handleSelectionChange,
-    handleRoleChange,
     isSelectionEmpty,
-    currentFirstPicks,
-  } = useMatchupCalculator(props);
+    combinedFirstPicks,
+    draftSummary,
+  } = useMatchupCalculator({
+    adcs,
+    supports,
+    allChampions,
+    synergyMatrix,
+    counterMatrix,
+    firstPicks,
+    tierList,
+    categories,
+    bannedChampions,
+  });
+
+  const { isSummaryModalOpen, closeSummaryModal, resetSummaryModal } =
+    useDraftSummaryModal(draftSummary);
+
+  const [banModalState, setBanModalState] = React.useState<{
+    isOpen: boolean;
+    team: "your" | "enemy";
+    index: number;
+  }>({
+    isOpen: false,
+    team: "your",
+    index: 0,
+  });
+
+  const handleSelectionChangeWithReset: typeof handleSelectionChange = (
+    role,
+    name
+  ) => {
+    resetSummaryModal();
+    handleSelectionChange(role, name);
+  };
+
+  const openBanModal = (team: "your" | "enemy", index: number) => {
+    setBanModalState({ isOpen: true, team, index });
+  };
+
+  const handleModalBanSelect = (championName: string) => {
+    handleBanSelection(championName, banModalState.team, banModalState.index);
+    setBanModalState({ ...banModalState, isOpen: false });
+  };
+
+  const availableChampionsForBanModal = useMemo(() => {
+    const currentSlotChampionName =
+      banModalState.team === "your"
+        ? yourBans[banModalState.index]
+        : enemyBans[banModalState.index];
+
+    return allChampions.filter(
+      (c) => !bannedChampions.has(c.name) || c.name === currentSlotChampionName
+    );
+  }, [allChampions, bannedChampions, yourBans, enemyBans, banModalState]);
 
   return (
     <div className="space-y-8">
@@ -56,43 +175,85 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
             Matchup Calculator
           </h2>
           <p className="text-sm text-foreground/70 text-center max-w-2xl">
-            Select the lane participants to get a weighted recommendation for
-            your pick.
+            {bansLocked
+              ? "Select the lane participants to get a recommendation."
+              : "Select the bans for both teams."}
           </p>
         </CardHeader>
         <Divider />
         <CardBody className="p-4 md:p-6">
-          <CalculatorForm
-            adcs={props.adcs}
-            supports={props.supports}
-            allChampions={props.allChampions}
-            categories={props.categories}
-            championMap={championMap}
-            selections={selections}
-            onSelectionChange={handleSelectionChange}
-            roleToCalculate={roleToCalculate}
-            onRoleChange={handleRoleChange}
-            isCalculating={isCalculating}
-          />
+          {bansLocked ? (
+            <div className="space-y-8">
+              <LockedBansDisplay
+                bannedChampions={bannedChampions}
+                championMap={championMap}
+              />
+              <CalculatorForm
+                adcs={adcs}
+                supports={supports}
+                allChampions={allChampions}
+                categories={categories}
+                championMap={championMap}
+                selections={selections}
+                onSelectionChange={handleSelectionChangeWithReset}
+                isCalculating={isCalculating}
+              />
+            </div>
+          ) : (
+            <BanPhase
+              championMap={championMap}
+              yourBans={yourBans}
+              enemyBans={enemyBans}
+              onSlotClick={openBanModal}
+              onLockIn={() => setBansLocked(true)}
+            />
+          )}
         </CardBody>
       </Card>
 
-      {results && (
-        <RecommendationResults
-          results={results}
-          tierMap={championTierMap}
-          selections={selections}
-        />
-      )}
+      <CalculatorResultsContent
+        bansLocked={bansLocked}
+        isSelectionEmpty={isSelectionEmpty}
+        combinedFirstPicks={combinedFirstPicks}
+        championMap={championMap}
+        championTierMap={championTierMap}
+        results={results}
+      />
 
-      {isSelectionEmpty && !results && (
-        <FirstPicksDisplay
-          firstPicks={currentFirstPicks}
-          championMap={championMap}
-          tierMap={championTierMap}
-          role={roleToCalculate === "both" ? "adc" : roleToCalculate}
-        />
-      )}
+      <BanSelectorModal
+        isOpen={banModalState.isOpen}
+        onClose={() => setBanModalState({ ...banModalState, isOpen: false })}
+        champions={availableChampionsForBanModal}
+        selectedBans={bannedChampions}
+        onBanSelect={handleModalBanSelect}
+      />
+
+      <DraftSummaryModal
+        isOpen={isSummaryModalOpen}
+        onClose={closeSummaryModal}
+        summary={draftSummary}
+        championMap={championMap}
+      />
+
+      <div className="fixed bottom-4 left-4 right-4 md:left-auto md:pl-72 z-40 flex items-center justify-between pointer-events-none">
+        <div className="pointer-events-auto">
+          <ThemeSwitcher />
+        </div>
+        {bansLocked && (
+          <div className="flex flex-col-reverse sm:flex-row gap-2 pointer-events-auto">
+            <Tooltip content="Re-open Ban Phase">
+              <Button
+                isIconOnly
+                color="default"
+                size="lg"
+                onPress={() => setBansLocked(false)}
+              >
+                <LucideIcon name="RotateCcw" />
+              </Button>
+            </Tooltip>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

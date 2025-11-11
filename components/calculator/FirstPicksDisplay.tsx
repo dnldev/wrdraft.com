@@ -1,17 +1,26 @@
 "use client";
 
-import { Avatar, Card, CardBody, CardHeader, Divider } from "@heroui/react";
-import React from "react";
+import { Avatar, Card, CardBody, CardHeader } from "@heroui/react";
+import { flatMap } from "lodash-es";
+import React, { JSX, useMemo } from "react";
 
 import { Champion } from "@/data/championData";
 import { FirstPick } from "@/data/firstPickData";
 
-const FirstPickCard: React.FC<{
-  pick: FirstPick;
-  champion?: Champion;
-  tier?: string;
-}> = ({ pick, champion, tier }) => (
-  <Card className="p-4">
+import { LucideIcon } from "../core/LucideIcon";
+
+interface FirstPickCardProps {
+  readonly pick: FirstPick;
+  readonly champion: Champion;
+  readonly tier: string;
+}
+
+const FirstPickCard: React.FC<FirstPickCardProps> = ({
+  pick,
+  champion,
+  tier,
+}): JSX.Element => (
+  <Card className="p-4 bg-content2">
     <CardHeader className="p-0 pb-2">
       <div className="flex items-center gap-3">
         {champion && (
@@ -23,12 +32,12 @@ const FirstPickCard: React.FC<{
             {champion?.comfort && (
               <span
                 className={
-                  champion.comfort.startsWith("★")
+                  champion.comfort.startsWith("S")
                     ? "text-primary"
                     : "text-slate-400"
                 }
               >
-                {champion.comfort.split(" ")[0]}
+                {champion.comfort}
               </span>
             )}
           </h4>
@@ -43,35 +52,46 @@ const FirstPickCard: React.FC<{
 );
 
 interface FirstPicksDisplayProps {
-  firstPicks: FirstPick[];
-  championMap: Map<string, Champion>;
-  tierMap: Map<string, string>;
-  role: "adc" | "support";
+  readonly firstPicks: FirstPick[];
+  readonly championMap: Map<string, Champion>;
+  readonly tierMap: Map<string, string>;
 }
 
 export function FirstPicksDisplay({
   firstPicks,
   championMap,
   tierMap,
-  role,
 }: FirstPicksDisplayProps) {
+  const validFirstPicks = useMemo(() => {
+    return flatMap(firstPicks, (pick) => {
+      const champion = championMap.get(pick.name);
+      const tier = tierMap.get(pick.name);
+      if (champion && tier) {
+        return [{ pick, champion, tier }];
+      }
+      return [];
+    });
+  }, [firstPicks, championMap, tierMap]);
+
   return (
     <Card>
       <CardHeader>
-        <h3 className="text-2xl font-bold text-white">
-          Safe First Picks for {role === "adc" ? "ADC" : "Support"}
-        </h3>
+        <div className="flex items-center gap-3">
+          <LucideIcon name="ShieldCheck" className="text-primary" />
+          <h3 className="text-2xl font-bold text-white">Safe First Picks</h3>
+        </div>
       </CardHeader>
-      <Divider />
-      <CardBody className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {firstPicks.map((pick) => (
-          <FirstPickCard
-            key={pick.name}
-            pick={pick}
-            champion={championMap.get(pick.name)}
-            tier={tierMap.get(pick.name)}
-          />
-        ))}
+      <CardBody>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {validFirstPicks.map(({ pick, champion, tier }) => (
+            <FirstPickCard
+              key={pick.name}
+              pick={pick}
+              champion={champion}
+              tier={tier}
+            />
+          ))}
+        </div>
       </CardBody>
     </Card>
   );

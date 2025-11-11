@@ -3,7 +3,7 @@
 import { icons, LucideProps } from "lucide-react";
 
 interface LucideIconProps extends LucideProps {
-  name: keyof typeof icons;
+  readonly name: keyof typeof icons;
 }
 
 export const LucideIcon = ({ name, ...props }: LucideIconProps) => {

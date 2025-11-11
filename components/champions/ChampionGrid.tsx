@@ -6,9 +6,9 @@ import { Avatar, Tooltip } from "@heroui/react";
 import { Champion } from "@/data/championData";
 
 interface ChampionGridProps {
-  champions: Champion[];
-  selectedChampionId: string;
-  onSelectChampion: (id: string) => void;
+  readonly champions: Champion[];
+  readonly selectedChampionId: string;
+  readonly onSelectChampion: (id: string) => void;
 }
 
 export function ChampionGrid({

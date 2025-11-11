@@ -19,8 +19,8 @@ import { LucideIcon } from "../core/LucideIcon";
 const ratingMap: Record<
   Synergy["rating"],
   {
-    tier: string;
-    chipColor: "success" | "warning" | "default" | "danger";
+    readonly tier: string;
+    readonly chipColor: "success" | "warning" | "default" | "danger";
   }
 > = {
   Excellent: { tier: "S", chipColor: "success" },
@@ -37,9 +37,9 @@ const borderColorMap: Record<string, string> = {
 };
 
 interface SynergyEntryCardProps {
-  synergy: Synergy;
-  parentItemId: string;
-  roleToList: "adc" | "support";
+  readonly synergy: Synergy;
+  readonly parentItemId: string;
+  readonly roleToList: "adc" | "support";
 }
 
 const SynergyEntryCard: React.FC<SynergyEntryCardProps> = ({
@@ -74,18 +74,18 @@ const SynergyEntryCard: React.FC<SynergyEntryCardProps> = ({
 };
 
 interface AccordionItemData {
-  id: string;
-  name: string;
-  synergies: Synergy[];
+  readonly id: string;
+  readonly name: string;
+  readonly synergies: Synergy[];
 }
 
 interface SynergyAccordionProps {
-  title: string;
-  icon: keyof typeof icons;
-  iconColor: string;
-  items: AccordionItemData[];
-  defaultExpandedKeys: string[];
-  roleToList: "adc" | "support";
+  readonly title: string;
+  readonly icon: keyof typeof icons;
+  readonly iconColor: string;
+  readonly items: AccordionItemData[];
+  readonly defaultExpandedKeys: string[];
+  readonly roleToList: "adc" | "support";
 }
 
 export function SynergyAccordion({

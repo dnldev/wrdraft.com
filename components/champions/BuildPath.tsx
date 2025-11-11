@@ -1,20 +1,19 @@
-// in /components/BuildPath.tsx
 import Image from "next/image";
 import React from "react";
 
 import { Build, Item } from "@/data/championData";
 
 interface BuildPathProps {
-  build: Build;
+  readonly build: Build;
 }
 
-const ItemImage = ({ item }: { item: Item }) => (
+const ItemImage = ({ item }: { readonly item: Item }) => (
   <Image
     src={item.icon}
     alt={item.name}
     width={48}
     height={48}
-    className="item-img"
+    className="rounded-md"
     title={item.name}
   />
 );

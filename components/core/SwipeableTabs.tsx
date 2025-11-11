@@ -14,8 +14,8 @@ import { Swiper as SwiperClass } from "swiper/types";
  */
 interface SwipeableTabsProps
   extends Omit<TabsProps, "children" | "onSelectionChange"> {
-  items: { key: string; title: string }[];
-  onSelectionChange?: (key: string) => void;
+  readonly items: { key: string; title: string }[];
+  readonly onSelectionChange?: (key: string) => void;
 }
 
 /**

@@ -1,6 +1,7 @@
 "use client";
 
-import { Avatar, Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
+import { Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
@@ -9,8 +10,8 @@ import { Champion } from "@/data/championData";
 import { ChampionGuide } from "./ChampionGuide";
 
 interface ChampionViewProps {
-  adcs: Champion[];
-  supports: Champion[];
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
 }
 
 export function ChampionView({ adcs, supports }: ChampionViewProps) {
@@ -65,6 +66,38 @@ export function ChampionView({ adcs, supports }: ChampionViewProps) {
     [pathname, router, searchParams, championData]
   );
 
+  const renderChampionGrid = useCallback(
+    (champions: Champion[]) => (
+      <div className="p-6 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
+        {champions.map((champ, index) => {
+          const isSelected = selectedChampion.id === champ.id;
+          return (
+            <Tooltip content={champ.name} key={champ.id} placement="bottom">
+              <button
+                onClick={() => handleSelectChampion(champ.id)}
+                aria-label={`Select ${champ.name}`}
+              >
+                <Image
+                  src={champ.portraitUrl}
+                  alt={`${champ.name} portrait`}
+                  width={64}
+                  height={64}
+                  priority={index < 10}
+                  className={`rounded-full object-cover w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
+                    isSelected
+                      ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                      : "grayscale hover:grayscale-0"
+                  }`}
+                />
+              </button>
+            </Tooltip>
+          );
+        })}
+      </div>
+    ),
+    [handleSelectChampion, selectedChampion.id]
+  );
+
   return (
     <div className="w-full space-y-8">
       <Card>
@@ -85,58 +118,12 @@ export function ChampionView({ adcs, supports }: ChampionViewProps) {
         >
           <Tab key="adc" title="ADCs">
             <CardBody className="p-0">
-              <div className="p-6 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
-                {championData.adc.map((champ) => {
-                  const isSelected = selectedChampion.id === champ.id;
-                  return (
-                    <Tooltip
-                      content={champ.name}
-                      key={champ.id}
-                      placement="bottom"
-                    >
-                      <button onClick={() => handleSelectChampion(champ.id)}>
-                        <Avatar
-                          src={champ.portraitUrl}
-                          alt={`${champ.name} portrait`}
-                          className={`w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
-                            isSelected
-                              ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                              : "grayscale hover:grayscale-0"
-                          }`}
-                        />
-                      </button>
-                    </Tooltip>
-                  );
-                })}
-              </div>
+              {renderChampionGrid(championData.adc)}
             </CardBody>
           </Tab>
           <Tab key="support" title="Supports">
             <CardBody className="p-0">
-              <div className="p-6 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
-                {championData.support.map((champ) => {
-                  const isSelected = selectedChampion.id === champ.id;
-                  return (
-                    <Tooltip
-                      content={champ.name}
-                      key={champ.id}
-                      placement="bottom"
-                    >
-                      <button onClick={() => handleSelectChampion(champ.id)}>
-                        <Avatar
-                          src={champ.portraitUrl}
-                          alt={`${champ.name} portrait`}
-                          className={`w-16 h-16 transition-all duration-300 transform hover:scale-110 ${
-                            isSelected
-                              ? "ring-2 ring-primary ring-offset-2 ring-offset-background"
-                              : "grayscale hover:grayscale-0"
-                          }`}
-                        />
-                      </button>
-                    </Tooltip>
-                  );
-                })}
-              </div>
+              {renderChampionGrid(championData.support)}
             </CardBody>
           </Tab>
         </Tabs>

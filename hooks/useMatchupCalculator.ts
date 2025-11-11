@@ -1,101 +1,48 @@
-import { useMemo, useState } from "react";
+import { isEqual } from "lodash-es";
+import { useDeferredValue, useMemo, useState } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
-import { FirstPick, FirstPickData } from "@/data/firstPickData";
+import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
 import {
+  BreakdownItem,
   calculatePairRecommendations,
-  calculateRecommendations,
   PairRecommendation,
-  Recommendation,
 } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { createTierMap } from "@/lib/utils";
 
-import { useDebounce } from "./useDebounce";
-
 export interface Selections {
-  alliedAdc: string | null;
-  alliedSupport: string | null;
-  enemyAdc: string | null;
-  enemySupport: string | null;
+  readonly alliedAdc: string | null;
+  readonly alliedSupport: string | null;
+  readonly enemyAdc: string | null;
+  readonly enemySupport: string | null;
+}
+
+export interface DraftSummary {
+  readonly overallScore: number;
+  readonly winChance: number;
+  readonly breakdown: BreakdownItem[];
+  readonly selections: Selections;
 }
 
 interface UseMatchupCalculatorProps {
-  adcs: Champion[];
-  supports: Champion[];
-  allChampions: Champion[];
-  synergyMatrix: SynergyMatrix;
-  counterMatrix: CounterMatrix;
-  firstPicks: FirstPickData;
-  tierList: TierListData;
-  categories: RoleCategories[];
-}
-
-type RoleToCalculate = "adc" | "support" | "both";
-
-interface CalculationContext {
-  selections: Selections;
-  synergyMatrix: SynergyMatrix;
-  counterMatrix: CounterMatrix;
-  categories: RoleCategories[];
-  adcs: Champion[];
-  supports: Champion[];
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
+  readonly allChampions: Champion[];
+  readonly synergyMatrix: SynergyMatrix;
+  readonly counterMatrix: CounterMatrix;
+  readonly firstPicks: FirstPickData;
+  readonly tierList: TierListData;
+  readonly categories: RoleCategories[];
+  readonly bannedChampions: Set<string>;
 }
 
 /**
- * Defines the contract for a calculation strategy, encapsulating all mode-specific logic.
- */
-interface CalculationStrategy {
-  calculate: (
-    context: CalculationContext
-  ) => (Recommendation | PairRecommendation)[];
-  getFirstPicks: (firstPicks: FirstPickData) => FirstPick[];
-  getSelectionsToClear: () => Partial<Selections>;
-  getNextRoleOnSelection?: (
-    selectionRole: keyof Selections
-  ) => RoleToCalculate | null;
-}
-
-/**
- * A manifest of calculation strategies, implementing the Strategy Pattern.
- */
-const calculationStrategies: Record<RoleToCalculate, CalculationStrategy> = {
-  adc: {
-    calculate: (context) =>
-      calculateRecommendations({
-        ...context,
-        roleToCalculate: "adc",
-        championPool: context.adcs,
-      }),
-    getFirstPicks: (firstPicks) => firstPicks.adcs,
-    getSelectionsToClear: () => ({ alliedAdc: null }),
-  },
-  support: {
-    calculate: (context) =>
-      calculateRecommendations({
-        ...context,
-        roleToCalculate: "support",
-        championPool: context.supports,
-      }),
-    getFirstPicks: (firstPicks) => firstPicks.supports,
-    getSelectionsToClear: () => ({ alliedSupport: null }),
-  },
-  both: {
-    calculate: (context) => calculatePairRecommendations(context),
-    getFirstPicks: (firstPicks) => firstPicks.adcs,
-    getSelectionsToClear: () => ({ alliedAdc: null, alliedSupport: null }),
-    getNextRoleOnSelection: (selectionRole) => {
-      if (selectionRole === "alliedAdc") return "support";
-      if (selectionRole === "alliedSupport") return "adc";
-      return null;
-    },
-  },
-};
-
-/**
- * Manages the state and logic for the Matchup Calculator using the Strategy Pattern.
+ * Manages the state and logic for calculating champion recommendations.
+ * It receives the current selections and the set of banned champions,
+ * and returns calculated results and other derived state.
  */
 export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
   const {
@@ -107,10 +54,9 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     categories,
     synergyMatrix,
     counterMatrix,
+    bannedChampions,
   } = props;
 
-  const [roleToCalculate, setRoleToCalculate] =
-    useState<RoleToCalculate>("adc");
   const [selections, setSelections] = useState<Selections>({
     alliedAdc: null,
     alliedSupport: null,
@@ -118,8 +64,8 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     enemySupport: null,
   });
 
-  const debouncedSelections = useDebounce(selections, 1500);
-  const currentStrategy = calculationStrategies[roleToCalculate];
+  const deferredSelections = useDeferredValue(selections);
+  const deferredBans = useDeferredValue(bannedChampions);
   const isSelectionEmpty = Object.values(selections).every((s) => s === null);
 
   const championMap = useMemo(() => {
@@ -135,58 +81,128 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     name: string | null
   ) => {
     setSelections((prev) => ({ ...prev, [role]: name }));
-    if (name) {
-      const nextRole = currentStrategy.getNextRoleOnSelection?.(role);
-      if (nextRole) setRoleToCalculate(nextRole);
+  };
+
+  const unavailableChampions = useMemo(() => {
+    const picked = new Set(
+      Object.values(deferredSelections).filter(Boolean) as string[]
+    );
+    return new Set([...picked, ...deferredBans]);
+  }, [deferredSelections, deferredBans]);
+
+  const availableAdcs = useMemo(
+    () => adcs.filter((c) => !unavailableChampions.has(c.name)),
+    [adcs, unavailableChampions]
+  );
+  const availableSupports = useMemo(
+    () => supports.filter((c) => !unavailableChampions.has(c.name)),
+    [supports, unavailableChampions]
+  );
+
+  const results: PairRecommendation[] | null = useMemo(() => {
+    if (Object.values(deferredSelections).every((s) => s === null)) {
+      return null;
     }
-  };
 
-  const handleRoleChange = (role: RoleToCalculate) => {
-    setRoleToCalculate(role);
-    const selectionsToClear =
-      calculationStrategies[role].getSelectionsToClear();
-    setSelections((prev) => ({ ...prev, ...selectionsToClear }));
-  };
-
-  const results = useMemo(() => {
-    if (isSelectionEmpty) return null;
-    const context = {
-      adcs,
-      supports,
-      selections: debouncedSelections,
+    return calculatePairRecommendations({
+      adcs: availableAdcs,
+      supports: availableSupports,
+      selections: deferredSelections,
       synergyMatrix,
       counterMatrix,
       categories,
-    };
-    return currentStrategy.calculate(context);
+      championMap,
+    });
   }, [
-    debouncedSelections,
-    isSelectionEmpty,
-    adcs,
-    supports,
+    deferredSelections,
+    availableAdcs,
+    availableSupports,
     synergyMatrix,
     counterMatrix,
     categories,
-    currentStrategy,
+    championMap,
+  ]);
+
+  const draftSummary: DraftSummary | null = useMemo(() => {
+    const { alliedAdc, alliedSupport, enemyAdc, enemySupport } =
+      deferredSelections;
+    if (!alliedAdc || !alliedSupport || !enemyAdc || !enemySupport) {
+      return null;
+    }
+
+    const alliedAdcObj = championMap.get(alliedAdc);
+    const alliedSupportObj = championMap.get(alliedSupport);
+    if (!alliedAdcObj || !alliedSupportObj) {
+      return null;
+    }
+
+    const alliedPair = calculatePairRecommendations({
+      adcs: [alliedAdcObj],
+      supports: [alliedSupportObj],
+      selections: deferredSelections,
+      synergyMatrix,
+      counterMatrix,
+      categories,
+      championMap,
+    });
+
+    if (alliedPair.length === 0) return null;
+
+    const summary = alliedPair[0];
+    const overallScore = summary.score;
+    const winChance = Math.max(10, Math.min(90, 50 + overallScore * 2));
+
+    return {
+      overallScore,
+      winChance,
+      breakdown: summary.breakdown,
+      selections: deferredSelections,
+    };
+  }, [
+    deferredSelections,
+    synergyMatrix,
+    counterMatrix,
+    categories,
+    championMap,
   ]);
 
   const isCalculating = useMemo(() => {
-    return (
-      !isSelectionEmpty &&
-      JSON.stringify(selections) !== JSON.stringify(debouncedSelections)
+    return !isEqual(selections, deferredSelections);
+  }, [selections, deferredSelections]);
+
+  const combinedFirstPicks = useMemo(() => {
+    const ratingOrder: Record<string, number> = {
+      "S-Tier": 0,
+      "A-Tier": 1,
+      "B-Tier": 2,
+      "C-Tier": 3,
+    };
+    const unavailable = new Set([
+      ...bannedChampions,
+      ...Object.values(selections).filter(Boolean),
+    ]);
+
+    const safeAdcs = firstPicks.adcs
+      .filter((p) => !unavailable.has(p.name))
+      .slice(0, 4);
+    const safeSupports = firstPicks.supports
+      .filter((p) => !unavailable.has(p.name))
+      .slice(0, 4);
+
+    return [...safeAdcs, ...safeSupports].toSorted(
+      (a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]
     );
-  }, [selections, debouncedSelections, isSelectionEmpty]);
+  }, [firstPicks, bannedChampions, selections]);
 
   return {
-    roleToCalculate,
     selections,
     results,
     isCalculating,
     championMap,
     championTierMap,
     handleSelectionChange,
-    handleRoleChange,
     isSelectionEmpty,
-    currentFirstPicks: currentStrategy.getFirstPicks(firstPicks),
+    combinedFirstPicks,
+    draftSummary,
   };
 }

@@ -3,8 +3,6 @@ import "./globals.css";
 import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 
-import { ThemeSwitcher } from "@/components/core/ThemeSwitcher";
-
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
@@ -22,9 +20,9 @@ export default function RootLayout({
       <body className={`${GeistSans.className} bg-background text-foreground`}>
         <Providers>
           {children}
-          <footer className="text-center py-8 text-slate-500 text-sm md:pl-64 flex justify-center items-center gap-4">
+          <footer className="text-center pt-32 pb-8 text-slate-500 text-sm md:pl-64 flex justify-center items-center gap-4">
             <p>Wild Rift Dragon Lane Playbook</p>
-            <ThemeSwitcher />
+            {/* ThemeSwitcher has been moved to MatchupCalculator.tsx */}
           </footer>
         </Providers>
       </body>
