@@ -1,4 +1,4 @@
-import _ from "lodash";
+import { groupBy, mapValues, sortBy } from "lodash-es";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
@@ -67,15 +67,12 @@ function processSynergies(synergyData: Synergy[] | null): {
   };
 
   const sortSynergies = (synergies: Synergy[]) =>
-    _.sortBy(synergies, (s) => ratingOrder[s.rating]);
+    sortBy(synergies, (s) => ratingOrder[s.rating]);
 
-  const synergiesByAdc = _.mapValues(
-    _.groupBy(synergyData, "adc"),
-    sortSynergies
-  );
+  const synergiesByAdc = mapValues(groupBy(synergyData, "adc"), sortSynergies);
 
-  const synergiesBySupport = _.mapValues(
-    _.groupBy(synergyData, "support"),
+  const synergiesBySupport = mapValues(
+    groupBy(synergyData, "support"),
     sortSynergies
   );
 

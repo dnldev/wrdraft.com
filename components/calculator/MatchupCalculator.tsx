@@ -8,7 +8,7 @@ import {
   Divider,
   Tooltip,
 } from "@heroui/react";
-import React from "react";
+import React, { useMemo } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
@@ -82,16 +82,18 @@ interface MatchupCalculatorProps {
  * It uses the `useBanPhase` and `useMatchupCalculator` hooks to manage state
  * and passes data down to presentational child components.
  */
-export function MatchupCalculator({
-  adcs,
-  supports,
-  allChampions,
-  synergyMatrix,
-  counterMatrix,
-  firstPicks,
-  tierList,
-  categories,
-}: MatchupCalculatorProps) {
+export function MatchupCalculator(props: MatchupCalculatorProps) {
+  const {
+    adcs,
+    supports,
+    allChampions,
+    synergyMatrix,
+    counterMatrix,
+    firstPicks,
+    tierList,
+    categories,
+  } = props;
+
   const {
     yourBans,
     enemyBans,
@@ -153,6 +155,17 @@ export function MatchupCalculator({
     setBanModalState({ ...banModalState, isOpen: false });
   };
 
+  const availableChampionsForBanModal = useMemo(() => {
+    const currentSlotChampionName =
+      banModalState.team === "your"
+        ? yourBans[banModalState.index]
+        : enemyBans[banModalState.index];
+
+    return allChampions.filter(
+      (c) => !bannedChampions.has(c.name) || c.name === currentSlotChampionName
+    );
+  }, [allChampions, bannedChampions, yourBans, enemyBans, banModalState]);
+
   return (
     <div className="space-y-8">
       <Card className="p-0">
@@ -210,14 +223,7 @@ export function MatchupCalculator({
       <BanSelectorModal
         isOpen={banModalState.isOpen}
         onClose={() => setBanModalState({ ...banModalState, isOpen: false })}
-        champions={allChampions.filter(
-          (c) =>
-            !bannedChampions.has(c.name) ||
-            (banModalState.team === "your" &&
-              yourBans[banModalState.index] === c.name) ||
-            (banModalState.team === "enemy" &&
-              enemyBans[banModalState.index] === c.name)
-        )}
+        champions={availableChampionsForBanModal}
         selectedBans={bannedChampions}
         onBanSelect={handleModalBanSelect}
       />

@@ -1,4 +1,4 @@
-import _ from "lodash";
+import { isEqual } from "lodash-es";
 import { useDeferredValue, useMemo, useState } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
@@ -146,11 +146,11 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       championMap,
     });
 
-    if (!alliedPair || alliedPair.length === 0) return null;
+    if (alliedPair.length === 0) return null;
 
     const summary = alliedPair[0];
     const overallScore = summary.score;
-    const winChance = Math.max(10, Math.min(90, 50 + overallScore * 3));
+    const winChance = Math.max(10, Math.min(90, 50 + overallScore * 2));
 
     return {
       overallScore,
@@ -167,7 +167,7 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
   ]);
 
   const isCalculating = useMemo(() => {
-    return !_.isEqual(selections, deferredSelections);
+    return !isEqual(selections, deferredSelections);
   }, [selections, deferredSelections]);
 
   const combinedFirstPicks = useMemo(() => {

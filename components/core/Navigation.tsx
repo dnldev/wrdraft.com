@@ -49,7 +49,7 @@ export function Navigation({ views }: NavigationProps) {
     "view",
     "drafting"
   );
-  const [[direction], setNavigationState] = useState([0]);
+  const [direction, setDirection] = useState(0);
 
   const navItems: NavItem[] = [
     {
@@ -91,7 +91,7 @@ export function Navigation({ views }: NavigationProps) {
     const newIndex = navItems.findIndex((item) => item.id === newView);
     const newDirection = newIndex > currentIndex ? 1 : -1;
 
-    setNavigationState([newDirection]);
+    setDirection(newDirection);
     setActiveView(newView);
   };
 
@@ -164,25 +164,27 @@ export function Navigation({ views }: NavigationProps) {
         </Tabs>
       </div>
 
-      <motion.main onPanEnd={handlePanEnd} className="p-6 md:p-8 md:pl-72">
-        <div className="relative min-h-screen">
-          <AnimatePresence initial={false} custom={direction} mode="wait">
-            <motion.div
-              key={activeView}
-              className="absolute inset-0 w-full h-full"
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{
-                x: { type: "spring", stiffness: 300, damping: 30 },
-                opacity: { duration: 0.2 },
-              }}
-            >
-              {views[activeView]}
-            </motion.div>
-          </AnimatePresence>
+      <motion.main onPanEnd={handlePanEnd}>
+        <div className="p-6 md:p-8 md:pl-72">
+          <div className="relative min-h-screen">
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              <motion.div
+                key={activeView}
+                className="absolute inset-0 w-full h-full"
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{
+                  x: { type: "spring", stiffness: 300, damping: 30 },
+                  opacity: { duration: 0.2 },
+                }}
+              >
+                {views[activeView]}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </div>
       </motion.main>
     </>
