@@ -73,4 +73,18 @@ describe("useBanPhase", () => {
     });
     expect(result.current.bansLocked).toBe(true);
   });
+
+  it("should overwrite a slot with a new champion", () => {
+    const { result } = renderHook(() => useBanPhase());
+    act(() => {
+      result.current.handleBanSelection("Zed", "your", 1);
+    });
+    expect(result.current.yourBans[1]).toBe("Zed");
+    act(() => {
+      result.current.handleBanSelection("Yasuo", "your", 1);
+    });
+    expect(result.current.yourBans[1]).toBe("Yasuo");
+    expect(result.current.bannedChampions).not.toContain("Zed");
+    expect(result.current.bannedChampions).toContain("Yasuo");
+  });
 });
