@@ -12,10 +12,12 @@ import React from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
-import { FirstPickData } from "@/data/firstPickData";
+import { FirstPick, FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
 import { useBanPhase } from "@/hooks/useBanPhase";
+import { useDraftSummaryModal } from "@/hooks/useDraftSummaryModal";
 import { useMatchupCalculator } from "@/hooks/useMatchupCalculator";
+import { PairRecommendation } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 
 import { LucideIcon } from "../core/LucideIcon";
@@ -27,15 +29,52 @@ import { DraftSummaryModal } from "./DraftSummaryModal";
 import { FirstPicksDisplay } from "./FirstPicksDisplay";
 import { RecommendationResults } from "./RecommendationResults";
 
+interface CalculatorResultsContentProps {
+  readonly bansLocked: boolean;
+  readonly isSelectionEmpty: boolean;
+  readonly combinedFirstPicks: FirstPick[];
+  readonly championMap: Map<string, Champion>;
+  readonly championTierMap: Map<string, string>;
+  readonly results: PairRecommendation[] | null;
+}
+
+/**
+ * A sub-component to handle the conditional rendering of the calculator's main content area.
+ * It decides whether to show the first picks display or the recommendation results.
+ * This reduces the cognitive complexity of the main MatchupCalculator component.
+ */
+const CalculatorResultsContent: React.FC<CalculatorResultsContentProps> = ({
+  bansLocked,
+  isSelectionEmpty,
+  combinedFirstPicks,
+  championMap,
+  championTierMap,
+  results,
+}) => {
+  if (!bansLocked) {
+    return null;
+  }
+
+  return isSelectionEmpty ? (
+    <FirstPicksDisplay
+      firstPicks={combinedFirstPicks}
+      championMap={championMap}
+      tierMap={championTierMap}
+    />
+  ) : (
+    <RecommendationResults results={results || []} />
+  );
+};
+
 interface MatchupCalculatorProps {
-  adcs: Champion[];
-  supports: Champion[];
-  allChampions: Champion[];
-  synergyMatrix: SynergyMatrix;
-  counterMatrix: CounterMatrix;
-  firstPicks: FirstPickData;
-  tierList: TierListData;
-  categories: RoleCategories[];
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
+  readonly allChampions: Champion[];
+  readonly synergyMatrix: SynergyMatrix;
+  readonly counterMatrix: CounterMatrix;
+  readonly firstPicks: FirstPickData;
+  readonly tierList: TierListData;
+  readonly categories: RoleCategories[];
 }
 
 /**
@@ -43,7 +82,16 @@ interface MatchupCalculatorProps {
  * It uses the `useBanPhase` and `useMatchupCalculator` hooks to manage state
  * and passes data down to presentational child components.
  */
-export function MatchupCalculator(props: MatchupCalculatorProps) {
+export function MatchupCalculator({
+  adcs,
+  supports,
+  allChampions,
+  synergyMatrix,
+  counterMatrix,
+  firstPicks,
+  tierList,
+  categories,
+}: MatchupCalculatorProps) {
   const {
     yourBans,
     enemyBans,
@@ -63,7 +111,20 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     isSelectionEmpty,
     combinedFirstPicks,
     draftSummary,
-  } = useMatchupCalculator({ ...props, bannedChampions });
+  } = useMatchupCalculator({
+    adcs,
+    supports,
+    allChampions,
+    synergyMatrix,
+    counterMatrix,
+    firstPicks,
+    tierList,
+    categories,
+    bannedChampions,
+  });
+
+  const { isSummaryModalOpen, closeSummaryModal, resetSummaryModal } =
+    useDraftSummaryModal(draftSummary);
 
   const [banModalState, setBanModalState] = React.useState<{
     isOpen: boolean;
@@ -74,33 +135,12 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     team: "your",
     index: 0,
   });
-  const [isSummaryModalOpen, setIsSummaryModalOpen] = React.useState(false);
-  const [summaryAcknowledged, setSummaryAcknowledged] = React.useState(false);
-  const summaryTimerRef = React.useRef<NodeJS.Timeout | null>(null);
-
-  React.useEffect(() => {
-    if (summaryTimerRef.current) {
-      clearTimeout(summaryTimerRef.current);
-    }
-
-    if (draftSummary && !summaryAcknowledged) {
-      summaryTimerRef.current = setTimeout(() => {
-        setIsSummaryModalOpen(true);
-      }, 2000);
-    }
-
-    return () => {
-      if (summaryTimerRef.current) {
-        clearTimeout(summaryTimerRef.current);
-      }
-    };
-  }, [draftSummary, summaryAcknowledged]);
 
   const handleSelectionChangeWithReset: typeof handleSelectionChange = (
     role,
     name
   ) => {
-    setSummaryAcknowledged(false);
+    resetSummaryModal();
     handleSelectionChange(role, name);
   };
 
@@ -136,10 +176,10 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
                 championMap={championMap}
               />
               <CalculatorForm
-                adcs={props.adcs}
-                supports={props.supports}
-                allChampions={props.allChampions}
-                categories={props.categories}
+                adcs={adcs}
+                supports={supports}
+                allChampions={allChampions}
+                categories={categories}
                 championMap={championMap}
                 selections={selections}
                 onSelectionChange={handleSelectionChangeWithReset}
@@ -158,25 +198,19 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
         </CardBody>
       </Card>
 
-      {bansLocked &&
-        (isSelectionEmpty ? (
-          <FirstPicksDisplay
-            firstPicks={combinedFirstPicks}
-            championMap={championMap}
-            tierMap={championTierMap}
-          />
-        ) : (
-          <RecommendationResults
-            results={results || []}
-            tierMap={championTierMap}
-            selections={selections}
-          />
-        ))}
+      <CalculatorResultsContent
+        bansLocked={bansLocked}
+        isSelectionEmpty={isSelectionEmpty}
+        combinedFirstPicks={combinedFirstPicks}
+        championMap={championMap}
+        championTierMap={championTierMap}
+        results={results}
+      />
 
       <BanSelectorModal
         isOpen={banModalState.isOpen}
         onClose={() => setBanModalState({ ...banModalState, isOpen: false })}
-        champions={props.allChampions.filter(
+        champions={allChampions.filter(
           (c) =>
             !bannedChampions.has(c.name) ||
             (banModalState.team === "your" &&
@@ -190,10 +224,7 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
 
       <DraftSummaryModal
         isOpen={isSummaryModalOpen}
-        onClose={() => {
-          setIsSummaryModalOpen(false);
-          setSummaryAcknowledged(true);
-        }}
+        onClose={closeSummaryModal}
         summary={draftSummary}
         championMap={championMap}
       />

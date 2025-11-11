@@ -121,9 +121,9 @@ export function DraftSummaryModal({
             <div>
               <p className="text-sm font-semibold text-white mb-2">Breakdown</p>
               <div className="space-y-1 text-sm">
-                {breakdown.map((item, index) => (
+                {breakdown.map((item) => (
                   <div
-                    key={index}
+                    key={item.reason}
                     className="flex justify-between items-center p-2 bg-content2 rounded-md"
                   >
                     <span className="text-foreground/80">{item.reason}</span>
