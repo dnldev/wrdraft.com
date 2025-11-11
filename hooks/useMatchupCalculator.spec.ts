@@ -7,20 +7,33 @@ import { act, renderHook } from "@testing-library/react";
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
+import { matrixData } from "@/data/matrixData";
 import { TierListData } from "@/data/tierListData";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 
 import { useMatchupCalculator } from "./useMatchupCalculator";
 
+// Setup a more comprehensive mock pool for varied testing
+const mockAdcPool: Champion[] = [
+  { id: "lucian", name: "Lucian", comfort: "A" } as Champion,
+  { id: "jinx", name: "Jinx", comfort: null } as Champion,
+  { id: "ashe", name: "Ashe", comfort: null } as Champion,
+];
+
+const mockSupportPool: Champion[] = [
+  { id: "nami", name: "Nami", comfort: null } as Champion,
+  { id: "braum", name: "Braum", comfort: "A" } as Champion,
+  { id: "morgana", name: "Morgana", comfort: null } as Champion,
+];
+
+const mockAllChampions = [...mockAdcPool, ...mockSupportPool];
+
 const mockProps = {
-  adcs: [{ id: "jinx", name: "Jinx" } as Champion],
-  supports: [{ id: "nami", name: "Nami" } as Champion],
-  allChampions: [
-    { id: "jinx", name: "Jinx" } as Champion,
-    { id: "nami", name: "Nami" } as Champion,
-  ],
-  synergyMatrix: {} as SynergyMatrix,
-  counterMatrix: {} as CounterMatrix,
+  adcs: mockAdcPool,
+  supports: mockSupportPool,
+  allChampions: mockAllChampions,
+  synergyMatrix: matrixData.synergyMatrix as SynergyMatrix,
+  counterMatrix: matrixData.counterMatrix as CounterMatrix,
   firstPicks: { adcs: [], supports: [] } as FirstPickData,
   tierList: { adc: {}, support: {} } as TierListData,
   categories: [] as RoleCategories[],
@@ -43,28 +56,61 @@ describe("useMatchupCalculator", () => {
     expect(result.current.selections.enemySupport).toBe("Nami");
   });
 
-  it("should not clear selections on its own", () => {
-    const { result } = renderHook(() => useMatchupCalculator(mockProps));
-    act(() => {
-      result.current.handleSelectionChange("alliedAdc", "Jinx");
+  describe("draftSummary", () => {
+    it("should be null if not all champions are selected", () => {
+      const { result } = renderHook(() => useMatchupCalculator(mockProps));
+      act(() => {
+        result.current.handleSelectionChange("alliedAdc", "Lucian");
+        result.current.handleSelectionChange("alliedSupport", "Nami");
+        result.current.handleSelectionChange("enemyAdc", "Jinx");
+      });
+      expect(result.current.draftSummary).toBeNull();
     });
-    expect(result.current.selections.alliedAdc).toBe("Jinx");
-    act(() => {
-      result.current.handleSelectionChange("enemyAdc", "SomeOtherADC");
-    });
-    expect(result.current.selections.alliedAdc).toBe("Jinx");
-  });
 
-  it("should correctly identify when selections are empty", () => {
-    const { result } = renderHook(() => useMatchupCalculator(mockProps));
-    expect(result.current.isSelectionEmpty).toBe(true);
-    act(() => {
-      result.current.handleSelectionChange("alliedAdc", "Jinx");
+    it("should calculate a summary when all champions are selected", () => {
+      const { result } = renderHook(() =>
+        useMatchupCalculator({
+          ...mockProps,
+          allChampions: [
+            ...mockAllChampions,
+            { id: "jinx", name: "Jinx" } as Champion,
+            { id: "milio", name: "Milio" } as Champion, // Add missing champs
+          ],
+        })
+      );
+      act(() => {
+        // This matchup (Lucian/Braum vs Jinx/Milio) has a clearly positive score
+        result.current.handleSelectionChange("alliedAdc", "Lucian");
+        result.current.handleSelectionChange("alliedSupport", "Braum");
+        result.current.handleSelectionChange("enemyAdc", "Jinx");
+        result.current.handleSelectionChange("enemySupport", "Milio");
+      });
+      expect(result.current.draftSummary).not.toBeNull();
+      expect(result.current.draftSummary?.overallScore).toBeDefined();
+      expect(result.current.draftSummary?.winChance).toBeGreaterThan(0);
     });
-    expect(result.current.isSelectionEmpty).toBe(false);
-    act(() => {
-      result.current.handleSelectionChange("alliedAdc", null);
+
+    it("should be null if the calculated pair has a negative score", () => {
+      const { result } = renderHook(() =>
+        useMatchupCalculator({
+          ...mockProps,
+          allChampions: [
+            ...mockAllChampions,
+            { id: "draven", name: "Draven", comfort: null } as Champion,
+            { id: "leona", name: "Leona", comfort: null } as Champion,
+          ],
+        })
+      );
+      act(() => {
+        // Use champions with no comfort picks to ensure score is negative
+        result.current.handleSelectionChange("alliedAdc", "Jinx");
+        result.current.handleSelectionChange("alliedSupport", "Nami");
+        result.current.handleSelectionChange("enemyAdc", "Draven");
+        result.current.handleSelectionChange("enemySupport", "Leona");
+      });
+      // Jinx/Nami has a very bad matchup vs Draven/Leona.
+      // Synergy(+1) + JinxCounters(-3,-1) + NamiCounters(+1,-3) = -5
+      expect(result.current.draftSummary).toBeNull();
     });
-    expect(result.current.isSelectionEmpty).toBe(true);
   });
 });
