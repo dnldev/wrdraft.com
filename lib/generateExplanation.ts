@@ -69,7 +69,7 @@ function getArchetypeExplanationSentence(
   if (!archetypeItem) return null;
 
   if (archetypeItem.value > 0) {
-    const match = archetypeItem.reason.match(/\((\w+) > (\w+)\)/);
+    const match = /\((\w+) > (\w+)\)/.exec(archetypeItem.reason);
     return match
       ? archetypeExplanations[
           `${match[1]}-${match[2]}` as keyof typeof archetypeExplanations
@@ -77,7 +77,7 @@ function getArchetypeExplanationSentence(
       : null;
   }
   if (archetypeItem.value < 0) {
-    const match = archetypeItem.reason.match(/\((\w+) < (\w+)\)/);
+    const match = /\((\w+) < (\w+)\)/.exec(archetypeItem.reason);
     return match
       ? archetypeExplanations[
           `${match[1]}-${match[2]}` as keyof typeof archetypeExplanations

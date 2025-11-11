@@ -8,7 +8,6 @@ import React, { useState } from "react";
 import { useQueryState } from "@/hooks/useQueryState";
 
 import { LucideIcon } from "./LucideIcon";
-import { MotionMain } from "./MotionMain";
 
 export type MainView =
   | "drafting"
@@ -165,7 +164,7 @@ export function Navigation({ views }: NavigationProps) {
         </Tabs>
       </div>
 
-      <MotionMain onPanEnd={handlePanEnd}>
+      <motion.main onPanEnd={handlePanEnd} className="p-6 md:p-8 md:pl-72">
         <div className="relative min-h-screen">
           <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
@@ -185,7 +184,7 @@ export function Navigation({ views }: NavigationProps) {
             </motion.div>
           </AnimatePresence>
         </div>
-      </MotionMain>
+      </motion.main>
     </>
   );
 }

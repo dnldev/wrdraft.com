@@ -14,29 +14,29 @@ import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { createTierMap } from "@/lib/utils";
 
 export interface Selections {
-  alliedAdc: string | null;
-  alliedSupport: string | null;
-  enemyAdc: string | null;
-  enemySupport: string | null;
+  readonly alliedAdc: string | null;
+  readonly alliedSupport: string | null;
+  readonly enemyAdc: string | null;
+  readonly enemySupport: string | null;
 }
 
 export interface DraftSummary {
-  overallScore: number;
-  winChance: number;
-  breakdown: BreakdownItem[];
-  selections: Selections;
+  readonly overallScore: number;
+  readonly winChance: number;
+  readonly breakdown: BreakdownItem[];
+  readonly selections: Selections;
 }
 
 interface UseMatchupCalculatorProps {
-  adcs: Champion[];
-  supports: Champion[];
-  allChampions: Champion[];
-  synergyMatrix: SynergyMatrix;
-  counterMatrix: CounterMatrix;
-  firstPicks: FirstPickData;
-  tierList: TierListData;
-  categories: RoleCategories[];
-  bannedChampions: Set<string>;
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
+  readonly allChampions: Champion[];
+  readonly synergyMatrix: SynergyMatrix;
+  readonly counterMatrix: CounterMatrix;
+  readonly firstPicks: FirstPickData;
+  readonly tierList: TierListData;
+  readonly categories: RoleCategories[];
+  readonly bannedChampions: Set<string>;
 }
 
 /**
@@ -130,9 +130,15 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       return null;
     }
 
+    const alliedAdcObj = championMap.get(alliedAdc);
+    const alliedSupportObj = championMap.get(alliedSupport);
+    if (!alliedAdcObj || !alliedSupportObj) {
+      return null;
+    }
+
     const alliedPair = calculatePairRecommendations({
-      adcs: [championMap.get(alliedAdc)!],
-      supports: [championMap.get(alliedSupport)!],
+      adcs: [alliedAdcObj],
+      supports: [alliedSupportObj],
       selections: deferredSelections,
       synergyMatrix,
       counterMatrix,

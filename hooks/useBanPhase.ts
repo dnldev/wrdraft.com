@@ -7,10 +7,10 @@ import { useMemo, useState } from "react";
  and providing a memoized set of all banned champions.
  */
 export function useBanPhase() {
-  const [enemyBans, setEnemyBans] = useState<string[]>(
+  const [yourBans, setYourBans] = useState<string[]>(
     Array.from({ length: 5 }).fill("") as string[]
   );
-  const [yourBans, setYourBans] = useState<string[]>([
+  const [enemyBans, setEnemyBans] = useState<string[]>([
     "Blitzcrank",
     "Nautilus",
     "",
