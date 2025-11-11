@@ -63,6 +63,8 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
   onSlotClick,
   onLockIn,
 }) => {
+  const banSlotList = ["one", "two", "three", "four", "five"];
+
   return (
     <div className="space-y-6">
       <div className="space-y-2">
@@ -70,9 +72,9 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
           YOUR TEAM&apos;S BANS
         </p>
         <div className="flex justify-center gap-2 sm:gap-4">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {banSlotList.map((slot, index) => (
             <BanSlot
-              key={`your-ban-${index}`}
+              key={`your-ban-${slot}`}
               champion={
                 (yourBans[index] && championMap.get(yourBans[index])) || null
               }
@@ -86,9 +88,9 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
           ENEMY TEAM&apos;S BANS
         </p>
         <div className="flex justify-center gap-2 sm:gap-4">
-          {Array.from({ length: 5 }).map((_, index) => (
+          {banSlotList.map((slot, index) => (
             <BanSlot
-              key={`enemy-ban-${index}`}
+              key={`enemy-ban-${slot}`}
               champion={
                 (enemyBans[index] && championMap.get(enemyBans[index])) || null
               }
