@@ -15,11 +15,11 @@ import { Champion } from "@/data/championData";
 import { LucideIcon } from "../core/LucideIcon";
 
 interface BanSelectorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  champions: Champion[];
-  selectedBans: Set<string>;
-  onBanSelect: (championName: string) => void;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly champions: Champion[];
+  readonly selectedBans: Set<string>;
+  readonly onBanSelect: (championName: string) => void;
 }
 
 /**

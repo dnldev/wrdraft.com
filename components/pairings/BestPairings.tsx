@@ -8,8 +8,8 @@ import { FeaturedSynergies } from "./FeaturedSynergies";
 import { SynergyAccordion } from "./SynergyAccordion";
 
 interface BestPairingsProps {
-  synergiesByAdc: Record<string, Synergy[]>;
-  synergiesBySupport: Record<string, Synergy[]>;
+  readonly synergiesByAdc: Record<string, Synergy[]>;
+  readonly synergiesBySupport: Record<string, Synergy[]>;
 }
 
 export function BestPairings({

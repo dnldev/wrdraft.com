@@ -13,14 +13,14 @@ import { SwipeableTabs } from "../core/SwipeableTabs";
 import { ChampionSelectorGrid } from "./ChampionSelectorGrid";
 
 interface ChampionSelectorProps {
-  champions: Champion[];
-  selectedChampionName: string | null;
-  onSelect: (name: string | null) => void;
-  championMap: Map<string, Champion>;
-  label: string;
-  categories?: Category[];
-  isDisabled?: boolean;
-  isLoading?: boolean;
+  readonly champions: Champion[];
+  readonly selectedChampionName: string | null;
+  readonly onSelect: (name: string | null) => void;
+  readonly championMap: Map<string, Champion>;
+  readonly label: string;
+  readonly categories?: Category[];
+  readonly isDisabled?: boolean;
+  readonly isLoading?: boolean;
 }
 
 export function ChampionSelector({

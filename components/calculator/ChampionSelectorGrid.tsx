@@ -7,12 +7,12 @@ import React, { memo, useMemo } from "react";
 import { Champion } from "@/data/championData";
 
 interface ChampionAvatarButtonProps {
-  champion: Champion;
-  isSelected: boolean;
-  hasSelection: boolean;
-  isDisabled: boolean;
-  onSelect: (name: string) => void;
-  priority: boolean;
+  readonly champion: Champion;
+  readonly isSelected: boolean;
+  readonly hasSelection: boolean;
+  readonly isDisabled: boolean;
+  readonly onSelect: (name: string) => void;
+  readonly priority: boolean;
 }
 
 const ChampionAvatarButton = memo(function ChampionAvatarButton({
@@ -61,10 +61,10 @@ const ChampionAvatarButton = memo(function ChampionAvatarButton({
 });
 
 interface ChampionSelectorGridProps {
-  champions: Champion[];
-  selectedChampionName: string | null;
-  onSelect: (name: string | null) => void;
-  isDisabled?: boolean;
+  readonly champions: Champion[];
+  readonly selectedChampionName: string | null;
+  readonly onSelect: (name: string | null) => void;
+  readonly isDisabled?: boolean;
 }
 
 export function ChampionSelectorGrid({

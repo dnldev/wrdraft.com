@@ -42,14 +42,17 @@ const coreChampionNames = new Set([
 ]);
 
 interface CalculatorFormProps {
-  adcs: Champion[];
-  supports: Champion[];
-  allChampions: Champion[];
-  categories: RoleCategories[];
-  championMap: Map<string, Champion>;
-  selections: Selections;
-  onSelectionChange: (role: keyof Selections, name: string | null) => void;
-  isCalculating: boolean;
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
+  readonly allChampions: Champion[];
+  readonly categories: RoleCategories[];
+  readonly championMap: Map<string, Champion>;
+  readonly selections: Selections;
+  readonly onSelectionChange: (
+    role: keyof Selections,
+    name: string | null
+  ) => void;
+  readonly isCalculating: boolean;
 }
 
 /**

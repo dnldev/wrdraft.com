@@ -18,14 +18,14 @@ export type MainView =
   | "calculator";
 
 interface NavItem {
-  id: MainView;
-  label: string;
-  mobileLabel: string;
-  icon: keyof typeof icons;
+  readonly id: MainView;
+  readonly label: string;
+  readonly mobileLabel: string;
+  readonly icon: keyof typeof icons;
 }
 
 interface NavigationProps {
-  views: Record<MainView, React.ReactNode>;
+  readonly views: Record<MainView, React.ReactNode>;
 }
 
 const variants = {
@@ -166,15 +166,11 @@ export function Navigation({ views }: NavigationProps) {
       </div>
 
       <MotionMain onPanEnd={handlePanEnd}>
-        <div style={{ position: "relative", minHeight: "100vh" }}>
-          <AnimatePresence initial={false} custom={direction}>
+        <div className="relative min-h-screen">
+          <AnimatePresence initial={false} custom={direction} mode="wait">
             <motion.div
               key={activeView}
-              style={{
-                position: "absolute",
-                width: "100%",
-                height: "100%",
-              }}
+              className="absolute inset-0 w-full h-full"
               custom={direction}
               variants={variants}
               initial="enter"
