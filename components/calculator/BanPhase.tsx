@@ -10,6 +10,7 @@ import { LucideIcon } from "../core/LucideIcon";
 interface BanSlotProps {
   readonly champion: Champion | null;
   readonly onClick: () => void;
+  readonly "aria-label": string;
 }
 
 /**
@@ -17,10 +18,11 @@ interface BanSlotProps {
  * It displays a plus icon for an empty slot, or a grayscale champion avatar
  * with a ban icon overlay if a champion is selected.
  */
-const BanSlot: React.FC<BanSlotProps> = ({ champion, onClick }) => (
+const BanSlot: React.FC<BanSlotProps> = ({ champion, onClick, ...props }) => (
   <button
     onClick={onClick}
     className="w-16 h-16 sm:w-20 sm:h-20 rounded-md bg-content1 border-2 border-transparent hover:border-primary transition-all flex items-center justify-center relative group"
+    aria-label={props["aria-label"]}
   >
     {champion ? (
       <div className="relative w-full h-full">
@@ -72,15 +74,22 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
           YOUR TEAM&apos;S BANS
         </p>
         <div className="flex justify-center gap-2 sm:gap-4">
-          {banSlotList.map((slot, index) => (
-            <BanSlot
-              key={`your-ban-${slot}`}
-              champion={
-                (yourBans[index] && championMap.get(yourBans[index])) || null
-              }
-              onClick={() => onSlotClick("your", index)}
-            />
-          ))}
+          {banSlotList.map((slot, index) => {
+            const champion =
+              (yourBans[index] && championMap.get(yourBans[index])) || null;
+            return (
+              <BanSlot
+                key={`your-ban-${slot}`}
+                champion={champion}
+                onClick={() => onSlotClick("your", index)}
+                aria-label={
+                  champion
+                    ? `Change your team's ban: ${champion.name}`
+                    : `Select champion for your team's ban slot ${index + 1}`
+                }
+              />
+            );
+          })}
         </div>
       </div>
       <div className="space-y-2">
@@ -88,15 +97,22 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
           ENEMY TEAM&apos;S BANS
         </p>
         <div className="flex justify-center gap-2 sm:gap-4">
-          {banSlotList.map((slot, index) => (
-            <BanSlot
-              key={`enemy-ban-${slot}`}
-              champion={
-                (enemyBans[index] && championMap.get(enemyBans[index])) || null
-              }
-              onClick={() => onSlotClick("enemy", index)}
-            />
-          ))}
+          {banSlotList.map((slot, index) => {
+            const champion =
+              (enemyBans[index] && championMap.get(enemyBans[index])) || null;
+            return (
+              <BanSlot
+                key={`enemy-ban-${slot}`}
+                champion={champion}
+                onClick={() => onSlotClick("enemy", index)}
+                aria-label={
+                  champion
+                    ? `Change enemy team's ban: ${champion.name}`
+                    : `Select champion for enemy team's ban slot ${index + 1}`
+                }
+              />
+            );
+          })}
         </div>
       </div>
       <div className="flex justify-center pt-4">
