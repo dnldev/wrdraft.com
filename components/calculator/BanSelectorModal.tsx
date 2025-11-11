@@ -8,7 +8,7 @@ import {
   ModalContent,
   ModalHeader,
 } from "@heroui/react";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 import { Champion } from "@/data/championData";
 
@@ -35,6 +35,15 @@ export function BanSelectorModal({
   onBanSelect,
 }: BanSelectorModalProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const resetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleClose = () => {
+    onClose();
+    // Reset search after the modal close animation (approx 300ms) to prevent visual flash.
+    resetTimeoutRef.current = setTimeout(() => {
+      setSearchQuery("");
+    }, 300);
+  };
 
   const sortedChampions = useMemo(() => {
     return champions.toSorted((a, b) => a.name.localeCompare(b.name));
@@ -52,7 +61,7 @@ export function BanSelectorModal({
   return (
     <Modal
       isOpen={isOpen}
-      onOpenChange={onClose}
+      onOpenChange={handleClose}
       size="2xl"
       scrollBehavior="inside"
     >

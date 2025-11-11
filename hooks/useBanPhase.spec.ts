@@ -1,90 +1,107 @@
 /**
  * @jest-environment jsdom
  */
-import { describe, expect, it } from "@jest/globals";
+import { beforeEach, describe, expect, it } from "@jest/globals";
 import { act, renderHook } from "@testing-library/react";
 
 import { useBanPhase } from "./useBanPhase";
 
+type UseBanPhaseReturn = ReturnType<typeof useBanPhase>;
+
 describe("useBanPhase", () => {
-  it("should initialize with default enemy bans and empty user bans", () => {
+  // Use a placeholder for initialization. The type will be inferred by TypeScript
+  // from the assignment in the beforeEach block.
+  let hookResult: { current: UseBanPhaseReturn };
+
+  beforeEach(() => {
     const { result } = renderHook(() => useBanPhase());
-    expect(result.current.yourBans).toEqual(["", "", "", "", ""]);
-    expect(result.current.enemyBans).toEqual([
-      "Blitzcrank",
+    hookResult = result;
+  });
+
+  it("should initialize with default user bans and empty enemy bans", () => {
+    expect(hookResult.current.yourBans).toEqual([
       "Nautilus",
+      "Blitzcrank",
       "",
       "",
       "",
     ]);
-    expect(result.current.bansLocked).toBe(false);
+    expect(hookResult.current.enemyBans).toEqual(["", "", "", "", ""]);
+    expect(hookResult.current.bansLocked).toBe(false);
   });
 
   it("should update bans for a given team and index", () => {
-    const { result } = renderHook(() => useBanPhase());
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 0);
+      hookResult.current.handleBanSelection("Zed", "enemy", 0);
     });
-    expect(result.current.yourBans[0]).toBe("Zed");
+    expect(hookResult.current.enemyBans[0]).toBe("Zed");
   });
 
   it("should toggle a ban off if the same slot is selected again", () => {
-    const { result } = renderHook(() => useBanPhase());
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 0);
+      hookResult.current.handleBanSelection("Zed", "your", 2);
     });
-    expect(result.current.yourBans[0]).toBe("Zed");
+    expect(hookResult.current.yourBans[2]).toBe("Zed");
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 0);
+      hookResult.current.handleBanSelection("Zed", "your", 2);
     });
-    expect(result.current.yourBans[0]).toBe("");
+    expect(hookResult.current.yourBans[2]).toBe("");
   });
 
   it("should move a ban if a champion is selected in a new slot", () => {
-    const { result } = renderHook(() => useBanPhase());
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 0);
+      hookResult.current.handleBanSelection("Zed", "your", 2);
     });
-    expect(result.current.yourBans).toEqual(["Zed", "", "", "", ""]);
+    expect(hookResult.current.yourBans).toEqual([
+      "Nautilus",
+      "Blitzcrank",
+      "Zed",
+      "",
+      "",
+    ]);
+
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 2);
+      hookResult.current.handleBanSelection("Zed", "your", 4);
     });
-    expect(result.current.yourBans).toEqual(["", "", "Zed", "", ""]);
+    expect(hookResult.current.yourBans).toEqual([
+      "Nautilus",
+      "Blitzcrank",
+      "",
+      "",
+      "Zed",
+    ]);
   });
 
   it("should correctly update the memoized bannedChampions set", () => {
-    const { result } = renderHook(() => useBanPhase());
-    expect(result.current.bannedChampions).toEqual(
-      new Set(["Blitzcrank", "Nautilus"])
+    expect(hookResult.current.bannedChampions).toEqual(
+      new Set(["Nautilus", "Blitzcrank"])
     );
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 0);
+      hookResult.current.handleBanSelection("Zed", "enemy", 0);
     });
-    expect(result.current.bannedChampions).toEqual(
-      new Set(["Blitzcrank", "Nautilus", "Zed"])
+    expect(hookResult.current.bannedChampions).toEqual(
+      new Set(["Nautilus", "Blitzcrank", "Zed"])
     );
   });
 
   it("should update the bansLocked state", () => {
-    const { result } = renderHook(() => useBanPhase());
-    expect(result.current.bansLocked).toBe(false);
+    expect(hookResult.current.bansLocked).toBe(false);
     act(() => {
-      result.current.setBansLocked(true);
+      hookResult.current.setBansLocked(true);
     });
-    expect(result.current.bansLocked).toBe(true);
+    expect(hookResult.current.bansLocked).toBe(true);
   });
 
   it("should overwrite a slot with a new champion", () => {
-    const { result } = renderHook(() => useBanPhase());
     act(() => {
-      result.current.handleBanSelection("Zed", "your", 1);
+      hookResult.current.handleBanSelection("Zed", "your", 2);
     });
-    expect(result.current.yourBans[1]).toBe("Zed");
+    expect(hookResult.current.yourBans[2]).toBe("Zed");
     act(() => {
-      result.current.handleBanSelection("Yasuo", "your", 1);
+      hookResult.current.handleBanSelection("Yasuo", "your", 2);
     });
-    expect(result.current.yourBans[1]).toBe("Yasuo");
-    expect(result.current.bannedChampions).not.toContain("Zed");
-    expect(result.current.bannedChampions).toContain("Yasuo");
+    expect(hookResult.current.yourBans[2]).toBe("Yasuo");
+    expect(hookResult.current.bannedChampions).not.toContain("Zed");
+    expect(hookResult.current.bannedChampions).toContain("Yasuo");
   });
 });

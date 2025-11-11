@@ -7,7 +7,7 @@ interface BuildPathProps {
   readonly build: Build;
 }
 
-const ItemImage = ({ item }: { item: Item }) => (
+const ItemImage = ({ item }: { readonly item: Item }) => (
   <Image
     src={item.icon}
     alt={item.name}
@@ -15,7 +15,6 @@ const ItemImage = ({ item }: { item: Item }) => (
     height={48}
     className="rounded-md"
     title={item.name}
-    unoptimized
   />
 );
 

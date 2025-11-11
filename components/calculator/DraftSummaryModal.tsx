@@ -41,10 +41,10 @@ export function DraftSummaryModal({
 
   const { overallScore, winChance, breakdown, selections } = summary;
 
-  const alliedAdc = championMap.get(selections.alliedAdc!);
-  const alliedSupport = championMap.get(selections.alliedSupport!);
-  const enemyAdc = championMap.get(selections.enemyAdc!);
-  const enemySupport = championMap.get(selections.enemySupport!);
+  const alliedAdc = championMap.get(selections.alliedAdc ?? "");
+  const alliedSupport = championMap.get(selections.alliedSupport ?? "");
+  const enemyAdc = championMap.get(selections.enemyAdc ?? "");
+  const enemySupport = championMap.get(selections.enemySupport ?? "");
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onClose} size="2xl">

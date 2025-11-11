@@ -1,6 +1,7 @@
 "use client";
 
 import { Avatar, Card, CardBody, CardHeader } from "@heroui/react";
+import { flatMap } from "lodash-es";
 import React, { JSX, useMemo } from "react";
 
 import { Champion } from "@/data/championData";
@@ -14,16 +15,11 @@ interface FirstPickCardProps {
   readonly tier: string;
 }
 
-/**
- * A single card representing a safe first pick champion, including its reasoning.
- * @param {object} props - The component props.
- * @returns {JSX.Element}
- */
 const FirstPickCard: React.FC<FirstPickCardProps> = ({
   pick,
   champion,
   tier,
-}: FirstPickCardProps): JSX.Element => (
+}): JSX.Element => (
   <Card className="p-4 bg-content2">
     <CardHeader className="p-0 pb-2">
       <div className="flex items-center gap-3">
@@ -61,28 +57,20 @@ interface FirstPicksDisplayProps {
   readonly tierMap: Map<string, string>;
 }
 
-/**
- * A component that displays safe first picks in a grid.
- * This is shown when the user has locked in bans but not yet selected any champions.
- * @param {FirstPicksDisplayProps} props - The component props.
- * @returns {JSX.Element}
- */
 export function FirstPicksDisplay({
   firstPicks,
   championMap,
   tierMap,
 }: FirstPicksDisplayProps) {
   const validFirstPicks = useMemo(() => {
-    return firstPicks
-      .map((pick) => ({
-        pick,
-        champion: championMap.get(pick.name),
-        tier: tierMap.get(pick.name),
-      }))
-      .filter(
-        (item): item is { pick: FirstPick; champion: Champion; tier: string } =>
-          Boolean(item.champion && item.tier)
-      );
+    return flatMap(firstPicks, (pick) => {
+      const champion = championMap.get(pick.name);
+      const tier = tierMap.get(pick.name);
+      if (champion && tier) {
+        return [{ pick, champion, tier }];
+      }
+      return [];
+    });
   }, [firstPicks, championMap, tierMap]);
 
   return (
