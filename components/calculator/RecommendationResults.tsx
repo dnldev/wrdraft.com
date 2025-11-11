@@ -10,9 +10,8 @@ import {
   Chip,
   Divider,
 } from "@heroui/react";
-import React from "react";
+import React, { JSX } from "react";
 
-import { Selections } from "@/hooks/useMatchupCalculator";
 import { PairRecommendation } from "@/lib/calculator";
 import {
   generatePairExplanation,
@@ -41,7 +40,7 @@ const PairTitle = ({
 }: {
   item: PairRecommendation;
   index: number;
-}) => (
+}): JSX.Element => (
   <div className="flex w-full items-center gap-4">
     <div className="flex -space-x-4">
       <Avatar src={item.adc.portraitUrl} alt={item.adc.name} />
@@ -65,16 +64,18 @@ const PairTitle = ({
   </div>
 );
 
+interface PairRecommendationProps {
+  readonly results: PairRecommendation[];
+}
+
 /**
  * Renders a list of pair recommendations as an expandable accordion.
- * @param {object} props - The component props.
+ * @param {PairRecommendationProps} props - The component props.
  * @returns {JSX.Element}
  */
-export const RecommendationResults: React.FC<{
-  results: PairRecommendation[];
-  tierMap: Map<string, string>;
-  selections: Selections;
-}> = ({ results }) => {
+export const RecommendationResults: React.FC<PairRecommendationProps> = ({
+  results,
+}: PairRecommendationProps): JSX.Element => {
   return (
     <Card>
       <CardHeader>

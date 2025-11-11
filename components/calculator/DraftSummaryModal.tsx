@@ -15,10 +15,10 @@ import { Champion } from "@/data/championData";
 import { DraftSummary } from "@/hooks/useMatchupCalculator";
 
 interface DraftSummaryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  summary: DraftSummary | null;
-  championMap: Map<string, Champion>;
+  readonly isOpen: boolean;
+  readonly onClose: () => void;
+  readonly summary: DraftSummary | null;
+  readonly championMap: Map<string, Champion>;
 }
 
 const getScoreColor = (score: number) => {

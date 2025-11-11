@@ -8,10 +8,10 @@ import { Champion } from "@/data/championData";
 import { LucideIcon } from "../core/LucideIcon";
 
 interface BanSelectorProps {
-  label: string;
-  champions: Champion[];
-  selectedKeys: Set<string>;
-  onSelectionChange: (keys: Iterable<Key>) => void;
+  readonly label: string;
+  readonly champions: Champion[];
+  readonly selectedKeys: Set<string>;
+  readonly onSelectionChange: (keys: Iterable<Key>) => void;
 }
 
 /**

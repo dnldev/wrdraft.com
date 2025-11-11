@@ -1,23 +1,29 @@
 "use client";
 
 import { Avatar, Card, CardBody, CardHeader } from "@heroui/react";
-import React from "react";
+import React, { JSX, useMemo } from "react";
 
 import { Champion } from "@/data/championData";
 import { FirstPick } from "@/data/firstPickData";
 
 import { LucideIcon } from "../core/LucideIcon";
 
+interface FirstPickCardProps {
+  readonly pick: FirstPick;
+  readonly champion: Champion;
+  readonly tier: string;
+}
+
 /**
  * A single card representing a safe first pick champion, including its reasoning.
  * @param {object} props - The component props.
  * @returns {JSX.Element}
  */
-const FirstPickCard: React.FC<{
-  pick: FirstPick;
-  champion?: Champion;
-  tier?: string;
-}> = ({ pick, champion, tier }) => (
+const FirstPickCard: React.FC<FirstPickCardProps> = ({
+  pick,
+  champion,
+  tier,
+}: FirstPickCardProps): JSX.Element => (
   <Card className="p-4 bg-content2">
     <CardHeader className="p-0 pb-2">
       <div className="flex items-center gap-3">
@@ -50,9 +56,9 @@ const FirstPickCard: React.FC<{
 );
 
 interface FirstPicksDisplayProps {
-  firstPicks: FirstPick[];
-  championMap: Map<string, Champion>;
-  tierMap: Map<string, string>;
+  readonly firstPicks: FirstPick[];
+  readonly championMap: Map<string, Champion>;
+  readonly tierMap: Map<string, string>;
 }
 
 /**
@@ -66,6 +72,19 @@ export function FirstPicksDisplay({
   championMap,
   tierMap,
 }: FirstPicksDisplayProps) {
+  const validFirstPicks = useMemo(() => {
+    return firstPicks
+      .map((pick) => ({
+        pick,
+        champion: championMap.get(pick.name),
+        tier: tierMap.get(pick.name),
+      }))
+      .filter(
+        (item): item is { pick: FirstPick; champion: Champion; tier: string } =>
+          Boolean(item.champion && item.tier)
+      );
+  }, [firstPicks, championMap, tierMap]);
+
   return (
     <Card>
       <CardHeader>
@@ -76,12 +95,12 @@ export function FirstPicksDisplay({
       </CardHeader>
       <CardBody>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {firstPicks.map((pick) => (
+          {validFirstPicks.map(({ pick, champion, tier }) => (
             <FirstPickCard
               key={pick.name}
               pick={pick}
-              champion={championMap.get(pick.name)}
-              tier={tierMap.get(pick.name)}
+              champion={champion}
+              tier={tier}
             />
           ))}
         </div>

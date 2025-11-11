@@ -8,8 +8,8 @@ import { Champion } from "@/data/championData";
 import { LucideIcon } from "../core/LucideIcon";
 
 interface BanSlotProps {
-  champion: Champion | null;
-  onClick: () => void;
+  readonly champion: Champion | null;
+  readonly onClick: () => void;
 }
 
 /**
@@ -43,11 +43,11 @@ const BanSlot: React.FC<BanSlotProps> = ({ champion, onClick }) => (
 );
 
 interface BanPhaseProps {
-  championMap: Map<string, Champion>;
-  yourBans: string[];
-  enemyBans: string[];
-  onSlotClick: (team: "your" | "enemy", index: number) => void;
-  onLockIn: () => void;
+  readonly championMap: Map<string, Champion>;
+  readonly yourBans: string[];
+  readonly enemyBans: string[];
+  readonly onSlotClick: (team: "your" | "enemy", index: number) => void;
+  readonly onLockIn: () => void;
 }
 
 /**
@@ -74,7 +74,7 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
             <BanSlot
               key={`your-ban-${index}`}
               champion={
-                yourBans[index] ? championMap.get(yourBans[index])! : null
+                (yourBans[index] && championMap.get(yourBans[index])) || null
               }
               onClick={() => onSlotClick("your", index)}
             />
@@ -90,7 +90,7 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
             <BanSlot
               key={`enemy-ban-${index}`}
               champion={
-                enemyBans[index] ? championMap.get(enemyBans[index])! : null
+                (enemyBans[index] && championMap.get(enemyBans[index])) || null
               }
               onClick={() => onSlotClick("enemy", index)}
             />
@@ -112,8 +112,8 @@ export const BanPhase: React.FC<BanPhaseProps> = ({
 };
 
 interface LockedBansDisplayProps {
-  bannedChampions: Set<string>;
-  championMap: Map<string, Champion>;
+  readonly bannedChampions: Set<string>;
+  readonly championMap: Map<string, Champion>;
 }
 
 /**

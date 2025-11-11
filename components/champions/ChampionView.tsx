@@ -10,8 +10,8 @@ import { Champion } from "@/data/championData";
 import { ChampionGuide } from "./ChampionGuide";
 
 interface ChampionViewProps {
-  adcs: Champion[];
-  supports: Champion[];
+  readonly adcs: Champion[];
+  readonly supports: Champion[];
 }
 
 export function ChampionView({ adcs, supports }: ChampionViewProps) {

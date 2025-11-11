@@ -18,8 +18,8 @@ const tierColors: {
 };
 
 interface TierRowProps {
-  tier: string;
-  champions: string[];
+  readonly tier: string;
+  readonly champions: string[];
 }
 
 const TierRow: React.FC<TierRowProps> = ({ tier, champions }) => {

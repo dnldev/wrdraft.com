@@ -6,12 +6,12 @@ import React from "react";
 import { LucideIcon } from "../core/LucideIcon";
 
 interface SynergyCardProps {
-  adc: string;
-  support: string;
-  description: string;
-  adcComfort?: "★" | "☆";
-  supportComfort?: "★" | "☆";
-  tierColor: "success" | "primary" | "warning";
+  readonly adc: string;
+  readonly support: string;
+  readonly description: string;
+  readonly adcComfort?: "★" | "☆";
+  readonly supportComfort?: "★" | "☆";
+  readonly tierColor: "success" | "primary" | "warning";
 }
 
 const SynergyCard: React.FC<SynergyCardProps> = ({
