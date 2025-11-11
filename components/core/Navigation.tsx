@@ -14,7 +14,8 @@ export type MainView =
   | "team-comps"
   | "pairings"
   | "champions"
-  | "calculator";
+  | "calculator"
+  | "history";
 
 interface NavItem {
   readonly id: MainView;
@@ -81,6 +82,12 @@ export function Navigation({ views }: NavigationProps) {
       label: "Calculator",
       mobileLabel: "Calc",
       icon: "Calculator",
+    },
+    {
+      id: "history",
+      label: "History",
+      mobileLabel: "History",
+      icon: "History",
     },
   ];
 

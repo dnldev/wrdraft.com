@@ -5,6 +5,7 @@ import React from "react";
 import { MatchupCalculator } from "@/components/calculator/MatchupCalculator";
 import { ChampionView } from "@/components/champions/ChampionView";
 import { DraftingInfo } from "@/components/drafting/DraftingInfo";
+import { DraftHistory } from "@/components/history/DraftHistory";
 import { BestPairings } from "@/components/pairings/BestPairings";
 import { TeamComps } from "@/components/team-comps/TeamComps";
 
@@ -21,3 +22,4 @@ export const MemoizedTeamComps = React.memo(TeamComps);
 export const MemoizedBestPairings = React.memo(BestPairings);
 export const MemoizedChampionView = React.memo(ChampionView);
 export const MemoizedMatchupCalculator = React.memo(MatchupCalculator);
+export const MemoizedDraftHistory = React.memo(DraftHistory);
