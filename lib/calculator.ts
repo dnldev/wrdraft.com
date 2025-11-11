@@ -193,10 +193,14 @@ function getAllPairs(
   championMap: Map<string, Champion>
 ): { adc: Champion; support: Champion }[] {
   const adcsToIterate = selections.alliedAdc
-    ? [championMap.get(selections.alliedAdc)!].filter(Boolean)
+    ? [championMap.get(selections.alliedAdc)].filter(
+        (c): c is Champion => c !== undefined
+      )
     : adcs;
   const supportsToIterate = selections.alliedSupport
-    ? [championMap.get(selections.alliedSupport)!].filter(Boolean)
+    ? [championMap.get(selections.alliedSupport)].filter(
+        (c): c is Champion => c !== undefined
+      )
     : supports;
 
   return _.flatMap(adcsToIterate, (adc) =>
@@ -243,7 +247,7 @@ export function calculatePairRecommendations(context: {
         synergyMatrix,
         counterMatrix,
         categories,
-        enemyLaneArchetype, // Corrected spelling here
+        enemyLaneArchetype,
       });
     })
     .filter((pair): pair is PairRecommendation => pair !== null);
