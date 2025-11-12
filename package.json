@@ -18,7 +18,8 @@
     "scrape:matchups": "tsx scripts/scrape-matchups.ts",
     "test": "jest --coverage",
     "test:watch": "jest --coverage --watch",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "release-it"
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.16",
