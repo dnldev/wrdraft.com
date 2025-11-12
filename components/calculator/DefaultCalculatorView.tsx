@@ -38,10 +38,6 @@ interface DefaultCalculatorViewProps {
   ) => void;
 }
 
-/**
- * Represents the default view of the matchup calculator, including the ban and pick phases.
- * This component encapsulates the primary UI for starting a new draft from scratch.
- */
 export const DefaultCalculatorView: React.FC<DefaultCalculatorViewProps> = ({
   bansLocked,
   bannedChampions,
@@ -98,8 +94,8 @@ export const DefaultCalculatorView: React.FC<DefaultCalculatorViewProps> = ({
           ) : (
             <BanPhase
               championMap={championMap}
-              yourBans={yourBans as string[]}
-              enemyBans={enemyBans as string[]}
+              yourBans={yourBans}
+              enemyBans={enemyBans}
               onSlotClick={onSlotClick}
               onLockIn={onLockIn}
             />

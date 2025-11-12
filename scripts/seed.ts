@@ -12,6 +12,9 @@ const KEY_PREFIX = "WR:";
 
 /**
  * Seeds or updates the Upstash database with static game data.
+ * This is a non-destructive operation; it will overwrite existing static data keys
+ * (e.g., `WR:champions:adc`, `WR:matrix:synergy`) but will not delete or modify
+ * any other keys, such as user-generated data (`WR:drafts:history`).
  */
 async function main() {
   const kv = getKvClient();
@@ -33,14 +36,6 @@ async function main() {
   });
 
   const pipeline = kv.pipeline();
-
-  for (const champion of fullChampionsData) {
-    pipeline.set(
-      `${KEY_PREFIX}champion:${champion.id}`,
-      JSON.stringify(champion)
-    );
-  }
-  logger.info("- Staging individual champion data...");
 
   const adcs = fullChampionsData.filter((c) => c.role.includes("ADC"));
   const supports = fullChampionsData.filter((c) => c.role.includes("Support"));

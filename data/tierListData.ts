@@ -1,8 +1,5 @@
 /**
  * @file This file contains the definitive tier list data for various game patches.
- * The data is structured by role (ADC, Support) and then by tier (S+, S, A, B, C).
- * This information is used to populate the "Tier List" view and is a factor in the
- * Matchup Calculator's recommendations.
  */
 
 /**
@@ -29,7 +26,7 @@ export const tierList63b: TierListData = {
     S: ["Milio", "Leona", "Bard", "Zilean"],
     A: ["Thresh", "Morgana", "Lulu", "Karma"],
     B: ["Janna", "Lux", "Maokai", "Blitzcrank", "Nautilus"],
-    C: ["Swain", "Brand", "Lux"],
+    C: ["Swain", "Brand"],
   },
 };
 
@@ -52,7 +49,6 @@ export const tierList63c: TierListData = {
     ],
     A: ["Twitch", "Tristana", "Draven", "Zeri"],
     B: ["Kalista", "Nilah"],
-    C: [],
   },
   support: {
     "S+": ["Thresh", "Nami"],

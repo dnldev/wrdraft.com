@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
+import { Champion } from "@/data/championData";
 import { logger } from "@/lib/logger";
-import { getConnectedRedisClient } from "@/lib/redis";
+import { getKvClient } from "@/lib/upstash";
 
 export const dynamic = "force-static";
 
@@ -16,10 +17,10 @@ export async function GET(request: Request) {
   }
 
   try {
-    const redis = await getConnectedRedisClient();
-    const championsString = await redis.get(`champions:${role}`);
+    const kv = getKvClient();
+    const champions = await kv.get<Champion[]>(`WR:champions:${role}`);
 
-    if (!championsString) {
+    if (!champions) {
       logger.warn({ role }, "No champions found for this role in Redis.");
       return new NextResponse("No champions found for this role", {
         status: 404,
@@ -27,13 +28,10 @@ export async function GET(request: Request) {
     }
 
     logger.info({ role }, "Successfully fetched champions for role.");
-    return new NextResponse(championsString, {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return NextResponse.json(champions);
   } catch (error) {
-    logger.error(error, "Failed to fetch champions from Redis.");
-    return new NextResponse("Failed to fetch champions from Redis", {
+    logger.error(error, "Failed to fetch champions from Upstash.");
+    return new NextResponse("Failed to fetch champions from Upstash", {
       status: 500,
     });
   }

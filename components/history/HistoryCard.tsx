@@ -1,3 +1,4 @@
+// components/history/HistoryCard.tsx
 import {
   Avatar,
   Button,
@@ -85,7 +86,7 @@ const getOutcomeChip = (outcome: MatchOutcome | LaneOutcome) => {
 };
 
 const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
-  <div className="flex">
+  <div className="flex" aria-label={`Rating: ${rating} out of 5 stars`}>
     {times(5, (index) => (
       <LucideIcon
         key={`star-rating-${index}`}
@@ -124,7 +125,12 @@ export const HistoryCard: React.FC<HistoryCardProps> = ({
         </div>
         <Dropdown>
           <DropdownTrigger>
-            <Button isIconOnly variant="light" size="sm">
+            <Button
+              isIconOnly
+              variant="light"
+              size="sm"
+              aria-label="Draft options"
+            >
               <LucideIcon name="EllipsisVertical" />
             </Button>
           </DropdownTrigger>

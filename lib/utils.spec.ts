@@ -65,13 +65,16 @@ describe("getLaneArchetype", () => {
     expect(archetype).toBe("Engage");
   });
 
-  it("should fall back to the ADC's archetype if support is not found", () => {
-    const archetype = getLaneArchetype(
+  it("should fall back to the ADC's archetype if support is not found or null", () => {
+    const archetypeWithNull = getLaneArchetype("Lucian", null, mockCategories);
+    expect(archetypeWithNull).toBe("Engage");
+
+    const archetypeWithUnknown = getLaneArchetype(
       "Jinx",
       "UnknownSupport",
       mockCategories
     );
-    expect(archetype).toBe("Sustain"); // Hypercarry maps to Sustain
+    expect(archetypeWithUnknown).toBe("Sustain"); // Hypercarry maps to Sustain
   });
 
   it("should return 'Unknown' if neither champion is categorized", () => {
@@ -81,11 +84,6 @@ describe("getLaneArchetype", () => {
       mockCategories
     );
     expect(archetype).toBe("Unknown");
-  });
-
-  it("should return 'Unknown' if one champion is null", () => {
-    const archetype = getLaneArchetype("Lucian", null, mockCategories);
-    expect(archetype).toBe("Engage"); // Falls back to ADC
   });
 
   it("should return 'Unknown' if both champions are null", () => {
