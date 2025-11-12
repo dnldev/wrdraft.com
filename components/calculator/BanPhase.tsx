@@ -15,8 +15,6 @@ interface BanSlotProps {
 
 /**
  * Renders a single, clickable slot for a banned champion.
- * It displays a plus icon for an empty slot, or a grayscale champion avatar
- * with a ban icon overlay if a champion is selected.
  */
 const BanSlot: React.FC<BanSlotProps> = ({ champion, onClick, ...props }) => (
   <button
@@ -46,17 +44,14 @@ const BanSlot: React.FC<BanSlotProps> = ({ champion, onClick, ...props }) => (
 
 interface BanPhaseProps {
   readonly championMap: Map<string, Champion>;
-  readonly yourBans: string[];
-  readonly enemyBans: string[];
+  readonly yourBans: readonly string[];
+  readonly enemyBans: readonly string[];
   readonly onSlotClick: (team: "your" | "enemy", index: number) => void;
   readonly onLockIn: () => void;
 }
 
 /**
- * Renders the UI for the ban selection phase. It displays 10 slots (5 per team)
- * that users can click to open a champion selection modal. It is responsible for
- * displaying the current state of bans and transitioning to the pick phase via
- * the onLockIn callback.
+ * Renders the UI for the ban selection phase.
  */
 export const BanPhase: React.FC<BanPhaseProps> = ({
   championMap,

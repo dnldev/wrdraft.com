@@ -97,12 +97,29 @@ export async function DELETE(request: Request): Promise<NextResponse> {
   logger.info({ draftId: id }, "Received request to delete draft.");
 
   try {
-    const allDraftsStrings = await kv.lrange<string>(DRAFTS_KEY, 0, -1);
-    const draftToRemoveString = allDraftsStrings.find((s) =>
-      s.includes(`"id":"${id}"`)
+    const allDraftItems = await kv.lrange<SavedDraft | string>(
+      DRAFTS_KEY,
+      0,
+      -1
     );
+    let draftToRemove: SavedDraft | null = null;
+    let originalItem: SavedDraft | string | null = null;
 
-    if (!draftToRemoveString) {
+    for (const item of allDraftItems) {
+      try {
+        const draft =
+          typeof item === "string" ? (JSON.parse(item) as SavedDraft) : item;
+        if (draft.id === id) {
+          draftToRemove = draft;
+          originalItem = item;
+          break;
+        }
+      } catch {
+        // Ignore items that fail to parse
+      }
+    }
+
+    if (!draftToRemove || !originalItem) {
       logger.warn(
         { draftId: id },
         "Attempted to delete a draft that was not found."
@@ -112,7 +129,8 @@ export async function DELETE(request: Request): Promise<NextResponse> {
       });
     }
 
-    await kv.lrem(DRAFTS_KEY, 1, draftToRemoveString);
+    // `lrem` needs the exact original value (string or object) to find and remove it.
+    await kv.lrem(DRAFTS_KEY, 1, originalItem);
     logger.info({ draftId: id }, "Draft deleted successfully from Upstash.");
     return new NextResponse(
       JSON.stringify({ message: "Draft deleted successfully" }),

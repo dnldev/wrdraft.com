@@ -35,7 +35,7 @@ interface PlaybookData {
 }
 
 /**
- * Fetches the raw data strings from the Upstash database.
+ * Fetches the raw data from the Upstash database.
  */
 async function fetchRawData(staticKeys: string[]) {
   const kv = getKvClient();
