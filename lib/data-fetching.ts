@@ -1,4 +1,5 @@
 import { groupBy, mapValues, sortBy } from "lodash-es";
+import { nanoid } from "nanoid";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
@@ -33,13 +34,51 @@ interface PlaybookData {
   draftHistory: SavedDraft[];
 }
 
-function processSynergies(synergyData: Synergy[] | null): {
-  synergiesByAdc: Record<string, Synergy[]>;
-  synergiesBySupport: Record<string, Synergy[]>;
-} {
-  if (!synergyData) {
-    return { synergiesByAdc: {}, synergiesBySupport: {} };
+/**
+ * Fetches the raw data strings from the Upstash database.
+ */
+async function fetchRawData(staticKeys: string[]) {
+  const kv = getKvClient();
+  const [mGetResults, draftHistoryItems] = await Promise.all([
+    kv.mget<unknown[]>(...staticKeys),
+    kv.lrange<SavedDraft | string>(DRAFTS_KEY, 0, 99),
+  ]);
+  return { mGetResults, draftHistoryItems };
+}
+
+/**
+ * Parses and assembles the raw data from Redis into the final PlaybookData object.
+ */
+function parseAndAssembleData(
+  baseKeys: string[],
+  rawData: unknown[],
+  rawHistory: (SavedDraft | string)[]
+): PlaybookData {
+  const parsedData: Record<string, unknown> = {};
+  for (const [i, key] of baseKeys.entries()) {
+    parsedData[key] = rawData[i] || null;
   }
+
+  const draftHistory = rawHistory
+    .map((item) => {
+      if (typeof item === "string") {
+        try {
+          return JSON.parse(item) as SavedDraft;
+        } catch (error) {
+          logger.error(
+            { error, item },
+            "Failed to parse a draft history string."
+          );
+          return null;
+        }
+      }
+      if (typeof item === "object" && item !== null) {
+        return item;
+      }
+      return null;
+    })
+    .filter((d): d is SavedDraft => d !== null);
+
   const ratingOrder: Record<Synergy["rating"], number> = {
     Excellent: 0,
     Good: 1,
@@ -48,56 +87,17 @@ function processSynergies(synergyData: Synergy[] | null): {
   };
   const sortSynergies = (synergies: Synergy[]) =>
     sortBy(synergies, (s) => ratingOrder[s.rating]);
-  const synergiesByAdc = mapValues(groupBy(synergyData, "adc"), sortSynergies);
-  const synergiesBySupport = mapValues(
-    groupBy(synergyData, "support"),
-    sortSynergies
-  );
-  return { synergiesByAdc, synergiesBySupport };
-}
-
-export async function getPlaybookData(): Promise<PlaybookData> {
-  const kv = getKvClient();
-  const fetchId = nanoid(6);
-  logger.info({ fetchId }, "getPlaybookData: Starting data fetch...");
-
-  const manifestKeys = Object.keys(dataManifest);
-  const baseDataKeys = [...manifestKeys, "champions:adc", "champions:support"];
-  const prefixedDataKeys = baseDataKeys.map((key) => `${KEY_PREFIX}${key}`);
-
-  const [mGetResults, draftHistoryStrings] = await Promise.all([
-    kv.mget<unknown[]>(...prefixedDataKeys),
-    kv.lrange<string>(DRAFTS_KEY, 0, 99),
-  ]);
-
-  logger.info(
-    { fetchId, draftCount: draftHistoryStrings.length },
-    "getPlaybookData: Fetched data from Upstash."
-  );
-
-  const parsedData: Record<string, unknown> = {};
-  for (const [i, key] of baseDataKeys.entries()) {
-    parsedData[key] = mGetResults[i] || null;
-  }
-
-  const draftHistory = draftHistoryStrings
-    .map((s) => {
-      try {
-        return JSON.parse(s) as SavedDraft;
-      } catch {
-        return null;
-      }
-    })
-    .filter((d): d is SavedDraft => d !== null);
-
-  const { synergiesByAdc, synergiesBySupport } = processSynergies(
-    parsedData.synergies as Synergy[] | null
-  );
+  const synergies = parsedData.synergies as Synergy[] | null;
+  const synergiesByAdc = synergies
+    ? mapValues(groupBy(synergies, "adc"), sortSynergies)
+    : {};
+  const synergiesBySupport = synergies
+    ? mapValues(groupBy(synergies, "support"), sortSynergies)
+    : {};
 
   const adcs = (parsedData["champions:adc"] as Champion[]) || [];
   const supports = (parsedData["champions:support"] as Champion[]) || [];
 
-  logger.info({ fetchId }, "getPlaybookData: Data fetch and processing complete.");
   return {
     adcs,
     supports,
@@ -107,11 +107,49 @@ export async function getPlaybookData(): Promise<PlaybookData> {
     teamComps: (parsedData.teamcomps as TeamComposition[]) || [],
     synergyMatrix: (parsedData["matrix:synergy"] as SynergyMatrix) || {},
     counterMatrix: (parsedData["matrix:counter"] as CounterMatrix) || {},
-    firstPicks:
-      (parsedData.firstPicks as FirstPickData) || { adcs: [], supports: [] },
-    tierList:
-      (parsedData["data:tierlist"] as TierListData) || { adc: {}, support: {} },
+    firstPicks: (parsedData.firstPicks as FirstPickData) || {
+      adcs: [],
+      supports: [],
+    },
+    tierList: (parsedData["data:tierlist"] as TierListData) || {
+      adc: {},
+      support: {},
+    },
     categories: (parsedData["data:categories"] as RoleCategories[]) || [],
     draftHistory,
   };
+}
+
+/**
+ * Fetches, parses, and assembles all necessary data for the main page.
+ */
+export async function getPlaybookData(): Promise<PlaybookData> {
+  const fetchId = nanoid(6);
+  logger.info({ fetchId }, "getPlaybookData: Starting data fetch...");
+
+  const baseDataKeys = [
+    ...Object.keys(dataManifest),
+    "champions:adc",
+    "champions:support",
+  ];
+  const prefixedDataKeys = baseDataKeys.map((key) => `${KEY_PREFIX}${key}`);
+
+  const { mGetResults, draftHistoryItems } =
+    await fetchRawData(prefixedDataKeys);
+  logger.info(
+    { fetchId, draftCount: draftHistoryItems.length },
+    "getPlaybookData: Fetched raw data from Upstash."
+  );
+
+  const playbookData = parseAndAssembleData(
+    baseDataKeys,
+    mGetResults,
+    draftHistoryItems
+  );
+  logger.info(
+    { fetchId },
+    "getPlaybookData: Data fetch and processing complete."
+  );
+
+  return playbookData;
 }
