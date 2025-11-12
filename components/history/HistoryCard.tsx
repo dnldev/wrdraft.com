@@ -11,9 +11,11 @@ import {
   DropdownMenu,
   DropdownTrigger,
 } from "@heroui/react";
+import { times } from "lodash-es";
 import React from "react";
 
 import { Champion } from "@/data/championData";
+import { getArchetypeColor } from "@/lib/utils";
 import { KDA, LaneOutcome, MatchOutcome, SavedDraft } from "@/types/draft";
 
 import { LucideIcon } from "../core/LucideIcon";
@@ -25,6 +27,9 @@ interface HistoryCardProps {
   readonly isDeleting: boolean;
 }
 
+const formatKda = (kdaObj?: KDA) =>
+  kdaObj ? `${kdaObj.k}/${kdaObj.d}/${kdaObj.a}` : null;
+
 const TeamDisplay: React.FC<{
   adcName: string | null;
   supportName: string | null;
@@ -33,8 +38,6 @@ const TeamDisplay: React.FC<{
 }> = ({ adcName, supportName, kda, championMap }) => {
   const adc = adcName ? championMap.get(adcName) : null;
   const support = supportName ? championMap.get(supportName) : null;
-  const formatKda = (kdaObj?: KDA) =>
-    kdaObj ? `${kdaObj.k}/${kdaObj.d}/${kdaObj.a}` : null;
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
@@ -83,9 +86,9 @@ const getOutcomeChip = (outcome: MatchOutcome | LaneOutcome) => {
 
 const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
   <div className="flex">
-    {Array.from({ length: 5 }).map((_, index) => (
+    {times(5, (index) => (
       <LucideIcon
-        key={index}
+        key={`star-rating-${index}`}
         name="Star"
         size={16}
         className={
@@ -183,13 +186,17 @@ export const HistoryCard: React.FC<HistoryCardProps> = ({
             <span className="text-foreground/70 font-semibold">
               Your Archetype
             </span>
-            <Chip color="default">{draft.archetypes.your}</Chip>
+            <Chip color={getArchetypeColor(draft.archetypes.your)}>
+              {draft.archetypes.your}
+            </Chip>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-foreground/70 font-semibold">
               Enemy Archetype
             </span>
-            <Chip color="default">{draft.archetypes.enemy}</Chip>
+            <Chip color={getArchetypeColor(draft.archetypes.enemy)}>
+              {draft.archetypes.enemy}
+            </Chip>
           </div>
         </div>
 

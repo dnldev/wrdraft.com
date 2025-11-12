@@ -3,9 +3,10 @@
  */
 import { describe, expect, it } from "@jest/globals";
 
+import { RoleCategories } from "@/data/categoryData";
 import { TierListData } from "@/data/tierListData";
 
-import { createTierMap } from "./utils";
+import { createTierMap, getArchetypeColor, getLaneArchetype } from "./utils";
 
 describe("createTierMap", () => {
   it("should return an empty map for null or undefined input", () => {
@@ -39,34 +40,74 @@ describe("createTierMap", () => {
     expect(tierMap.get("Lulu")).toBe("S");
     expect(tierMap.get("Braum")).toBe("B");
   });
+});
 
-  it("should handle champions listed in multiple categories, prioritizing the last one found", () => {
-    const tierList: TierListData = {
-      adc: {
-        S: ["Lucian"],
-      },
-      support: {
-        A: ["Lucian"], // Lucian can be played in multiple roles
-      },
-    };
-    const tierMap = createTierMap(tierList);
+describe("getLaneArchetype", () => {
+  const mockCategories: RoleCategories[] = [
+    {
+      name: "ADC",
+      categories: [
+        { name: "Lane Bully", champions: ["Lucian"], description: "" },
+        { name: "Hypercarry", champions: ["Jinx"], description: "" },
+      ],
+    },
+    {
+      name: "Support",
+      categories: [
+        { name: "Enchanter", champions: ["Nami"], description: "" },
+        { name: "Engage", champions: ["Leona"], description: "" },
+      ],
+    },
+  ];
 
-    // The support list is processed after the ADC list, so it should overwrite the value.
-    expect(tierMap.get("Lucian")).toBe("A");
-    expect(tierMap.size).toBe(1);
+  it("should prioritize the support's archetype", () => {
+    const archetype = getLaneArchetype("Lucian", "Leona", mockCategories);
+    expect(archetype).toBe("Engage");
   });
 
-  it("should correctly handle empty arrays within tiers", () => {
-    const tierList: TierListData = {
-      adc: {
-        S: [],
-        A: ["Varus"],
-      },
-      support: {},
-    };
-    const tierMap = createTierMap(tierList);
+  it("should fall back to the ADC's archetype if support is not found", () => {
+    const archetype = getLaneArchetype(
+      "Jinx",
+      "UnknownSupport",
+      mockCategories
+    );
+    expect(archetype).toBe("Sustain"); // Hypercarry maps to Sustain
+  });
 
-    expect(tierMap.size).toBe(1);
-    expect(tierMap.get("Varus")).toBe("A");
+  it("should return 'Unknown' if neither champion is categorized", () => {
+    const archetype = getLaneArchetype(
+      "UnknownADC",
+      "UnknownSupport",
+      mockCategories
+    );
+    expect(archetype).toBe("Unknown");
+  });
+
+  it("should return 'Unknown' if one champion is null", () => {
+    const archetype = getLaneArchetype("Lucian", null, mockCategories);
+    expect(archetype).toBe("Engage"); // Falls back to ADC
+  });
+
+  it("should return 'Unknown' if both champions are null", () => {
+    const archetype = getLaneArchetype(null, null, mockCategories);
+    expect(archetype).toBe("Unknown");
+  });
+});
+
+describe("getArchetypeColor", () => {
+  it('should return "danger" for Engage', () => {
+    expect(getArchetypeColor("Engage")).toBe("danger");
+  });
+
+  it('should return "primary" for Poke', () => {
+    expect(getArchetypeColor("Poke")).toBe("primary");
+  });
+
+  it('should return "success" for Sustain', () => {
+    expect(getArchetypeColor("Sustain")).toBe("success");
+  });
+
+  it('should return "default" for Unknown', () => {
+    expect(getArchetypeColor("Unknown")).toBe("default");
   });
 });

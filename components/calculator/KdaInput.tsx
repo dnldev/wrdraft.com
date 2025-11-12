@@ -1,9 +1,10 @@
 "use client";
 
-import { Input } from "@heroui/react";
 import React from "react";
 
 import { KDA } from "@/types/draft";
+
+import { NumberInput } from "./NumberInput";
 
 interface KdaInputProps {
   readonly value: KDA;
@@ -11,43 +12,33 @@ interface KdaInputProps {
 }
 
 /**
- * A component with three separate number inputs for Kills, Deaths, and Assists.
+ * A component with three separate number stepper inputs for Kills, Deaths, and Assists,
+ * providing a touch-friendly experience for mobile users.
  */
 export const KdaInput: React.FC<KdaInputProps> = ({ value, onChange }) => {
-  const handlePartChange = (part: keyof KDA, val: string) => {
-    const numValue = Number.parseInt(val, 10);
-    if (!Number.isNaN(numValue) && numValue >= 0) {
-      onChange({ ...value, [part]: numValue });
-    } else if (val === "") {
-      onChange({ ...value, [part]: 0 });
-    }
+  const handlePartChange = (part: keyof KDA, val: number) => {
+    onChange({ ...value, [part]: val });
   };
 
   return (
     <div className="flex gap-2">
-      <Input
-        type="number"
+      <NumberInput
         label="K"
         aria-label="Kills"
-        value={String(value.k)}
-        onValueChange={(v) => handlePartChange("k", v)}
-        min={0}
+        value={value.k}
+        onChange={(v) => handlePartChange("k", v)}
       />
-      <Input
-        type="number"
+      <NumberInput
         label="D"
         aria-label="Deaths"
-        value={String(value.d)}
-        onValueChange={(v) => handlePartChange("d", v)}
-        min={0}
+        value={value.d}
+        onChange={(v) => handlePartChange("d", v)}
       />
-      <Input
-        type="number"
+      <NumberInput
         label="A"
         aria-label="Assists"
-        value={String(value.a)}
-        onValueChange={(v) => handlePartChange("a", v)}
-        min={0}
+        value={value.a}
+        onChange={(v) => handlePartChange("a", v)}
       />
     </div>
   );

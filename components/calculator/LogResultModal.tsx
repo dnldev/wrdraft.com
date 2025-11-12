@@ -13,20 +13,11 @@ import {
 } from "@heroui/react";
 import React from "react";
 
-import { KDA, LaneOutcome, MatchOutcome } from "@/types/draft";
+import { LogResultState } from "@/hooks/useDraftLogger";
+import { LaneOutcome, MatchOutcome } from "@/types/draft";
 
 import { LucideIcon } from "../core/LucideIcon";
 import { KdaInput } from "./KdaInput";
-
-export interface LogResultState {
-  notes: string;
-  matchOutcome: MatchOutcome;
-  laneOutcome: LaneOutcome;
-  gameLength: number;
-  kdaAdc: KDA;
-  kdaSupport: KDA;
-  matchupFeel: number;
-}
 
 interface LogResultModalProps {
   readonly isOpen: boolean;
@@ -106,24 +97,14 @@ export function LogResultModal({
               <Radio value="unplayed">N/A</Radio>
             </RadioGroup>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-foreground/80 block mb-1">
-                  Your ADC KDA (Optional)
-                </label>
-                <KdaInput
-                  value={resultState.kdaAdc}
-                  onChange={(v) => onStateChange("kdaAdc", v)}
-                />
-              </div>
-              <div>
-                <label className="text-sm text-foreground/80 block mb-1">
-                  Your Support KDA (Optional)
-                </label>
-                <KdaInput
-                  value={resultState.kdaSupport}
-                  onChange={(v) => onStateChange("kdaSupport", v)}
-                />
-              </div>
+              <KdaInput
+                value={resultState.kdaAdc}
+                onChange={(v) => onStateChange("kdaAdc", v)}
+              />
+              <KdaInput
+                value={resultState.kdaSupport}
+                onChange={(v) => onStateChange("kdaSupport", v)}
+              />
             </div>
             <Slider
               label="Game Length (Optional)"
