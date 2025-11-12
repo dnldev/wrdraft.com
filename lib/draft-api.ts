@@ -4,6 +4,8 @@
 
 import { SavedDraft } from "@/types/draft";
 
+import { logger } from "./logger";
+
 /**
  * Saves a draft to the database via a POST request.
  * @param {SavedDraft} draft - The draft object to save.
@@ -21,7 +23,7 @@ export async function saveDraft(
 
   if (!response.ok) {
     const errorBody = await response.text();
-    console.error("DEBUG (draft-api): API Error Response:", errorBody);
+    logger.error({ errorBody }, "API Error Response:");
     throw new Error(
       `Failed to save draft. Server responded with ${response.status}.`
     );

@@ -4,6 +4,7 @@ import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import React, { useState } from "react";
 
 import { Champion } from "@/data/championData";
+import { logger } from "@/lib/development-logger";
 import { SavedDraft } from "@/types/draft";
 
 import { LucideIcon } from "../core/LucideIcon";
@@ -44,11 +45,15 @@ export const DraftHistory: React.FC<DraftHistoryProps> = ({
       });
 
       if (!response.ok) {
-        console.error("Failed to delete draft:", await response.text());
+        logger.error(
+          "DraftHistory",
+          "Failed to delete draft:",
+          await response.text()
+        );
         setDrafts(originalDrafts); // Revert on failure
       }
     } catch (error) {
-      console.error("Error deleting draft:", error);
+      logger.error("DraftHistory", "Error deleting draft:", error);
       setDrafts(originalDrafts); // Revert on network error
     } finally {
       setDeletingId(null);

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { getConnectedRedisClient } from "@/lib/redis";
+import { logger } from "@/lib/logger";
+import { getKvClient } from "@/lib/upstash";
 import { SavedDraft } from "@/types/draft";
 
-const DRAFTS_KEY = "drafts:history";
+const DRAFTS_KEY = "WR:drafts:history";
 
 /**
  * Handles POST requests to save a completed draft analysis.
@@ -12,15 +13,17 @@ const DRAFTS_KEY = "drafts:history";
  * @returns {Promise<NextResponse>} The response to the client.
  */
 export async function POST(request: Request): Promise<NextResponse> {
+  const kv = getKvClient();
   let draftData: SavedDraft;
 
   try {
     draftData = (await request.json()) as SavedDraft;
-  } catch {
+    logger.info({ draftId: draftData.id }, "Received request to save draft.");
+  } catch (error) {
+    logger.error(error, "Failed to parse request body as JSON.");
     return new NextResponse("Invalid JSON body", { status: 400 });
   }
 
-  // Basic validation for key fields
   const {
     id,
     timestamp,
@@ -30,8 +33,9 @@ export async function POST(request: Request): Promise<NextResponse> {
     bans,
     archetypes,
     matchOutcome,
-    matchupFeel, // Now required
+    matchupFeel,
   } = draftData;
+
   if (
     !id ||
     !timestamp ||
@@ -41,103 +45,87 @@ export async function POST(request: Request): Promise<NextResponse> {
     !bans ||
     !archetypes ||
     !matchOutcome ||
-    matchupFeel === undefined || // Check for presence, even if 0
+    matchupFeel === undefined ||
     !picks.alliedAdc ||
     !picks.alliedSupport ||
     !picks.enemyAdc ||
     !picks.enemySupport
   ) {
+    logger.warn({ draftId: id }, "Save draft request failed validation.");
     return new NextResponse(
       JSON.stringify({ message: "Missing required fields in draft data" }),
-      {
-        status: 400,
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 400, headers: { "Content-Type": "application/json" } }
     );
   }
 
   try {
-    const redis = await getConnectedRedisClient();
-    await redis.lPush(DRAFTS_KEY, JSON.stringify(draftData));
-
-    console.log("DEBUG (API): Draft saved successfully", draftData.id);
+    await kv.lpush(DRAFTS_KEY, JSON.stringify(draftData));
+    logger.info({ draftId: id }, "Draft saved successfully to Upstash.");
     return new NextResponse(
       JSON.stringify({
         message: "Draft saved successfully",
-        draftId: draftData.id,
+        draftId: id,
       }),
-      {
-        status: 201,
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    console.error("Failed to save draft to Redis:", error);
+    logger.error({ draftId: id, error }, "Failed to save draft to Upstash.");
     return new NextResponse(
       JSON.stringify({ message: "Internal Server Error" }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      }
+      { status: 500, headers: { "Content-Type": "application/json" } }
     );
   }
 }
+
 /**
  * Handles DELETE requests to remove a draft from the history.
- * It finds the specific draft in the Redis list by its ID and removes it.
  * @param {Request} request - The incoming HTTP request.
  * @returns {Promise<NextResponse>} The response to the client.
  */
 export async function DELETE(request: Request): Promise<NextResponse> {
+  const kv = getKvClient();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
   if (!id) {
+    logger.warn("DELETE request received without a draft ID.");
     return new NextResponse(JSON.stringify({ message: "Missing draft ID" }), {
       status: 400,
-      headers: { "Content-Type": "application/json" },
     });
   }
 
-  try {
-    const redis = await getConnectedRedisClient();
-    const allDraftsStrings = await redis.lRange(DRAFTS_KEY, 0, -1);
+  logger.info({ draftId: id }, "Received request to delete draft.");
 
-    const draftToRemoveString = allDraftsStrings.find((draftString) => {
-      try {
-        const draft = JSON.parse(draftString) as SavedDraft;
-        return draft.id === id;
-      } catch {
-        return false;
-      }
-    });
+  try {
+    const allDraftsStrings = await kv.lrange<string>(DRAFTS_KEY, 0, -1);
+    const draftToRemoveString = allDraftsStrings.find((s) =>
+      s.includes(`"id":"${id}"`)
+    );
 
     if (!draftToRemoveString) {
+      logger.warn(
+        { draftId: id },
+        "Attempted to delete a draft that was not found."
+      );
       return new NextResponse(JSON.stringify({ message: "Draft not found" }), {
         status: 404,
-        headers: { "Content-Type": "application/json" },
       });
     }
 
-    const removedCount = await redis.lRem(DRAFTS_KEY, 1, draftToRemoveString);
-
-    if (removedCount > 0) {
-      console.log(`DEBUG (API): Draft deleted successfully: ${id}`);
-      return new NextResponse(
-        JSON.stringify({ message: "Draft deleted successfully" }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
+    await kv.lrem(DRAFTS_KEY, 1, draftToRemoveString);
+    logger.info({ draftId: id }, "Draft deleted successfully from Upstash.");
     return new NextResponse(
-      JSON.stringify({ message: "Draft not found or already deleted" }),
-      { status: 404, headers: { "Content-Type": "application/json" } }
+      JSON.stringify({ message: "Draft deleted successfully" }),
+      { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to delete draft from Redis:", error);
+    logger.error(
+      { draftId: id, error },
+      "Failed to delete draft from Upstash."
+    );
     return new NextResponse(
       JSON.stringify({ message: "Internal Server Error" }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500 }
     );
   }
 }

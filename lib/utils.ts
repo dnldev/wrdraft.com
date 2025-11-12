@@ -1,3 +1,5 @@
+import { ChipProps } from "@heroui/react";
+
 import { RoleCategories } from "@/data/categoryData";
 import { TierListData } from "@/data/tierListData";
 
@@ -65,4 +67,26 @@ export function createTierMap(tierList: TierListData): Map<string, string> {
     }
   }
   return map;
+}
+
+/**
+ * Maps a lane archetype to a specific semantic color from the theme.
+ * @param {Archetype} archetype - The lane archetype.
+ * @returns {ChipProps["color"]} The corresponding color for a Chip component.
+ */
+export function getArchetypeColor(archetype: Archetype): ChipProps["color"] {
+  switch (archetype) {
+    case "Engage": {
+      return "danger";
+    }
+    case "Poke": {
+      return "primary";
+    }
+    case "Sustain": {
+      return "success";
+    }
+    default: {
+      return "default";
+    }
+  }
 }
