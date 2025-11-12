@@ -1,29 +1,24 @@
-import "dotenv/config";
-
 import dotenv from "dotenv";
-import { createClient } from "redis";
 
 import { champions as baseChampions } from "@/data/championData.js";
 import { dataManifest } from "@/data/data-manifest.js";
 import { matchupData } from "@/data/matchupData.js";
 import { logger } from "@/lib/logger";
+import { getKvClient } from "@/lib/upstash.js";
 
 dotenv.config({ path: ".env.development.local" });
 
+const KEY_PREFIX = "WR:";
+
+/**
+ * Seeds or updates the Upstash database with static game data.
+ */
 async function main() {
-  if (!process.env.REDIS_URL) {
-    logger.error("Missing Vercel Redis environment variable REDIS_URL.");
-    throw new Error("Missing Vercel Redis environment variable REDIS_URL.");
-  }
+  const kv = getKvClient();
+  await kv.ping();
+  logger.info("Successfully connected to Upstash Redis for seeding.");
 
-  const redis = createClient({ url: process.env.REDIS_URL });
-  await redis.connect();
-  logger.info("Successfully connected to Vercel Redis for seeding.");
-
-  await redis.flushAll();
-  logger.info("Cleared existing Redis data.");
-
-  const multi = redis.multi();
+  logger.info("Starting non-destructive seeding process...");
 
   const fullChampionsData = baseChampions.map((champ) => {
     const newMatchups = matchupData.find((m) => m.name === champ.name);
@@ -37,29 +32,36 @@ async function main() {
     };
   });
 
+  const pipeline = kv.pipeline();
+
   for (const champion of fullChampionsData) {
-    multi.set(`champion:${champion.id}`, JSON.stringify(champion));
+    pipeline.set(
+      `${KEY_PREFIX}champion:${champion.id}`,
+      JSON.stringify(champion)
+    );
   }
   logger.info("- Staging individual champion data...");
 
   const adcs = fullChampionsData.filter((c) => c.role.includes("ADC"));
   const supports = fullChampionsData.filter((c) => c.role.includes("Support"));
-  multi.set("champions:adc", JSON.stringify(adcs));
-  multi.set("champions:support", JSON.stringify(supports));
+  pipeline.set(`${KEY_PREFIX}champions:adc`, JSON.stringify(adcs));
+  pipeline.set(`${KEY_PREFIX}champions:support`, JSON.stringify(supports));
   logger.info("- Staging ADC and Support lists...");
 
   logger.info("\nStaging data from manifest...");
   for (const [key, data] of Object.entries(dataManifest)) {
-    multi.set(key, JSON.stringify(data));
-    logger.info({ key }, `- Staging data for key: ${key}`);
+    pipeline.set(`${KEY_PREFIX}${key}`, JSON.stringify(data));
+    logger.info({ key: `${KEY_PREFIX}${key}` }, `- Staging data for key`);
   }
 
-  await multi.exec();
+  await pipeline.exec();
 
-  await redis.disconnect();
-  logger.info("\n✅ Data seeding complete!");
+  logger.info("\n✅ Data seeding/update complete!");
 }
 
-main().catch(async (error) => {
+try {
+  await main();
+} catch (error) {
   logger.error(error, "❌ Error seeding data:");
-});
+  throw error;
+}
