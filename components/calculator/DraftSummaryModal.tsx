@@ -2,10 +2,12 @@
 
 import {
   Avatar,
+  Button,
   Chip,
   Modal,
   ModalBody,
   ModalContent,
+  ModalFooter,
   ModalHeader,
   Progress,
 } from "@heroui/react";
@@ -17,6 +19,7 @@ import { DraftSummary } from "@/hooks/useMatchupCalculator";
 interface DraftSummaryModalProps {
   readonly isOpen: boolean;
   readonly onClose: () => void;
+  readonly onOpenLogResult: () => void;
   readonly summary: DraftSummary | null;
   readonly championMap: Map<string, Champion>;
 }
@@ -27,20 +30,45 @@ const getScoreColor = (score: number) => {
   return "default";
 };
 
+const BreakdownRow: React.FC<{
+  readonly label: string;
+  readonly value: number;
+}> = ({ label, value }) => (
+  <div className="flex justify-between items-center p-2 bg-content2 rounded-md">
+    <span className="text-foreground/80">{label}</span>
+    <Chip size="sm" color={getScoreColor(value)}>
+      {value > 0 ? `+${value}` : value}
+    </Chip>
+  </div>
+);
+
 /**
- * A modal that displays a detailed breakdown and estimated win chance for the complete 2v2 lane matchup.
- * It appears automatically when all four champion selections are filled.
+ * A modal that displays a detailed breakdown and estimated win chance for the 2v2 lane matchup.
  */
 export function DraftSummaryModal({
   isOpen,
   onClose,
+  onOpenLogResult,
   summary,
   championMap,
 }: DraftSummaryModalProps) {
+  let yourSynergy = 0;
+  let enemySynergy = 0;
+  let matchups: DraftSummary["breakdown"] = [];
+
+  if (summary?.breakdown) {
+    yourSynergy =
+      summary.breakdown.find((b) => b.reason === "Your Team Synergy")?.value ??
+      0;
+    enemySynergy =
+      summary.breakdown.find((b) => b.reason === "Enemy Team Synergy")?.value ??
+      0;
+    matchups = summary.breakdown.filter((b) => b.reason.includes("vs"));
+  }
+
   if (!summary) return null;
 
-  const { overallScore, winChance, breakdown, selections } = summary;
-
+  const { overallScore, winChance, selections } = summary;
   const alliedAdc = championMap.get(selections.alliedAdc ?? "");
   const alliedSupport = championMap.get(selections.alliedSupport ?? "");
   const enemyAdc = championMap.get(selections.enemyAdc ?? "");
@@ -83,7 +111,6 @@ export function DraftSummaryModal({
                 </div>
               </div>
             </div>
-
             <div className="text-center space-y-2">
               <p className="text-sm uppercase font-bold text-primary">
                 Overall Lane Score
@@ -97,16 +124,13 @@ export function DraftSummaryModal({
                 {overallScore > 0 ? `+${overallScore}` : overallScore}
               </Chip>
             </div>
-
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
                 <p className="text-sm font-semibold text-white">
                   Estimated Win Chance
                 </p>
                 <p
-                  className={`text-xl font-bold ${
-                    winChance >= 50 ? "text-success" : "text-danger"
-                  }`}
+                  className={`text-xl font-bold ${winChance >= 50 ? "text-success" : "text-danger"}`}
                 >
                   {winChance}%
                 </p>
@@ -117,25 +141,41 @@ export function DraftSummaryModal({
                 size="md"
               />
             </div>
-
-            <div>
-              <p className="text-sm font-semibold text-white mb-2">Breakdown</p>
-              <div className="space-y-1 text-sm">
-                {breakdown.map((item) => (
-                  <div
-                    key={item.reason}
-                    className="flex justify-between items-center p-2 bg-content2 rounded-md"
-                  >
-                    <span className="text-foreground/80">{item.reason}</span>
-                    <Chip size="sm" color={getScoreColor(item.value)}>
-                      {item.value > 0 ? `+${item.value}` : item.value}
-                    </Chip>
-                  </div>
-                ))}
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-semibold text-white mb-2">
+                  Synergy Analysis
+                </p>
+                <div className="space-y-1 text-sm">
+                  <BreakdownRow label="Your Team Synergy" value={yourSynergy} />
+                  <BreakdownRow
+                    label="Enemy Team Synergy"
+                    value={enemySynergy}
+                  />
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white mb-2">
+                  Lane Matchups
+                </p>
+                <div className="space-y-1 text-sm">
+                  {matchups.map((item) => (
+                    <BreakdownRow
+                      key={item.reason}
+                      label={item.reason}
+                      value={item.value}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>
         </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onPress={onOpenLogResult} fullWidth>
+            Log Game Result
+          </Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

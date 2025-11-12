@@ -15,15 +15,23 @@ import { useMatchupCalculator } from "./useMatchupCalculator";
 
 // Setup a more comprehensive mock pool for varied testing
 const mockAdcPool: Champion[] = [
-  { id: "lucian", name: "Lucian", comfort: "A" } as Champion,
-  { id: "jinx", name: "Jinx", comfort: null } as Champion,
-  { id: "ashe", name: "Ashe", comfort: null } as Champion,
+  { id: "lucian", name: "Lucian", comfort: "A", role: "ADC" } as Champion,
+  { id: "jinx", name: "Jinx", comfort: null, role: "ADC" } as Champion,
+  { id: "ashe", name: "Ashe", comfort: null, role: "ADC" } as Champion,
+  { id: "draven", name: "Draven", comfort: null, role: "ADC" } as Champion,
 ];
 
 const mockSupportPool: Champion[] = [
-  { id: "nami", name: "Nami", comfort: null } as Champion,
-  { id: "braum", name: "Braum", comfort: "A" } as Champion,
-  { id: "morgana", name: "Morgana", comfort: null } as Champion,
+  { id: "nami", name: "Nami", comfort: null, role: "Support" } as Champion,
+  { id: "braum", name: "Braum", comfort: "A", role: "Support" } as Champion,
+  {
+    id: "morgana",
+    name: "Morgana",
+    comfort: null,
+    role: "Support",
+  } as Champion,
+  { id: "milio", name: "Milio", comfort: null, role: "Support" } as Champion,
+  { id: "leona", name: "Leona", comfort: null, role: "Support" } as Champion,
 ];
 
 const mockAllChampions = [...mockAdcPool, ...mockSupportPool];
@@ -68,16 +76,7 @@ describe("useMatchupCalculator", () => {
     });
 
     it("should calculate a summary when all champions are selected", () => {
-      const { result } = renderHook(() =>
-        useMatchupCalculator({
-          ...mockProps,
-          allChampions: [
-            ...mockAllChampions,
-            { id: "jinx", name: "Jinx" } as Champion,
-            { id: "milio", name: "Milio" } as Champion, // Add missing champs
-          ],
-        })
-      );
+      const { result } = renderHook(() => useMatchupCalculator(mockProps));
       act(() => {
         // This matchup (Lucian/Braum vs Jinx/Milio) has a clearly positive score
         result.current.handleSelectionChange("alliedAdc", "Lucian");
@@ -90,27 +89,19 @@ describe("useMatchupCalculator", () => {
       expect(result.current.draftSummary?.winChance).toBeGreaterThan(0);
     });
 
-    it("should be null if the calculated pair has a negative score", () => {
-      const { result } = renderHook(() =>
-        useMatchupCalculator({
-          ...mockProps,
-          allChampions: [
-            ...mockAllChampions,
-            { id: "draven", name: "Draven", comfort: null } as Champion,
-            { id: "leona", name: "Leona", comfort: null } as Champion,
-          ],
-        })
-      );
+    it("should calculate a negative score for a bad matchup", () => {
+      const { result } = renderHook(() => useMatchupCalculator(mockProps));
       act(() => {
-        // Use champions with no comfort picks to ensure score is negative
         result.current.handleSelectionChange("alliedAdc", "Jinx");
         result.current.handleSelectionChange("alliedSupport", "Nami");
         result.current.handleSelectionChange("enemyAdc", "Draven");
         result.current.handleSelectionChange("enemySupport", "Leona");
       });
-      // Jinx/Nami has a very bad matchup vs Draven/Leona.
-      // Synergy(+1) + JinxCounters(-3,-1) + NamiCounters(+1,-3) = -5
-      expect(result.current.draftSummary).toBeNull();
+
+      // Assert that a summary object is returned, not null.
+      expect(result.current.draftSummary).not.toBeNull();
+      // Assert that the calculated score is negative, as expected.
+      expect(result.current.draftSummary?.overallScore).toBeLessThan(0);
     });
   });
 });

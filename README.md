@@ -99,7 +99,8 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the r
 
 ### Available Scripts
 
-- `npm run dev`: Starts the development server.
+- `npm run dev`: Starts the development server piping into pino-pretty.
+- `npm run dev:windows`: Starts a dev server without non unix problematic piping into pino.
 - `npm run build`: Builds the application for production.
 - `npm run start`: Starts the production server.
 - `npm run lint`: Lints the codebase for errors.
