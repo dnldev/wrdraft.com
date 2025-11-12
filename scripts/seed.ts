@@ -1,3 +1,4 @@
+// This MUST be the first line to ensure env vars are loaded before anything else.
 import dotenv from "dotenv";
 
 import { champions as baseChampions } from "@/data/championData.js";
@@ -12,6 +13,8 @@ const KEY_PREFIX = "WR:";
 
 /**
  * Seeds or updates the Upstash database with static game data.
+ * This is a non-destructive operation; it will overwrite existing static data keys
+ * but will not delete any other data (like user-generated match history).
  */
 async function main() {
   const kv = getKvClient();

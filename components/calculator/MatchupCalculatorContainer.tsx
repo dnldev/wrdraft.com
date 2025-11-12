@@ -39,8 +39,7 @@ const UNLOGGED_DRAFT_KEY = "wrdraft:unloggedDraft";
 
 /**
  * A container component that decides which view to render based on whether an
- * un-logged draft is found in local storage. This pattern keeps the main
- * calculator component clean and focused on a single responsibility.
+ * un-logged draft is found in local storage.
  */
 export function MatchupCalculatorContainer(
   props: MatchupCalculatorContainerProps
@@ -51,24 +50,17 @@ export function MatchupCalculatorContainer(
   );
   const [isClient, setIsClient] = useState(false);
 
-  /**
-   * This effect runs once on the client after the component mounts.
-   * It sets a flag to indicate that we are now client-side, which allows us
-   * to safely access localStorage without causing a hydration mismatch.
-   */
   useEffect(() => {
-    // This is a necessary one-time effect to synchronize with a client-side-only
-    // data source (localStorage) and avoid hydration errors. The linter rule
-    // is correctly suppressed as this is a valid exception.
+    // This effect runs once on the client to safely access localStorage and
+    // avoid hydration errors. The linter rule is suppressed because this
+    // is a valid, intentional use case for a one-time client-side sync.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     try {
       const savedDraftJson = localStorage.getItem(UNLOGGED_DRAFT_KEY);
       if (savedDraftJson) {
         const savedDraft = JSON.parse(savedDraftJson) as UnloggedDraft;
-
         setUnloggedDraft(savedDraft);
-
         setViewMode("logPrevious");
         logger.debug(
           "MatchupCalculatorContainer",
@@ -81,7 +73,7 @@ export function MatchupCalculatorContainer(
         "Failed to parse draft from localStorage",
         error
       );
-      localStorage.removeItem(UNLOGGED_DRAFT_KEY); // Clear corrupted data
+      localStorage.removeItem(UNLOGGED_DRAFT_KEY);
     }
   }, []);
 
@@ -114,8 +106,6 @@ export function MatchupCalculatorContainer(
     onSaveSuccess: clearUnloggedDraft,
   });
 
-  // During the server render and initial client render, render nothing.
-  // This guarantees the server and client HTML match, preventing hydration errors.
   if (!isClient) {
     return null;
   }

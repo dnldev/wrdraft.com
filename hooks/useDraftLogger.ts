@@ -1,5 +1,4 @@
 "use client";
-
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,9 +9,6 @@ import { KDA, LaneOutcome, MatchOutcome, SavedDraft } from "@/types/draft";
 import { logger } from "../lib/development-logger";
 import { DraftSummary } from "./useMatchupCalculator";
 
-/**
- * The shape of the state object for the result logging form.
- */
 export interface LogResultState {
   notes: string;
   matchOutcome: MatchOutcome;
@@ -22,10 +18,6 @@ export interface LogResultState {
   kdaSupport: KDA;
   matchupFeel: number;
 }
-
-/**
- * The initial state for the draft logging form.
- */
 const initialResultState: LogResultState = {
   notes: "",
   matchOutcome: "win",
@@ -35,26 +27,13 @@ const initialResultState: LogResultState = {
   kdaSupport: { k: 0, d: 0, a: 0 },
   matchupFeel: 3,
 };
-
-/**
- * The current game patch version.
- */
-const PATCH_VERSION = "6.3b";
-
+const PATCH_VERSION = "6.3c";
 interface UseDraftLoggerProps {
   readonly draftSummary: DraftSummary | null;
   readonly yourBans: readonly string[];
   readonly enemyBans: readonly string[];
   readonly onSaveSuccess?: () => void;
 }
-
-/**
- * Manages the state and logic for the game result logging modal.
- * This includes handling the form state, saving the draft to the API,
- * and refreshing the page data on success.
- * @param {UseDraftLoggerProps} props - The current draft data needed to save the result.
- * @returns An object containing state and handlers for the logging UI.
- */
 export function useDraftLogger({
   draftSummary,
   yourBans,

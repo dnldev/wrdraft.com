@@ -2,6 +2,7 @@ import { flatMap } from "lodash-es";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion, ComfortTier } from "@/data/championData";
+import { DraftSummary } from "@/hooks/useMatchupCalculator";
 import { Selections } from "@/types/draft";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
@@ -35,9 +36,7 @@ const comfortScores: Record<NonNullable<ComfortTier>, number> = {
 };
 
 function getComfortScore(champion: Champion): BreakdownItem | null {
-  if (!champion.comfort) {
-    return null;
-  }
+  if (!champion.comfort) return null;
   const score = comfortScores[champion.comfort];
   return score > 0
     ? { value: score, reason: `Comfort Pick (${champion.comfort})` }
@@ -52,17 +51,15 @@ export function getLaneArchetype(
   const supportRole = categories.find((r) => r.name === "Support");
   if (supportName) {
     for (const category of supportRole?.categories || []) {
-      if (category.champions.includes(supportName)) {
+      if (category.champions.includes(supportName))
         return archetypeMap[category.name];
-      }
     }
   }
   const adcRole = categories.find((r) => r.name === "ADC");
   if (adcName) {
     for (const category of adcRole?.categories || []) {
-      if (category.champions.includes(adcName)) {
+      if (category.champions.includes(adcName))
         return archetypeMap[category.name];
-      }
     }
   }
   return "Unknown";
@@ -82,25 +79,17 @@ function getArchetypeScore(
     Engage: "Sustain",
     Sustain: "Poke",
   };
-
-  if (advantages[allied] === enemy) {
+  if (advantages[allied] === enemy)
     return {
       value: archetypeScoreValue,
       reason: `Archetype Advantage (${allied} > ${enemy})`,
     };
-  }
   return {
     value: -archetypeScoreValue,
     reason: `Archetype Disadvantage (${allied} < ${enemy})`,
   };
 }
 
-/**
- * Calculates the synergy score for a given ADC/Support pair.
- * This will always return a breakdown item, even for a score of 0,
- * to ensure the reason is consistently present in the final analysis.
- * @returns {BreakdownItem | null} The breakdown item or null if inputs are missing.
- */
 function getSynergyScore(
   adc: string | null,
   support: string | null,
@@ -108,15 +97,10 @@ function getSynergyScore(
 ): BreakdownItem | null {
   if (!adc || !support) return null;
   const score = synergyMatrix[adc]?.[support] ?? 0;
+  if (score === 0) return null;
   return { value: score, reason: `Synergy with ${support}` };
 }
 
-/**
- * Calculates the counter score between two champions.
- * This will always return a breakdown item, even for a score of 0,
- * to ensure the reason is consistently present in the final analysis.
- * @returns {BreakdownItem | null} The breakdown item or null if inputs are missing.
- */
 function getCounterScore(
   championName: string,
   opponentName: string | null,
@@ -124,12 +108,10 @@ function getCounterScore(
 ): BreakdownItem | null {
   if (!opponentName) return null;
   const score = counterMatrix[championName]?.[opponentName] ?? 0;
+  if (score === 0) return null;
   return { value: score, reason: `${championName} vs ${opponentName}` };
 }
 
-/**
- * Analyzes a single ADC/Support pair and returns a full breakdown of their score.
- */
 export function analyzePair(context: {
   readonly adc: Champion;
   readonly support: Champion;
@@ -138,7 +120,7 @@ export function analyzePair(context: {
   readonly counterMatrix: CounterMatrix;
   readonly categories: readonly RoleCategories[];
   readonly enemyLaneArchetype: Archetype;
-}): PairRecommendation {
+}): PairRecommendation | null {
   const {
     adc,
     support,
@@ -148,13 +130,11 @@ export function analyzePair(context: {
     categories,
     enemyLaneArchetype,
   } = context;
-
   const prospectiveArchetype = getLaneArchetype(
     adc.name,
     support.name,
     categories
   );
-
   const breakdown = [
     getComfortScore(adc),
     getComfortScore(support),
@@ -166,8 +146,8 @@ export function analyzePair(context: {
     getCounterScore(support.name, selections.enemySupport, counterMatrix),
   ].filter((item): item is BreakdownItem => item !== null);
 
+  if (breakdown.length === 0) return null;
   const totalScore = breakdown.reduce((sum, item) => sum + item.value, 0);
-
   return { adc, support, score: totalScore, breakdown };
 }
 
@@ -196,13 +176,11 @@ export function calculatePairRecommendations(context: {
     categories,
     championMap,
   } = context;
-
   const enemyLaneArchetype = getLaneArchetype(
     selections.enemyAdc,
     selections.enemySupport,
     categories
   );
-
   const adcsToIterate = selections.alliedAdc
     ? [championMap.get(selections.alliedAdc)].filter(
         (c): c is Champion => c !== undefined
@@ -213,7 +191,6 @@ export function calculatePairRecommendations(context: {
         (c): c is Champion => c !== undefined
       )
     : supports;
-
   const allPossiblePairs = getAllPairs(adcsToIterate, supportsToIterate);
 
   const recommendations = allPossiblePairs
@@ -228,14 +205,88 @@ export function calculatePairRecommendations(context: {
         enemyLaneArchetype,
       })
     )
-    .filter((pair) => pair.score > 0);
+    .filter(
+      (pair): pair is PairRecommendation => pair !== null && pair.score > 0
+    );
 
   return recommendations.toSorted((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
+    if (b.score !== a.score) return b.score - a.score;
     const aComfort = (a.adc.comfort ? 1 : 0) + (a.support.comfort ? 1 : 0);
     const bComfort = (b.adc.comfort ? 1 : 0) + (b.support.comfort ? 1 : 0);
     return bComfort - aComfort;
   });
+}
+
+export function createDraftSummary({
+  selections,
+  championMap,
+  synergyMatrix,
+  counterMatrix,
+  categories,
+}: {
+  selections: Selections;
+  championMap: Map<string, Champion>;
+  synergyMatrix: SynergyMatrix;
+  counterMatrix: CounterMatrix;
+  categories: RoleCategories[];
+}): DraftSummary | null {
+  const { alliedAdc, alliedSupport, enemyAdc, enemySupport } = selections;
+  if (!alliedAdc || !alliedSupport || !enemyAdc || !enemySupport) return null;
+
+  const alliedAdcObj = championMap.get(alliedAdc);
+  const alliedSupportObj = championMap.get(alliedSupport);
+  if (!alliedAdcObj || !alliedSupportObj) return null;
+
+  const yourLaneArchetype = getLaneArchetype(
+    alliedAdc,
+    alliedSupport,
+    categories
+  );
+  const enemyLaneArchetype = getLaneArchetype(
+    enemyAdc,
+    enemySupport,
+    categories
+  );
+
+  const analysis = analyzePair({
+    adc: alliedAdcObj,
+    support: alliedSupportObj,
+    selections,
+    synergyMatrix,
+    counterMatrix,
+    categories,
+    enemyLaneArchetype,
+  });
+  if (!analysis) return null;
+
+  const yourSynergy =
+    synergyMatrix[analysis.adc.name]?.[analysis.support.name] ?? 0;
+  const enemySynergy = synergyMatrix[enemyAdc]?.[enemySupport] ?? 0;
+
+  const comfortItems: BreakdownItem[] = [];
+  const archetypeItems: BreakdownItem[] = [];
+  const vsItems: BreakdownItem[] = [];
+  for (const b of analysis.breakdown) {
+    if (b.reason.includes("Comfort")) comfortItems.push(b);
+    else if (b.reason.includes("Archetype")) archetypeItems.push(b);
+    else if (b.reason.includes("vs")) vsItems.push(b);
+  }
+
+  const breakdown: BreakdownItem[] = [
+    ...comfortItems,
+    { reason: "Your Team Synergy", value: yourSynergy },
+    { reason: "Enemy Team Synergy", value: -enemySynergy },
+    ...archetypeItems,
+    ...vsItems,
+  ];
+  const overallScore = breakdown.reduce((acc, item) => acc + item.value, 0);
+  const winChance = Math.max(10, Math.min(90, 50 + overallScore * 2));
+
+  return {
+    overallScore,
+    winChance,
+    breakdown,
+    selections,
+    archetypes: { your: yourLaneArchetype, enemy: enemyLaneArchetype },
+  };
 }
