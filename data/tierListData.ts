@@ -1,13 +1,45 @@
+/**
+ * @file This file contains the definitive tier list data for various game patches.
+ * The data is structured by role (ADC, Support) and then by tier (S+, S, A, B, C).
+ * This information is used to populate the "Tier List" view and is a factor in the
+ * Matchup Calculator's recommendations.
+ */
+
+/**
+ * Defines the structure for a tier list, containing role-specific tiers.
+ */
 export interface TierListData {
-  adc: Record<string, string[]>;
-  support: Record<string, string[]>;
+  readonly adc: Record<string, string[]>;
+  readonly support: Record<string, string[]>;
 }
 
-export const tierListData: TierListData = {
+/**
+ * Tier list data for Patch 6.3b.
+ */
+export const tierList63b: TierListData = {
+  adc: {
+    "S+": ["Lucian", "Varus"],
+    S: ["Jinx", "Xayah", "Jhin", "Miss Fortune", "Caitlyn"],
+    A: ["Kai'Sa", "Ashe", "Zeri", "Corki", "Draven", "Ezreal"],
+    B: ["Samira", "Tristana", "Vayne"],
+    C: ["Sivir"],
+  },
+  support: {
+    "S+": ["Braum", "Nami"],
+    S: ["Milio", "Leona", "Bard", "Zilean"],
+    A: ["Thresh", "Morgana", "Lulu", "Karma"],
+    B: ["Janna", "Lux", "Maokai", "Blitzcrank", "Nautilus"],
+    C: ["Swain", "Brand", "Lux"],
+  },
+};
+
+/**
+ * Tier list data for Patch 6.3c.
+ */
+export const tierList63c: TierListData = {
   adc: {
     "S+": ["Lucian"],
-    S: ["Xayah", "Corki", "Miss Fortune", "Jhin"],
-    A: [
+    S: [
       "Jinx",
       "Kai'Sa",
       "Vayne",
@@ -18,36 +50,15 @@ export const tierListData: TierListData = {
       "Ezreal",
       "Ashe",
     ],
-    B: ["Twitch", "Tristana", "Draven", "Zeri"],
-    C: ["Kalista", "Nilah"],
+    A: ["Twitch", "Tristana", "Draven", "Zeri"],
+    B: ["Kalista", "Nilah"],
+    C: [],
   },
   support: {
-    "S+": ["Braum", "Nami", "Zilean"],
-    S: [
-      "Karma",
-      "Lulu",
-      "Maokai",
-      "Nautilus",
-      "Rakan",
-      "Pyke",
-      "Bard",
-      "Milio",
-      "Senna",
-      "Alistar",
-      "Leona",
-    ],
-    A: [
-      "Yuumi",
-      "Zyra",
-      "Sona",
-      "Janna",
-      "Seraphine",
-      "Soraka",
-      "Ornn",
-      "Galio",
-      "Blitzcrank",
-    ],
-    B: ["Morgana", "Singed", "Amumu", "Nunu & Willump", "Jarvan IV", "Thresh"],
-    C: ["Swain", "Brand", "Lux"],
+    "S+": ["Thresh", "Nami"],
+    S: ["Rakan", "Lulu", "Karma", "Pyke", "Leona"],
+    A: ["Braum", "Janna", "Milio", "Nautilus", "Alistar", "Seraphine"],
+    B: ["Lux", "Morgana", "Senna", "Sona", "Soraka", "Yuumi"],
+    C: ["Zyra", "Brand"],
   },
 };
