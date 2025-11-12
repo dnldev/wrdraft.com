@@ -70,7 +70,7 @@ export function useDraftLogger({
   /**
    * Constructs the SavedDraft object, sends it to the API, and refreshes the UI on success.
    */
-  const handleSave = async () => {
+  const handleSaveDraft = async () => {
     if (!draftSummary) {
       logger.error(
         "useDraftLogger",
@@ -153,6 +153,6 @@ export function useDraftLogger({
       key: K,
       value: LogResultState[K]
     ) => setLogResultState((prev) => ({ ...prev, [key]: value })),
-    handleSaveDraft: handleSave,
+    handleSaveDraft,
   };
 }
