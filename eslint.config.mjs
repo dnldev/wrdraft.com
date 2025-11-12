@@ -48,6 +48,13 @@ const eslintConfig = defineConfig([
     },
   },
 
+  // Custom project-specific rules
+  {
+    rules: {
+      "no-console": "error", // Disallow the use of console
+    },
+  },
+
   // Prettier config must be last to override other formatting rules
   prettierConfig,
 
@@ -59,7 +66,6 @@ const eslintConfig = defineConfig([
       "out/",
       "build/",
       "coverage/", // Ignore test coverage reports
-      "scripts/", // Ignore utility scripts
       "next-env.d.ts",
       "eslint.config.mjs",
       "postcss.config.mjs",

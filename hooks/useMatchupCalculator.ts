@@ -1,5 +1,7 @@
+"use client";
+
 import { isEqual } from "lodash-es";
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
@@ -11,6 +13,7 @@ import {
   PairRecommendation,
 } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
+import { logger } from "@/lib/development-logger";
 import { createTierMap } from "@/lib/utils";
 
 export interface Selections {
@@ -68,6 +71,10 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
   const deferredBans = useDeferredValue(bannedChampions);
   const isSelectionEmpty = Object.values(selections).every((s) => s === null);
 
+  useEffect(() => {
+    logger.debug("useMatchupCalculator", "Selections changed", selections);
+  }, [selections]);
+
   const championMap = useMemo(() => {
     const map = new Map<string, Champion>();
     for (const champ of allChampions) map.set(champ.name, champ);
@@ -100,6 +107,11 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
   );
 
   const results: PairRecommendation[] | null = useMemo(() => {
+    logger.debug(
+      "useMatchupCalculator",
+      "Recalculating recommendations...",
+      deferredSelections
+    );
     if (Object.values(deferredSelections).every((s) => s === null)) {
       return null;
     }
@@ -124,6 +136,11 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
   ]);
 
   const draftSummary: DraftSummary | null = useMemo(() => {
+    logger.debug(
+      "useMatchupCalculator",
+      "Recalculating draft summary...",
+      deferredSelections
+    );
     const { alliedAdc, alliedSupport, enemyAdc, enemySupport } =
       deferredSelections;
     if (!alliedAdc || !alliedSupport || !enemyAdc || !enemySupport) {
