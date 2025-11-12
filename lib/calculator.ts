@@ -1,3 +1,4 @@
+// lib/calculator.ts
 import { flatMap } from "lodash-es";
 
 import { RoleCategories } from "@/data/categoryData";
@@ -6,6 +7,7 @@ import { DraftSummary } from "@/hooks/useMatchupCalculator";
 import { Selections } from "@/types/draft";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
+import { Archetype, getLaneArchetype } from "./utils";
 
 export interface PairRecommendation {
   readonly adc: Champion;
@@ -14,19 +16,7 @@ export interface PairRecommendation {
   readonly breakdown: BreakdownItem[];
 }
 
-export type Archetype = "Poke" | "Engage" | "Sustain" | "Unknown";
 export type BreakdownItem = { readonly reason: string; readonly value: number };
-
-const archetypeMap: Record<string, Archetype> = {
-  Hypercarry: "Sustain",
-  "Lane Bully": "Engage",
-  "Caster/Utility": "Poke",
-  "Mobile/Skirmisher": "Engage",
-  Enchanter: "Sustain",
-  Engage: "Engage",
-  "Poke/Mage": "Poke",
-  Catcher: "Engage",
-};
 
 const comfortScores: Record<NonNullable<ComfortTier>, number> = {
   "S+": 3,
@@ -35,13 +25,26 @@ const comfortScores: Record<NonNullable<ComfortTier>, number> = {
   B: 0,
 };
 
+/**
+ * Defines the multipliers for different scoring factors.
+ * The values are based on game theory:
+ * - COUNTER: Weighted most heavily as direct champion interactions are highly impactful.
+ * - ARCHETYPE: Weighted heavily as the overall lane strategy is a major predictor of success.
+ * - COMFORT/SYNERGY: Weighted at a baseline of 1.0 as important but secondary factors.
+ */
 const WEIGHTS = {
   COMFORT: 1,
   ARCHETYPE: 1.2,
   SYNERGY: 1,
-  COUNTER: 1.5, // Counters are 50% more impactful
+  COUNTER: 1.5,
 };
 
+/**
+ * Defines the bounds for the win chance calculation.
+ * The range is clamped between 10% and 90% to avoid presenting unrealistic
+ * absolutes (0% or 100%). In a game of skill, no matchup is ever truly unwinnable
+ * or guaranteed, and these bounds reflect that uncertainty.
+ */
 const WIN_CHANCE_CONFIG = {
   MIN: 10,
   AVG: 50,
@@ -54,28 +57,6 @@ function getComfortScore(champion: Champion): BreakdownItem | null {
   return score > 0
     ? { value: score, reason: `Comfort Pick (${champion.comfort})` }
     : null;
-}
-
-export function getLaneArchetype(
-  adcName: string | null,
-  supportName: string | null,
-  categories: readonly RoleCategories[]
-): Archetype {
-  const supportRole = categories.find((r) => r.name === "Support");
-  if (supportName) {
-    for (const category of supportRole?.categories || []) {
-      if (category.champions.includes(supportName))
-        return archetypeMap[category.name];
-    }
-  }
-  const adcRole = categories.find((r) => r.name === "ADC");
-  if (adcName) {
-    for (const category of adcRole?.categories || []) {
-      if (category.champions.includes(adcName))
-        return archetypeMap[category.name];
-    }
-  }
-  return "Unknown";
 }
 
 function getArchetypeScore(
@@ -103,6 +84,14 @@ function getArchetypeScore(
   };
 }
 
+/**
+ * Calculates the synergy score for a champion pair.
+ * @param adc - The name of the ADC.
+ * @param support - The name of the Support.
+ * @param synergyMatrix - The matrix containing synergy data.
+ * @param {boolean} [isEnemy=false] - If true, this function returns a reason formatted for the enemy team and negates the score.
+ * @returns {BreakdownItem | null} A breakdown item or null if the score is 0.
+ */
 function getSynergyScore(
   adc: string | null,
   support: string | null,
@@ -111,8 +100,9 @@ function getSynergyScore(
 ): BreakdownItem | null {
   if (!adc || !support) return null;
   const score = synergyMatrix[adc]?.[support] ?? 0;
-  const reason = isEnemy ? "Enemy Team Synergy" : `Synergy with ${support}`;
-  return { value: score, reason };
+  if (score === 0) return null;
+  const reason = isEnemy ? "Enemy Team Synergy" : "Your Team Synergy";
+  return { value: isEnemy ? -score : score, reason };
 }
 
 function getCounterScore(
@@ -127,9 +117,9 @@ function getCounterScore(
 }
 
 /**
- * Analyzes a single champion pair to determine its unweighted and weighted scores.
+ * Analyzes a single champion pair to determine its weighted score and breakdown.
  * @param context - The context required for the analysis.
- * @returns An object containing the pair, their scores, and the breakdown.
+ * @returns An object containing the pair, their score, and the breakdown.
  */
 function analyzePair(context: {
   readonly adc: Champion;
@@ -142,7 +132,6 @@ function analyzePair(context: {
 }): {
   adc: Champion;
   support: Champion;
-  unweightedScore: number;
   weightedScore: number;
   breakdown: BreakdownItem[];
 } | null {
@@ -173,23 +162,24 @@ function analyzePair(context: {
 
   if (breakdown.length === 0) return null;
 
-  let unweightedScore = 0;
   let weightedScore = 0;
   for (const item of breakdown) {
-    unweightedScore += item.value;
-
     let weight = 1;
-    if (item.reason.includes("Comfort")) weight = WEIGHTS.COMFORT;
-    if (item.reason.includes("Archetype")) weight = WEIGHTS.ARCHETYPE;
-    if (item.reason.includes("Synergy")) weight = WEIGHTS.SYNERGY;
-    if (item.reason.includes("vs")) weight = WEIGHTS.COUNTER;
+    if (item.reason.includes("Comfort")) {
+      weight = WEIGHTS.COMFORT;
+    } else if (item.reason.includes("Archetype")) {
+      weight = WEIGHTS.ARCHETYPE;
+    } else if (item.reason.includes("Synergy")) {
+      weight = WEIGHTS.SYNERGY;
+    } else if (item.reason.includes("vs")) {
+      weight = WEIGHTS.COUNTER;
+    }
     weightedScore += item.value * weight;
   }
 
   return {
     adc,
     support,
-    unweightedScore,
     weightedScore: Math.round(weightedScore),
     breakdown,
   };
@@ -352,21 +342,20 @@ export function createDraftSummary({
   });
   if (!currentAnalysis) return null;
 
-  const yourSynergy =
-    getSynergyScore(alliedAdc, alliedSupport, synergyMatrix) ??
-    ({ value: 0 } as BreakdownItem);
-  const enemySynergy =
-    getSynergyScore(enemyAdc, enemySupport, synergyMatrix, true) ??
-    ({ value: 0 } as BreakdownItem);
+  const enemySynergy = getSynergyScore(
+    enemyAdc,
+    enemySupport,
+    synergyMatrix,
+    true
+  );
 
-  const breakdown = [
-    ...currentAnalysis.breakdown.filter(
-      (b) => !b.reason.includes("Synergy with")
-    ),
-    yourSynergy,
-    { ...enemySynergy, value: -enemySynergy.value },
-  ];
-  const overallScore = currentAnalysis.weightedScore;
+  const breakdown = [...currentAnalysis.breakdown];
+  if (enemySynergy) {
+    breakdown.push(enemySynergy);
+  }
+
+  const overallScore =
+    currentAnalysis.weightedScore + (enemySynergy?.value ?? 0);
 
   /**
    * Calculates a normalized win chance. It finds the scores for all possible

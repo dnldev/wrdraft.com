@@ -37,14 +37,6 @@ async function main() {
 
   const pipeline = kv.pipeline();
 
-  for (const champion of fullChampionsData) {
-    pipeline.set(
-      `${KEY_PREFIX}champion:${champion.id}`,
-      JSON.stringify(champion)
-    );
-  }
-  logger.info("- Staging individual champion data...");
-
   const adcs = fullChampionsData.filter((c) => c.role.includes("ADC"));
   const supports = fullChampionsData.filter((c) => c.role.includes("Support"));
   pipeline.set(`${KEY_PREFIX}champions:adc`, JSON.stringify(adcs));

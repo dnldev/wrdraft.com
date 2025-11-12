@@ -1,13 +1,13 @@
 "use client";
-
 import { nanoid } from "nanoid";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { logger } from "@/lib/development-logger";
+import { CURRENT_PATCH } from "@/lib/constants";
 import { saveDraft } from "@/lib/draft-api";
 import { KDA, LaneOutcome, MatchOutcome, SavedDraft } from "@/types/draft";
 
+import { logger } from "../lib/development-logger";
 import { DraftSummary } from "./useMatchupCalculator";
 
 export interface LogResultState {
@@ -28,7 +28,7 @@ const initialResultState: LogResultState = {
   kdaSupport: { k: 0, d: 0, a: 0 },
   matchupFeel: 3,
 };
-const PATCH_VERSION = "6.3c";
+
 interface UseDraftLoggerProps {
   readonly draftSummary: DraftSummary | null;
   readonly yourBans: readonly string[];
@@ -77,7 +77,7 @@ export function useDraftLogger({
     const draftToSave: SavedDraft = {
       id: nanoid(),
       timestamp: Date.now(),
-      patch: PATCH_VERSION,
+      patch: CURRENT_PATCH,
       bans: {
         your: yourBans.filter(Boolean),
         enemy: enemyBans.filter(Boolean),

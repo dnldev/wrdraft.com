@@ -7,23 +7,11 @@ import { SavedDraft } from "@/types/draft";
 const DRAFTS_KEY = "WR:drafts:history";
 
 /**
- * Handles POST requests to save a completed draft analysis.
- * The draft data is pushed to a Redis list for historical storage.
- * @param {Request} request - The incoming HTTP request.
- * @returns {Promise<NextResponse>} The response to the client.
+ * Validates the structure and presence of required fields in the draft data.
+ * @param {Partial<SavedDraft>} data - The draft data to validate.
+ * @returns {boolean} True if the draft data is valid, false otherwise.
  */
-export async function POST(request: Request): Promise<NextResponse> {
-  const kv = getKvClient();
-  let draftData: SavedDraft;
-
-  try {
-    draftData = (await request.json()) as SavedDraft;
-    logger.info({ draftId: draftData.id }, "Received request to save draft.");
-  } catch (error) {
-    logger.error(error, "Failed to parse request body as JSON.");
-    return new NextResponse("Invalid JSON body", { status: 400 });
-  }
-
+function isDraftDataValid(data: Partial<SavedDraft>): data is SavedDraft {
   const {
     id,
     timestamp,
@@ -34,24 +22,48 @@ export async function POST(request: Request): Promise<NextResponse> {
     archetypes,
     matchOutcome,
     matchupFeel,
-  } = draftData;
+  } = data;
 
-  if (
-    !id ||
-    !timestamp ||
-    !patch ||
-    !picks ||
-    !result ||
-    !bans ||
-    !archetypes ||
-    !matchOutcome ||
-    matchupFeel === undefined ||
-    !picks.alliedAdc ||
-    !picks.alliedSupport ||
-    !picks.enemyAdc ||
-    !picks.enemySupport
-  ) {
-    logger.warn({ draftId: id }, "Save draft request failed validation.");
+  return Boolean(
+    id &&
+      timestamp &&
+      patch &&
+      picks &&
+      result &&
+      bans &&
+      archetypes &&
+      matchOutcome &&
+      matchupFeel !== undefined &&
+      picks.alliedAdc &&
+      picks.alliedSupport &&
+      picks.enemyAdc &&
+      picks.enemySupport
+  );
+}
+
+/**
+ * Handles POST requests to save a completed draft analysis.
+ * The draft data is pushed to a Redis list for historical storage.
+ * @param {Request} request - The incoming HTTP request.
+ * @returns {Promise<NextResponse>} The response to the client.
+ */
+export async function POST(request: Request): Promise<NextResponse> {
+  const kv = getKvClient();
+  let draftData: Partial<SavedDraft>;
+
+  try {
+    draftData = (await request.json()) as Partial<SavedDraft>;
+    logger.info({ draftId: draftData.id }, "Received request to save draft.");
+  } catch (error) {
+    logger.error(error, "Failed to parse request body as JSON.");
+    return new NextResponse("Invalid JSON body", { status: 400 });
+  }
+
+  if (!isDraftDataValid(draftData)) {
+    logger.warn(
+      { draftId: draftData.id },
+      "Save draft request failed validation."
+    );
     return new NextResponse(
       JSON.stringify({ message: "Missing required fields in draft data" }),
       { status: 400, headers: { "Content-Type": "application/json" } }
@@ -60,16 +72,22 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     await kv.lpush(DRAFTS_KEY, JSON.stringify(draftData));
-    logger.info({ draftId: id }, "Draft saved successfully to Upstash.");
+    logger.info(
+      { draftId: draftData.id },
+      "Draft saved successfully to Upstash."
+    );
     return new NextResponse(
       JSON.stringify({
         message: "Draft saved successfully",
-        draftId: id,
+        draftId: draftData.id,
       }),
       { status: 201, headers: { "Content-Type": "application/json" } }
     );
   } catch (error) {
-    logger.error({ draftId: id, error }, "Failed to save draft to Upstash.");
+    logger.error(
+      { draftId: draftData.id, error },
+      "Failed to save draft to Upstash."
+    );
     return new NextResponse(
       JSON.stringify({ message: "Internal Server Error" }),
       { status: 500, headers: { "Content-Type": "application/json" } }

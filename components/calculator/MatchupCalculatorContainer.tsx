@@ -51,9 +51,10 @@ export function MatchupCalculatorContainer(
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // This effect runs once on the client to safely access localStorage and
-    // avoid hydration errors. The linter rule is suppressed because this
-    // is a valid, intentional use case for a one-time client-side sync.
+    // This `useEffect` with an empty dependency array is a standard pattern to run
+    // code only on the client-side after initial render. It safely synchronizes
+    // with a client-only data source (localStorage) and prevents hydration
+    // mismatches between the server-rendered and client-rendered UI.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     try {

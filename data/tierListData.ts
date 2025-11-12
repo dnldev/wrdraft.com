@@ -49,7 +49,6 @@ export const tierList63c: TierListData = {
     ],
     A: ["Twitch", "Tristana", "Draven", "Zeri"],
     B: ["Kalista", "Nilah"],
-    C: [],
   },
   support: {
     "S+": ["Thresh", "Nami"],

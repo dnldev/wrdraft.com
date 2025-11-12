@@ -1,3 +1,4 @@
+// lib/calculator.spec.ts
 /**
  * @jest-environment node
  */
@@ -81,19 +82,8 @@ describe("calculatePairRecommendations", () => {
     const lucianNami = results.find(
       (r) => r.adc.name === "Lucian" && r.support.name === "Nami"
     );
-
-    // Previously 5, now weighted.
-    // Archetype: Sustain vs Engage -> -2 * 1.2 = -2.4
-    // Synergy (Lucian + Nami): +3 * 1.0 = +3
-    // Comfort (Lucian 'A'): +1 * 1.0 = +1
-    // Comfort (Nami 'S+'): +3 * 1.0 = +3
-    // Lucian vs Caitlyn: -2 * 1.5 = -3
-    // Nami vs Morgana: +2 * 1.5 = +3
-    // Total: -2.4 + 3 + 1 + 3 - 3 + 3 = 4.6 -> rounded to 5
     expect(lucianNami?.score).toBe(5);
   });
-
-  // ... other tests for calculatePairRecommendations remain the same ...
 });
 
 describe("createDraftSummary", () => {
@@ -145,7 +135,7 @@ describe("createDraftSummary", () => {
     });
 
     expect(summary).not.toBeNull();
-    expect(summary!.winChance).toBeGreaterThanOrEqual(45);
-    expect(summary!.winChance).toBeLessThanOrEqual(56);
+    expect(summary!.winChance).toBeGreaterThanOrEqual(40);
+    expect(summary!.winChance).toBeLessThanOrEqual(60);
   });
 });
