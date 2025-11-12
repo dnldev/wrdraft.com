@@ -8,14 +8,14 @@ import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
 import {
-  analyzePair,
   BreakdownItem,
   calculatePairRecommendations,
+  createDraftSummary,
   PairRecommendation,
 } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { logger } from "@/lib/development-logger";
-import { Archetype, createTierMap, getLaneArchetype } from "@/lib/utils";
+import { Archetype, createTierMap } from "@/lib/utils";
 import { Selections } from "@/types/draft";
 
 export interface DraftSummary {
@@ -43,8 +43,6 @@ interface UseMatchupCalculatorProps {
 
 /**
  * Manages the state and logic for calculating champion recommendations.
- * It receives the current selections and the set of banned champions,
- * and returns calculated results and other derived state.
  */
 export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
   const {
@@ -58,14 +56,12 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     counterMatrix,
     bannedChampions,
   } = props;
-
   const [selections, setSelections] = useState<Selections>({
     alliedAdc: null,
     alliedSupport: null,
     enemyAdc: null,
     enemySupport: null,
   });
-
   const deferredSelections = useDeferredValue(selections);
   const deferredBans = useDeferredValue(bannedChampions);
   const isSelectionEmpty = Object.values(selections).every((s) => s === null);
@@ -111,10 +107,7 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       "Recalculating recommendations...",
       deferredSelections
     );
-    if (Object.values(deferredSelections).every((s) => s === null)) {
-      return null;
-    }
-
+    if (Object.values(deferredSelections).every((s) => s === null)) return null;
     return calculatePairRecommendations({
       adcs: availableAdcs,
       supports: availableSupports,
@@ -140,64 +133,13 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       "Recalculating draft summary...",
       deferredSelections
     );
-    const { alliedAdc, alliedSupport, enemyAdc, enemySupport } =
-      deferredSelections;
-    if (!alliedAdc || !alliedSupport || !enemyAdc || !enemySupport) {
-      return null;
-    }
-
-    const alliedAdcObj = championMap.get(alliedAdc);
-    const alliedSupportObj = championMap.get(alliedSupport);
-    if (!alliedAdcObj || !alliedSupportObj) {
-      return null;
-    }
-
-    const yourLaneArchetype = getLaneArchetype(
-      alliedAdc,
-      alliedSupport,
-      categories
-    );
-    const enemyLaneArchetype = getLaneArchetype(
-      enemyAdc,
-      enemySupport,
-      categories
-    );
-
-    const analysis = analyzePair({
-      adc: alliedAdcObj,
-      support: alliedSupportObj,
+    return createDraftSummary({
       selections: deferredSelections,
+      championMap,
       synergyMatrix,
       counterMatrix,
       categories,
-      enemyLaneArchetype,
     });
-
-    const yourSynergy =
-      synergyMatrix[analysis.adc.name]?.[analysis.support.name] ?? 0;
-    const enemySynergy = synergyMatrix[enemyAdc]?.[enemySupport] ?? 0;
-
-    const breakdown: BreakdownItem[] = [
-      ...analysis.breakdown.filter((b) => b.reason.includes("Comfort")),
-      { reason: "Your Team Synergy", value: yourSynergy },
-      { reason: "Enemy Team Synergy", value: -enemySynergy },
-      ...analysis.breakdown.filter((b) => b.reason.includes("Archetype")),
-      ...analysis.breakdown.filter((b) => b.reason.includes("vs")),
-    ];
-
-    const overallScore = breakdown.reduce((acc, item) => acc + item.value, 0);
-    const winChance = Math.max(10, Math.min(90, 50 + overallScore * 2));
-
-    return {
-      overallScore,
-      winChance,
-      breakdown,
-      selections: deferredSelections,
-      archetypes: {
-        your: yourLaneArchetype,
-        enemy: enemyLaneArchetype,
-      },
-    };
   }, [
     deferredSelections,
     championMap,
@@ -206,9 +148,10 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     categories,
   ]);
 
-  const isCalculating = useMemo(() => {
-    return !isEqual(selections, deferredSelections);
-  }, [selections, deferredSelections]);
+  const isCalculating = useMemo(
+    () => !isEqual(selections, deferredSelections),
+    [selections, deferredSelections]
+  );
 
   const combinedFirstPicks = useMemo(() => {
     const ratingOrder: Record<string, number> = {
@@ -221,14 +164,12 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       ...bannedChampions,
       ...Object.values(selections).filter(Boolean),
     ]);
-
     const safeAdcs = firstPicks.adcs
       .filter((p) => !unavailable.has(p.name))
       .slice(0, 4);
     const safeSupports = firstPicks.supports
       .filter((p) => !unavailable.has(p.name))
       .slice(0, 4);
-
     return [...safeAdcs, ...safeSupports].toSorted(
       (a, b) => ratingOrder[a.rating] - ratingOrder[b.rating]
     );
