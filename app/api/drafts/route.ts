@@ -115,7 +115,6 @@ export async function DELETE(request: Request): Promise<NextResponse> {
           break;
         }
       } catch (error) {
-        // This is the critical fix: log the corrupted data.
         logger.error(
           { error, corruptedItem: item },
           "Failed to parse a draft item from Redis during deletion scan."

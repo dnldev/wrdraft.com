@@ -1,10 +1,11 @@
+// lib/draft-api.ts
 /**
  * @file Client-side utilities for interacting with the drafts API.
  */
 
 import { SavedDraft } from "@/types/draft";
 
-import { logger } from "./logger";
+import { logger } from "./development-logger";
 
 /**
  * Saves a draft to the database via a POST request.
@@ -23,7 +24,7 @@ export async function saveDraft(
 
   if (!response.ok) {
     const errorBody = await response.text();
-    logger.error({ errorBody }, "API Error Response:");
+    logger.error("draft-api", "API Error Response:", { errorBody });
     throw new Error(
       `Failed to save draft. Server responded with ${response.status}.`
     );

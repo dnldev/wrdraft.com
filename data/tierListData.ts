@@ -26,7 +26,7 @@ export const tierList63b: TierListData = {
     S: ["Milio", "Leona", "Bard", "Zilean"],
     A: ["Thresh", "Morgana", "Lulu", "Karma"],
     B: ["Janna", "Lux", "Maokai", "Blitzcrank", "Nautilus"],
-    C: ["Swain", "Brand", "Lux"],
+    C: ["Swain", "Brand"],
   },
 };
 
