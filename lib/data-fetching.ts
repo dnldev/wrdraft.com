@@ -9,6 +9,8 @@ import { TeamComposition } from "@/data/teamCompsData";
 import { TierListData } from "@/data/tierListData";
 import { getConnectedRedisClient } from "@/lib/redis";
 
+import { logger } from "./logger";
+
 export type SynergyMatrix = Record<string, Record<string, number>>;
 export type CounterMatrix = Record<string, Record<string, number>>;
 
@@ -41,7 +43,12 @@ function parseRedisMGet(
 ): Record<string, unknown> {
   const parsedData: Record<string, unknown> = {};
   for (const [i, key] of keys.entries()) {
-    parsedData[key] = results[i] ? JSON.parse(results[i]) : null;
+    try {
+      parsedData[key] = results[i] ? JSON.parse(results[i]) : null;
+    } catch (error) {
+      logger.error({ key, error }, "Failed to parse JSON for key.");
+      parsedData[key] = null;
+    }
   }
   return parsedData;
 }
@@ -49,7 +56,7 @@ function parseRedisMGet(
 /**
  * Processes a raw array of synergy data into objects grouped and sorted by role using Lodash.
  * @param {Synergy[] | null} synergyData - The raw array of synergies.
- * @returns {{ synergiesByAdc: Record<string, Synergy[]>, synergiesBySupport: Record<string, Synergy[]> }}
+ * @returns {{ synergiesByAdc: Record<string, Synergy[]>, synergiesBySupport: Record<string, Synergy[]> }} An object containing synergies grouped by ADC and Support.
  */
 function processSynergies(synergyData: Synergy[] | null): {
   synergiesByAdc: Record<string, Synergy[]>;
@@ -84,12 +91,18 @@ function processSynergies(synergyData: Synergy[] | null): {
  * @returns {Promise<PlaybookData>} A promise that resolves to an object containing all page data.
  */
 export async function getPlaybookData(): Promise<PlaybookData> {
+  const fetchId = Date.now();
+  logger.info({ fetchId }, "getPlaybookData: Starting data fetch...");
   const redis = await getConnectedRedisClient();
 
   const manifestKeys = Object.keys(dataManifest);
   const allKeys = [...manifestKeys, "champions:adc", "champions:support"];
 
   const results = await redis.mGet(allKeys);
+  logger.info(
+    { fetchId, keyCount: allKeys.length },
+    "getPlaybookData: Fetched data from Redis."
+  );
   const parsedData = parseRedisMGet(allKeys, results);
 
   const { synergiesByAdc, synergiesBySupport } = processSynergies(
@@ -99,6 +112,10 @@ export async function getPlaybookData(): Promise<PlaybookData> {
   const adcs = (parsedData["champions:adc"] as Champion[]) || [];
   const supports = (parsedData["champions:support"] as Champion[]) || [];
 
+  logger.info(
+    { fetchId },
+    "getPlaybookData: Data fetch and processing complete."
+  );
   return {
     adcs,
     supports,

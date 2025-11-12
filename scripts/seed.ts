@@ -6,20 +6,22 @@ import { createClient } from "redis";
 import { champions as baseChampions } from "@/data/championData.js";
 import { dataManifest } from "@/data/data-manifest.js";
 import { matchupData } from "@/data/matchupData.js";
+import { logger } from "@/lib/logger";
 
 dotenv.config({ path: ".env.development.local" });
 
 async function main() {
   if (!process.env.REDIS_URL) {
+    logger.error("Missing Vercel Redis environment variable REDIS_URL.");
     throw new Error("Missing Vercel Redis environment variable REDIS_URL.");
   }
 
   const redis = createClient({ url: process.env.REDIS_URL });
   await redis.connect();
-  console.log("Successfully connected to Vercel Redis.");
+  logger.info("Successfully connected to Vercel Redis for seeding.");
 
   await redis.flushAll();
-  console.log("Cleared existing Redis data.");
+  logger.info("Cleared existing Redis data.");
 
   const multi = redis.multi();
 
@@ -38,26 +40,26 @@ async function main() {
   for (const champion of fullChampionsData) {
     multi.set(`champion:${champion.id}`, JSON.stringify(champion));
   }
-  console.log("- Staging individual champion data...");
+  logger.info("- Staging individual champion data...");
 
   const adcs = fullChampionsData.filter((c) => c.role.includes("ADC"));
   const supports = fullChampionsData.filter((c) => c.role.includes("Support"));
   multi.set("champions:adc", JSON.stringify(adcs));
   multi.set("champions:support", JSON.stringify(supports));
-  console.log("- Staging ADC and Support lists...");
+  logger.info("- Staging ADC and Support lists...");
 
-  console.log("\nStaging data from manifest...");
+  logger.info("\nStaging data from manifest...");
   for (const [key, data] of Object.entries(dataManifest)) {
     multi.set(key, JSON.stringify(data));
-    console.log(`- Staging data for key: ${key}`);
+    logger.info({ key }, `- Staging data for key: ${key}`);
   }
 
   await multi.exec();
 
   await redis.disconnect();
-  console.log("\n✅ Data seeding complete!");
+  logger.info("\n✅ Data seeding complete!");
 }
 
 main().catch(async (error) => {
-  console.error("❌ Error seeding data:", error);
+  logger.error(error, "❌ Error seeding data:");
 });

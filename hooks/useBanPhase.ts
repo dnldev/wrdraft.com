@@ -2,6 +2,8 @@
 
 import { useMemo, useState } from "react";
 
+import { logger } from "@/lib/development-logger";
+
 const defaultBans = ["Nautilus", "Blitzcrank", "", "", ""];
 
 interface UseBanPhaseOptions {
@@ -13,7 +15,8 @@ interface UseBanPhaseOptions {
  * Manages the state and logic for the champion banning phase of the draft.
  * This includes tracking bans for both teams, locking in the bans,
  * and providing a memoized set of all banned champions.
- * @returns An object containing ban state and handlers.
+ * @param {UseBanPhaseOptions} [options] - Configuration options for initial ban states.
+ * @returns {object} An object containing ban state and handlers.
  */
 export function useBanPhase(options: UseBanPhaseOptions = {}) {
   const {
@@ -26,6 +29,7 @@ export function useBanPhase(options: UseBanPhaseOptions = {}) {
   const [bansLocked, setBansLocked] = useState(false);
 
   const bannedChampions = useMemo(() => {
+    logger.debug("useBanPhase", "Recalculating bannedChampions set.");
     return new Set([...yourBans, ...enemyBans].filter(Boolean));
   }, [yourBans, enemyBans]);
 
@@ -34,6 +38,10 @@ export function useBanPhase(options: UseBanPhaseOptions = {}) {
     team: "your" | "enemy",
     index: number
   ) => {
+    logger.debug(
+      "useBanPhase",
+      `Handling ban selection for ${championName} on team ${team} at index ${index}`
+    );
     const setBans = team === "your" ? setYourBans : setEnemyBans;
 
     setBans((currentBans) => {
