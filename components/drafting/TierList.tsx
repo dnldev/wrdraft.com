@@ -36,13 +36,13 @@ const TierRow: React.FC<TierRowProps> = ({ tier, champions }) => {
   );
 };
 
-export function TierList({ tierList }: { tierList: TierListData }) {
+export function TierList({ tierList }: { readonly tierList: TierListData }) {
   return (
     <Card className="p-0">
       <CardHeader className="flex items-center justify-center gap-3 p-4 md:p-6">
         <LucideIcon name="ChartBar" className="text-primary" />
         <h2 className="text-3xl font-bold text-primary text-center">
-          Meta Tier List (Patch 6.3b)
+          Meta Tier List (Patch 6.3c)
         </h2>
       </CardHeader>
       <Divider />

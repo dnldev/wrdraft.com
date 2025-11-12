@@ -18,6 +18,10 @@ const mockSummary: DraftSummary = {
     enemyAdc: "c",
     enemySupport: "d",
   },
+  archetypes: {
+    your: "Sustain",
+    enemy: "Poke",
+  },
 };
 
 describe("useDraftSummaryModal", () => {

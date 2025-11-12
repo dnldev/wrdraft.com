@@ -90,7 +90,7 @@ describe("useMatchupCalculator", () => {
       expect(result.current.draftSummary?.winChance).toBeGreaterThan(0);
     });
 
-    it("should be null if the calculated pair has a negative score", () => {
+    it("should calculate a negative score for a bad matchup", () => {
       const { result } = renderHook(() =>
         useMatchupCalculator({
           ...mockProps,
@@ -102,15 +102,16 @@ describe("useMatchupCalculator", () => {
         })
       );
       act(() => {
-        // Use champions with no comfort picks to ensure score is negative
         result.current.handleSelectionChange("alliedAdc", "Jinx");
         result.current.handleSelectionChange("alliedSupport", "Nami");
         result.current.handleSelectionChange("enemyAdc", "Draven");
         result.current.handleSelectionChange("enemySupport", "Leona");
       });
-      // Jinx/Nami has a very bad matchup vs Draven/Leona.
-      // Synergy(+1) + JinxCounters(-3,-1) + NamiCounters(+1,-3) = -5
-      expect(result.current.draftSummary).toBeNull();
+
+      // Assert that a summary object is returned, not null.
+      expect(result.current.draftSummary).not.toBeNull();
+      // Assert that the calculated score is negative, as expected.
+      expect(result.current.draftSummary?.overallScore).toBeLessThan(0);
     });
   });
 });

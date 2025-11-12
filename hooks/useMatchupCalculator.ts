@@ -8,26 +8,25 @@ import { Champion } from "@/data/championData";
 import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
 import {
+  analyzePair,
   BreakdownItem,
   calculatePairRecommendations,
   PairRecommendation,
 } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { logger } from "@/lib/development-logger";
-import { createTierMap } from "@/lib/utils";
-
-export interface Selections {
-  readonly alliedAdc: string | null;
-  readonly alliedSupport: string | null;
-  readonly enemyAdc: string | null;
-  readonly enemySupport: string | null;
-}
+import { Archetype, createTierMap, getLaneArchetype } from "@/lib/utils";
+import { Selections } from "@/types/draft";
 
 export interface DraftSummary {
   readonly overallScore: number;
   readonly winChance: number;
   readonly breakdown: BreakdownItem[];
   readonly selections: Selections;
+  readonly archetypes: {
+    readonly your: Archetype;
+    readonly enemy: Archetype;
+  };
 }
 
 interface UseMatchupCalculatorProps {
@@ -153,34 +152,58 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       return null;
     }
 
-    const alliedPair = calculatePairRecommendations({
-      adcs: [alliedAdcObj],
-      supports: [alliedSupportObj],
+    const yourLaneArchetype = getLaneArchetype(
+      alliedAdc,
+      alliedSupport,
+      categories
+    );
+    const enemyLaneArchetype = getLaneArchetype(
+      enemyAdc,
+      enemySupport,
+      categories
+    );
+
+    const analysis = analyzePair({
+      adc: alliedAdcObj,
+      support: alliedSupportObj,
       selections: deferredSelections,
       synergyMatrix,
       counterMatrix,
       categories,
-      championMap,
+      enemyLaneArchetype,
     });
 
-    if (alliedPair.length === 0) return null;
+    const yourSynergy =
+      synergyMatrix[analysis.adc.name]?.[analysis.support.name] ?? 0;
+    const enemySynergy = synergyMatrix[enemyAdc]?.[enemySupport] ?? 0;
 
-    const summary = alliedPair[0];
-    const overallScore = summary.score;
+    const breakdown: BreakdownItem[] = [
+      ...analysis.breakdown.filter((b) => b.reason.includes("Comfort")),
+      { reason: "Your Team Synergy", value: yourSynergy },
+      { reason: "Enemy Team Synergy", value: -enemySynergy },
+      ...analysis.breakdown.filter((b) => b.reason.includes("Archetype")),
+      ...analysis.breakdown.filter((b) => b.reason.includes("vs")),
+    ];
+
+    const overallScore = breakdown.reduce((acc, item) => acc + item.value, 0);
     const winChance = Math.max(10, Math.min(90, 50 + overallScore * 2));
 
     return {
       overallScore,
       winChance,
-      breakdown: summary.breakdown,
+      breakdown,
       selections: deferredSelections,
+      archetypes: {
+        your: yourLaneArchetype,
+        enemy: enemyLaneArchetype,
+      },
     };
   }, [
     deferredSelections,
+    championMap,
     synergyMatrix,
     counterMatrix,
     categories,
-    championMap,
   ]);
 
   const isCalculating = useMemo(() => {

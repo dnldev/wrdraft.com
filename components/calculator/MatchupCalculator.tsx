@@ -1,70 +1,23 @@
 "use client";
 
-import {
-  Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Divider,
-  Tooltip,
-} from "@heroui/react";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
-import { FirstPick, FirstPickData } from "@/data/firstPickData";
+import { FirstPickData } from "@/data/firstPickData";
 import { TierListData } from "@/data/tierListData";
 import { useBanPhase } from "@/hooks/useBanPhase";
+import { useDraftLogger } from "@/hooks/useDraftLogger";
 import { useDraftSummaryModal } from "@/hooks/useDraftSummaryModal";
 import { useMatchupCalculator } from "@/hooks/useMatchupCalculator";
-import { PairRecommendation } from "@/lib/calculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
+import { logger } from "@/lib/development-logger";
 
-import { LucideIcon } from "../core/LucideIcon";
-import { ThemeSwitcher } from "../core/ThemeSwitcher";
-import { BanPhase, LockedBansDisplay } from "./BanPhase";
 import { BanSelectorModal } from "./BanSelectorModal";
-import { CalculatorForm } from "./CalculatorForm";
+import { DefaultCalculatorView } from "./DefaultCalculatorView";
 import { DraftSummaryModal } from "./DraftSummaryModal";
-import { FirstPicksDisplay } from "./FirstPicksDisplay";
-import { RecommendationResults } from "./RecommendationResults";
-
-interface CalculatorResultsContentProps {
-  readonly bansLocked: boolean;
-  readonly isSelectionEmpty: boolean;
-  readonly combinedFirstPicks: FirstPick[];
-  readonly championMap: Map<string, Champion>;
-  readonly championTierMap: Map<string, string>;
-  readonly results: PairRecommendation[] | null;
-}
-
-/**
- * A sub-component to handle the conditional rendering of the calculator's main content area.
- * It decides whether to show the first picks display or the recommendation results.
- * This reduces the cognitive complexity of the main MatchupCalculator component.
- */
-const CalculatorResultsContent: React.FC<CalculatorResultsContentProps> = ({
-  bansLocked,
-  isSelectionEmpty,
-  combinedFirstPicks,
-  championMap,
-  championTierMap,
-  results,
-}) => {
-  if (!bansLocked) {
-    return null;
-  }
-
-  return isSelectionEmpty ? (
-    <FirstPicksDisplay
-      firstPicks={combinedFirstPicks}
-      championMap={championMap}
-      tierMap={championTierMap}
-    />
-  ) : (
-    <RecommendationResults results={results || []} />
-  );
-};
+import { FloatingActions } from "./FloatingActions";
+import { LogResultModal } from "./LogResultModal";
 
 interface MatchupCalculatorProps {
   readonly adcs: Champion[];
@@ -77,10 +30,11 @@ interface MatchupCalculatorProps {
   readonly categories: RoleCategories[];
 }
 
+const UNLOGGED_DRAFT_KEY = "wrdraft:unloggedDraft";
+
 /**
- * Orchestrates the entire drafting experience by composing the ban and pick phases.
- * It uses the `useBanPhase` and `useMatchupCalculator` hooks to manage state
- * and passes data down to presentational child components.
+ * Encapsulates the entire UI and logic for a standard drafting session,
+ * including ban phase, pick phase, and result logging.
  */
 export function MatchupCalculator(props: MatchupCalculatorProps) {
   const {
@@ -125,18 +79,58 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     bannedChampions,
   });
 
+  // This effect is responsible for persisting a completed draft to local storage
+  // so it can be logged on a future session.
+  useEffect(() => {
+    if (draftSummary) {
+      const unloggedDraft = {
+        summary: draftSummary,
+        bans: { your: yourBans, enemy: enemyBans },
+      };
+      try {
+        localStorage.setItem(UNLOGGED_DRAFT_KEY, JSON.stringify(unloggedDraft));
+        logger.debug(
+          "MatchupCalculator",
+          "Saved un-logged draft to localStorage."
+        );
+      } catch (error) {
+        logger.error(
+          "MatchupCalculator",
+          "Failed to save draft to localStorage",
+          error
+        );
+      }
+    }
+  }, [draftSummary, yourBans, enemyBans]);
+
   const { isSummaryModalOpen, closeSummaryModal, resetSummaryModal } =
     useDraftSummaryModal(draftSummary);
 
-  const [banModalState, setBanModalState] = React.useState<{
+  const {
+    isLogResultModalOpen,
+    isSaving,
+    logResultState,
+    openLogResultModal,
+    closeLogResultModal,
+    handleLogResultStateChange,
+    handleSaveDraft,
+  } = useDraftLogger({
+    draftSummary,
+    yourBans,
+    enemyBans,
+    onSaveSuccess: () => localStorage.removeItem(UNLOGGED_DRAFT_KEY),
+  });
+
+  const [banModalState, setBanModalState] = useState<{
     isOpen: boolean;
     team: "your" | "enemy";
     index: number;
-  }>({
-    isOpen: false,
-    team: "your",
-    index: 0,
-  });
+  }>({ isOpen: false, team: "your", index: 0 });
+
+  const handleOpenLogResultModal = () => {
+    closeSummaryModal();
+    openLogResultModal();
+  };
 
   const handleSelectionChangeWithReset: typeof handleSelectionChange = (
     role,
@@ -146,9 +140,8 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     handleSelectionChange(role, name);
   };
 
-  const openBanModal = (team: "your" | "enemy", index: number) => {
+  const openBanModal = (team: "your" | "enemy", index: number) =>
     setBanModalState({ isOpen: true, team, index });
-  };
 
   const handleModalBanSelect = (championName: string) => {
     handleBanSelection(championName, banModalState.team, banModalState.index);
@@ -160,7 +153,6 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
       banModalState.team === "your"
         ? yourBans[banModalState.index]
         : enemyBans[banModalState.index];
-
     return allChampions.filter(
       (c) => !bannedChampions.has(c.name) || c.name === currentSlotChampionName
     );
@@ -168,56 +160,25 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
 
   return (
     <div className="space-y-8">
-      <Card className="p-0">
-        <CardHeader className="flex flex-col items-center justify-center gap-3 p-4 md:p-6">
-          <LucideIcon name="Calculator" className="text-primary" />
-          <h2 className="text-3xl font-bold text-primary text-center">
-            Matchup Calculator
-          </h2>
-          <p className="text-sm text-foreground/70 text-center max-w-2xl">
-            {bansLocked
-              ? "Select the lane participants to get a recommendation."
-              : "Select the bans for both teams."}
-          </p>
-        </CardHeader>
-        <Divider />
-        <CardBody className="p-4 md:p-6">
-          {bansLocked ? (
-            <div className="space-y-8">
-              <LockedBansDisplay
-                bannedChampions={bannedChampions}
-                championMap={championMap}
-              />
-              <CalculatorForm
-                adcs={adcs}
-                supports={supports}
-                allChampions={allChampions}
-                categories={categories}
-                championMap={championMap}
-                selections={selections}
-                onSelectionChange={handleSelectionChangeWithReset}
-                isCalculating={isCalculating}
-              />
-            </div>
-          ) : (
-            <BanPhase
-              championMap={championMap}
-              yourBans={yourBans}
-              enemyBans={enemyBans}
-              onSlotClick={openBanModal}
-              onLockIn={() => setBansLocked(true)}
-            />
-          )}
-        </CardBody>
-      </Card>
-
-      <CalculatorResultsContent
+      <DefaultCalculatorView
         bansLocked={bansLocked}
+        bannedChampions={bannedChampions}
+        championMap={championMap}
+        yourBans={yourBans}
+        enemyBans={enemyBans}
+        adcs={adcs}
+        supports={supports}
+        allChampions={allChampions}
+        categories={categories}
+        selections={selections}
+        isCalculating={isCalculating}
         isSelectionEmpty={isSelectionEmpty}
         combinedFirstPicks={combinedFirstPicks}
-        championMap={championMap}
         championTierMap={championTierMap}
         results={results}
+        onSlotClick={openBanModal}
+        onLockIn={() => setBansLocked(true)}
+        onSelectionChange={handleSelectionChangeWithReset}
       />
 
       <BanSelectorModal
@@ -227,33 +188,26 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
         selectedBans={bannedChampions}
         onBanSelect={handleModalBanSelect}
       />
-
       <DraftSummaryModal
         isOpen={isSummaryModalOpen}
         onClose={closeSummaryModal}
         summary={draftSummary}
         championMap={championMap}
+        onOpenLogResult={handleOpenLogResultModal}
       />
-
-      <div className="fixed bottom-4 left-4 right-4 md:left-auto md:pl-72 z-40 flex items-center justify-between pointer-events-none">
-        <div className="pointer-events-auto">
-          <ThemeSwitcher />
-        </div>
-        {bansLocked && (
-          <div className="flex flex-col-reverse sm:flex-row gap-2 pointer-events-auto">
-            <Tooltip content="Re-open Ban Phase">
-              <Button
-                isIconOnly
-                color="default"
-                size="lg"
-                onPress={() => setBansLocked(false)}
-              >
-                <LucideIcon name="RotateCcw" />
-              </Button>
-            </Tooltip>
-          </div>
-        )}
-      </div>
+      <LogResultModal
+        isOpen={isLogResultModalOpen}
+        onClose={closeLogResultModal}
+        onSave={handleSaveDraft}
+        isSaving={isSaving}
+        resultState={logResultState}
+        onStateChange={handleLogResultStateChange}
+      />
+      <FloatingActions
+        bansLocked={bansLocked}
+        viewMode="default"
+        onResetBans={() => setBansLocked(false)}
+      />
     </div>
   );
 }

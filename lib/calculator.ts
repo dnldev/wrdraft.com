@@ -2,7 +2,7 @@ import { flatMap } from "lodash-es";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion, ComfortTier } from "@/data/championData";
-import { Selections } from "@/hooks/useMatchupCalculator";
+import { Selections } from "@/types/draft";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
 
@@ -44,7 +44,7 @@ function getComfortScore(champion: Champion): BreakdownItem | null {
     : null;
 }
 
-function getLaneArchetype(
+export function getLaneArchetype(
   adcName: string | null,
   supportName: string | null,
   categories: readonly RoleCategories[]
@@ -95,6 +95,12 @@ function getArchetypeScore(
   };
 }
 
+/**
+ * Calculates the synergy score for a given ADC/Support pair.
+ * This will always return a breakdown item, even for a score of 0,
+ * to ensure the reason is consistently present in the final analysis.
+ * @returns {BreakdownItem | null} The breakdown item or null if inputs are missing.
+ */
 function getSynergyScore(
   adc: string | null,
   support: string | null,
@@ -102,10 +108,15 @@ function getSynergyScore(
 ): BreakdownItem | null {
   if (!adc || !support) return null;
   const score = synergyMatrix[adc]?.[support] ?? 0;
-  if (score === 0) return null;
   return { value: score, reason: `Synergy with ${support}` };
 }
 
+/**
+ * Calculates the counter score between two champions.
+ * This will always return a breakdown item, even for a score of 0,
+ * to ensure the reason is consistently present in the final analysis.
+ * @returns {BreakdownItem | null} The breakdown item or null if inputs are missing.
+ */
 function getCounterScore(
   championName: string,
   opponentName: string | null,
@@ -113,11 +124,13 @@ function getCounterScore(
 ): BreakdownItem | null {
   if (!opponentName) return null;
   const score = counterMatrix[championName]?.[opponentName] ?? 0;
-  if (score === 0) return null;
   return { value: score, reason: `${championName} vs ${opponentName}` };
 }
 
-function calculateScoreForPair(context: {
+/**
+ * Analyzes a single ADC/Support pair and returns a full breakdown of their score.
+ */
+export function analyzePair(context: {
   readonly adc: Champion;
   readonly support: Champion;
   readonly selections: Selections;
@@ -125,7 +138,7 @@ function calculateScoreForPair(context: {
   readonly counterMatrix: CounterMatrix;
   readonly categories: readonly RoleCategories[];
   readonly enemyLaneArchetype: Archetype;
-}): PairRecommendation | null {
+}): PairRecommendation {
   const {
     adc,
     support,
@@ -153,16 +166,9 @@ function calculateScoreForPair(context: {
     getCounterScore(support.name, selections.enemySupport, counterMatrix),
   ].filter((item): item is BreakdownItem => item !== null);
 
-  if (breakdown.length === 0) {
-    return null;
-  }
+  const totalScore = breakdown.reduce((sum, item) => sum + item.value, 0);
 
-  let totalScore = 0;
-  for (const item of breakdown) {
-    totalScore += item.value;
-  }
-
-  return totalScore > 0 ? { adc, support, score: totalScore, breakdown } : null;
+  return { adc, support, score: totalScore, breakdown };
 }
 
 function getAllPairs(
@@ -211,8 +217,8 @@ export function calculatePairRecommendations(context: {
   const allPossiblePairs = getAllPairs(adcsToIterate, supportsToIterate);
 
   const recommendations = allPossiblePairs
-    .map(({ adc, support }) => {
-      return calculateScoreForPair({
+    .map(({ adc, support }) =>
+      analyzePair({
         adc,
         support,
         selections,
@@ -220,9 +226,9 @@ export function calculatePairRecommendations(context: {
         counterMatrix,
         categories,
         enemyLaneArchetype,
-      });
-    })
-    .filter((pair): pair is PairRecommendation => pair !== null);
+      })
+    )
+    .filter((pair) => pair.score > 0);
 
   return recommendations.toSorted((a, b) => {
     if (b.score !== a.score) {

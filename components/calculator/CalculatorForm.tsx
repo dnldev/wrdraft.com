@@ -5,7 +5,7 @@ import React from "react";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
-import { Selections } from "@/hooks/useMatchupCalculator";
+import { Selections } from "@/types/draft";
 
 import { ChampionSelector } from "./ChampionSelector";
 
