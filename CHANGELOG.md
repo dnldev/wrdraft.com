@@ -1,5 +1,31 @@
 # Changelog
 
+# [2.1.0](https://github.com/dnldev/wrdraft.com/compare/v2.0.0...v2.1.0) (2025-11-14)
+
+### Features
+
+- **history:** Implement a full draft persistence system with a 'History' view and personalized champion statistics.
+- **calculator:** Rearchitect the win chance calculation with a more conservative, realistic, and data-driven model that
+  anchors its baseline to a fixed positive score.
+- **data:** Update the meta tier list to reflect Patch 6.3c.
+- **logging:** Implement structured server-side logging and enforce a `no-console` rule across the application.
+
+### Bug Fixes
+
+- **stats:** Resolve a critical logic error where 'remake' games were incorrectly counted as losses in all statistical
+  calculations.
+- **quality:** Address all outstanding SonarQube, ESLint, and TypeScript issues across the codebase to improve code
+  quality, maintainability, and type safety.
+
+### Chores & Refactoring
+
+- **release:** Integrate `release-it` to automate the entire release workflow, including versioning, changelog
+  generation, and GitHub releases.
+- **db:** Refactor the data persistence layer to a more scalable model using Redis Sorted Sets and individual keys,
+  significantly improving performance for history queries and deletions.
+- **db:** Refactor the Upstash Redis client to use a lazy initialization pattern, improving compatibility with the
+  Next.js lifecycle.
+
 ## 2.0.0 (2025-11-12)
 
 ### **Release Notes: v2.0.0 - The Data Persistence Update**
