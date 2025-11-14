@@ -33,16 +33,22 @@ const WEIGHTS = {
 };
 
 /**
- * Defines the bounds for the win chance calculation.
- * The range is clamped between 20% and 80% to avoid presenting unrealistic
- * absolutes. In a game of skill, no matchup is ever truly unwinnable or
- * guaranteed. The 48% average provides a slightly pessimistic baseline,
- * acknowledging that uncoordinated play is more common than optimal play.
+ * Defines the bounds and baseline for the win chance calculation.
  */
 const WIN_CHANCE_CONFIG = {
-  MIN: 20,
-  AVG: 48,
-  MAX: 80,
+  MIN: 25,
+  AVG: 50,
+  MAX: 75,
+  /**
+   * The fixed score that represents a 50% win chance. This provides a
+   * stable, intuitive anchor for the user's perception of the score.
+   */
+  BASELINE_SCORE: 5,
+  /**
+   * A multiplier to dampen the impact of the score on the final win chance,
+   * making the calculation less volatile.
+   */
+  SENSITIVITY: 0.8,
 };
 
 // Constants for historical performance calculation.
@@ -370,25 +376,31 @@ export function createDraftSummary({
     .map((pair) => analyzePair({ ...analysisContext, ...pair })?.weightedScore)
     .filter((score): score is number => typeof score === "number");
 
-  const scoreSum = allPossibleScores.reduce((sum, score) => sum + score, 0);
-  const avgScore =
-    allPossibleScores.length > 0 ? scoreSum / allPossibleScores.length : 0;
-  const minScore = Math.min(...allPossibleScores, avgScore);
-  const maxScore = Math.max(...allPossibleScores, avgScore);
+  const baselineScore = WIN_CHANCE_CONFIG.BASELINE_SCORE;
+  const minScore = Math.min(...allPossibleScores);
+  const maxScore = Math.max(...allPossibleScores);
 
   let winChance = WIN_CHANCE_CONFIG.AVG;
-  if (overallScore >= avgScore && maxScore > avgScore) {
-    const range = maxScore - avgScore;
-    const progress = (overallScore - avgScore) / range;
-    winChance =
-      WIN_CHANCE_CONFIG.AVG +
-      progress * (WIN_CHANCE_CONFIG.MAX - WIN_CHANCE_CONFIG.AVG);
-  } else if (overallScore < avgScore && minScore < avgScore) {
-    const range = avgScore - minScore;
-    const progress = (avgScore - overallScore) / range;
-    winChance =
-      WIN_CHANCE_CONFIG.AVG -
-      progress * (WIN_CHANCE_CONFIG.AVG - WIN_CHANCE_CONFIG.MIN);
+  if (overallScore >= baselineScore) {
+    const range = maxScore - baselineScore;
+    if (range > 0) {
+      const progress = (overallScore - baselineScore) / range;
+      winChance =
+        WIN_CHANCE_CONFIG.AVG +
+        progress *
+          (WIN_CHANCE_CONFIG.MAX - WIN_CHANCE_CONFIG.AVG) *
+          WIN_CHANCE_CONFIG.SENSITIVITY;
+    }
+  } else {
+    const range = baselineScore - minScore;
+    if (range > 0) {
+      const progress = (baselineScore - overallScore) / range;
+      winChance =
+        WIN_CHANCE_CONFIG.AVG -
+        progress *
+          (WIN_CHANCE_CONFIG.AVG - WIN_CHANCE_CONFIG.MIN) *
+          WIN_CHANCE_CONFIG.SENSITIVITY;
+    }
   }
 
   return {
