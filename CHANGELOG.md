@@ -1,5 +1,23 @@
 # Changelog
 
+# [2.1.0](https://github.com/dnldev/wrdraft.com/compare/v1.2.0...v2.1.0) (2025-11-14)
+
+
+### Bug Fixes
+
+* **core:** Integrate logging and correct failing tests ([4ae29a1](https://github.com/dnldev/wrdraft.com/commit/4ae29a1980913a5b73398a5af5bf43123a7e6d4b))
+* **linter:** Resolve all SonarQube and ESLint issues ([63cd974](https://github.com/dnldev/wrdraft.com/commit/63cd974cbc12f959c876d617e1089e3f40502e60))
+
+
+### Features
+
+* **data:** Update tier list to Patch 6.3c ([c301c4d](https://github.com/dnldev/wrdraft.com/commit/c301c4d830748d8c34355baa421de819447809f7))
+* **history:** Implement draft persistence and history view ([40096b6](https://github.com/dnldev/wrdraft.com/commit/40096b6fbd6095b8af450e0af5a4edcd3d14f1a6))
+* **history:** Implement draft persistence and history view ([0d5f17d](https://github.com/dnldev/wrdraft.com/commit/0d5f17d10d63c86ce4ba7b964ed94b383c6bceb2))
+* **history:** Implement Match History and Personalized Stats [#38](https://github.com/dnldev/wrdraft.com/issues/38) ([#44](https://github.com/dnldev/wrdraft.com/issues/44)) ([f1a7cc9](https://github.com/dnldev/wrdraft.com/commit/f1a7cc9f3be76c0808f0363dfa0ded3a7014fb4b))
+* **logging:** implement structured logging and enforce no-console rule ([118e8f3](https://github.com/dnldev/wrdraft.com/commit/118e8f39294d7f6874e634b57620a73894d84110))
+* **release:** Automate release process and overhaul win rate calculation ([18f6929](https://github.com/dnldev/wrdraft.com/commit/18f692986262895d94b08c8ac812bea95ebe488d)), closes [#32](https://github.com/dnldev/wrdraft.com/issues/32) [#39](https://github.com/dnldev/wrdraft.com/issues/39)
+
 ## 2.0.0 (2025-11-12)
 
 ### **Release Notes: v2.0.0 - The Data Persistence Update**
