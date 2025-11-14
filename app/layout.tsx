@@ -5,6 +5,7 @@ import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 
 import { FloatingActions } from "@/components/calculator/FloatingActions";
+import { Navigation } from "@/components/core/Navigation";
 
 import { Providers } from "./providers";
 
@@ -22,7 +23,8 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${GeistSans.className} bg-background text-foreground`}>
         <Providers>
-          {children}
+          <Navigation />
+          <main className="p-6 md:p-8 md:pl-72">{children}</main>
           <FloatingActions />
           <footer className="text-center pt-32 pb-8 text-slate-500 text-sm md:pl-64 flex justify-center items-center gap-4">
             <p>Wild Rift Dragon Lane Playbook</p>

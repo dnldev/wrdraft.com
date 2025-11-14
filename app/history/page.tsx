@@ -1,9 +1,8 @@
 import React from "react";
 
-import { MemoizedDraftingInfo } from "@/components/views";
-import { TierListData } from "@/data/tierListData";
+import { MemoizedDraftHistory } from "@/components/views";
+import { Champion } from "@/data/championData";
 import { logger } from "@/lib/logger";
-import { calculateChampionStats } from "@/lib/stats";
 import { getKvClient } from "@/lib/upstash";
 import { SavedDraft } from "@/types/draft";
 
@@ -11,13 +10,16 @@ const KEY_PREFIX = "WR:";
 const DRAFTS_KEY = `${KEY_PREFIX}drafts:history`;
 const DRAFT_PREFIX = "WR:draft:";
 
-export default async function HomePage() {
-  logger.info("HomePage: Fetching tier list data...");
+export const dynamic = "force-dynamic";
+
+export default async function HistoryPage() {
+  logger.info("HistoryPage: Fetching history data...");
   const kv = getKvClient();
 
-  const [tierListData, draftIds] = await Promise.all([
-    kv.get<TierListData>(`${KEY_PREFIX}data:tierlist`),
+  const [draftIds, adcs, supports] = await Promise.all([
     kv.zrange(DRAFTS_KEY, 0, 99, { rev: true }),
+    kv.get<Champion[]>(`${KEY_PREFIX}champions:adc`),
+    kv.get<Champion[]>(`${KEY_PREFIX}champions:support`),
   ]);
 
   let draftHistory: SavedDraft[] = [];
@@ -29,10 +31,13 @@ export default async function HomePage() {
     draftHistory = drafts.filter((d): d is SavedDraft => d !== null);
   }
 
-  const tierList = tierListData || { adc: {}, support: {} };
-  const championStats = calculateChampionStats(draftHistory);
+  const allChampions = [...(adcs || []), ...(supports || [])];
+  const championMap = new Map(allChampions.map((c) => [c.name, c]));
 
   return (
-    <MemoizedDraftingInfo tierList={tierList} championStats={championStats} />
+    <MemoizedDraftHistory
+      draftHistory={draftHistory}
+      championMap={championMap}
+    />
   );
 }

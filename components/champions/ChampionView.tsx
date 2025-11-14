@@ -3,8 +3,9 @@
 
 import { Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
 import Image from "next/image";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useCallback } from "react";
 
 import { Champion } from "@/data/championData";
 import { ChampionStats } from "@/lib/stats";
@@ -22,67 +23,23 @@ export function ChampionView({
   supports,
   championStats,
 }: ChampionViewProps) {
-  const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  const activeRole = (searchParams.get("role") as "adc" | "support") || "adc";
-  const selectedChampId = searchParams.get("champ") || adcs[0]?.id || "";
-
-  const championData = useMemo(
-    () => ({
-      adc: adcs,
-      support: supports,
-    }),
-    [adcs, supports]
-  );
-
-  const currentList =
-    activeRole === "adc" ? championData.adc : championData.support;
-  const allChampions = useMemo(
-    () => [...championData.adc, ...championData.support],
-    [championData]
-  );
-
-  const selectedChampion =
-    allChampions.find((c) => c.id === selectedChampId) || currentList[0];
-  const selectedChampionStats = championStats.get(selectedChampion.name);
-
-  const handleSelectChampion = useCallback(
-    (champId: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("champ", champId);
-      router.push(pathname + "?" + params.toString(), { scroll: false });
-    },
-    [pathname, router, searchParams]
-  );
-
-  const handleTabChange = useCallback(
-    (key: React.Key) => {
-      const role = key as "adc" | "support";
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("role", role);
-
-      if (role === "adc" && championData.adc.length > 0) {
-        params.set("champ", championData.adc[0].id);
-      } else if (role === "support" && championData.support.length > 0) {
-        params.set("champ", championData.support[0].id);
-      }
-
-      router.push(pathname + "?" + params.toString(), { scroll: false });
-    },
-    [pathname, router, searchParams, championData]
-  );
+  const activeRole = pathname.includes("/support") ? "support" : "adc";
+  const currentList = activeRole === "adc" ? adcs : supports;
+  const selectedChampion = currentList[0] || adcs[0] || supports[0];
+  const selectedChampionStats = championStats.get(selectedChampion?.name || "");
 
   const renderChampionGrid = useCallback(
-    (champions: Champion[]) => (
+    (champions: Champion[], role: "adc" | "support") => (
       <div className="p-6 grid grid-cols-5 sm:grid-cols-7 md:grid-cols-9 lg:grid-cols-12 gap-4">
         {champions.map((champ, index) => {
-          const isSelected = selectedChampion.id === champ.id;
+          const isSelected = selectedChampion?.id === champ.id;
           return (
             <Tooltip content={champ.name} key={champ.id} placement="bottom">
-              <button
-                onClick={() => handleSelectChampion(champ.id)}
+              <Link
+                href={`/champions/${role}`}
+                scroll={false}
                 aria-label={`Select ${champ.name}`}
               >
                 <Image
@@ -97,13 +54,13 @@ export function ChampionView({
                       : "grayscale hover:grayscale-0"
                   }`}
                 />
-              </button>
+              </Link>
             </Tooltip>
           );
         })}
       </div>
     ),
-    [handleSelectChampion, selectedChampion.id]
+    [selectedChampion]
   );
 
   return (
@@ -114,7 +71,6 @@ export function ChampionView({
           color="primary"
           variant="underlined"
           selectedKey={activeRole}
-          onSelectionChange={handleTabChange}
           classNames={{
             tabList:
               "gap-6 w-full relative rounded-none p-0 border-b border-divider",
@@ -124,14 +80,14 @@ export function ChampionView({
               "group-data-[selected=true]:text-primary text-lg font-semibold",
           }}
         >
-          <Tab key="adc" title="ADCs">
+          <Tab key="adc" title="ADCs" href="/champions/adc">
             <CardBody className="p-0">
-              {renderChampionGrid(championData.adc)}
+              {renderChampionGrid(adcs, "adc")}
             </CardBody>
           </Tab>
-          <Tab key="support" title="Supports">
+          <Tab key="support" title="Supports" href="/champions/support">
             <CardBody className="p-0">
-              {renderChampionGrid(championData.support)}
+              {renderChampionGrid(supports, "support")}
             </CardBody>
           </Tab>
         </Tabs>

@@ -1,122 +1,77 @@
 "use client";
 
 import { Button, Tab, Tabs } from "@heroui/react";
-import { AnimatePresence, motion, PanInfo } from "framer-motion";
 import { icons } from "lucide-react";
-import React, { useState } from "react";
-
-import { useQueryState } from "@/hooks/useQueryState";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import React from "react";
 
 import { LucideIcon } from "./LucideIcon";
 
-export type MainView =
-  | "drafting"
-  | "team-comps"
-  | "pairings"
-  | "champions"
-  | "calculator"
-  | "history";
-
 interface NavItem {
-  readonly id: MainView;
+  readonly path: string;
   readonly label: string;
   readonly mobileLabel: string;
   readonly icon: keyof typeof icons;
 }
 
-interface NavigationProps {
-  readonly views: Record<MainView, React.ReactNode>;
-}
-
-const variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? "100%" : "-100%",
-    opacity: 0,
-  }),
-  center: {
-    zIndex: 1,
-    x: 0,
-    opacity: 1,
+const navItems: NavItem[] = [
+  {
+    path: "/",
+    label: "Tier List",
+    mobileLabel: "Tiers",
+    icon: "Swords",
   },
-  exit: (direction: number) => ({
-    zIndex: 0,
-    x: direction < 0 ? "100%" : "-100%",
-    opacity: 0,
-  }),
-};
+  {
+    path: "/team-comps",
+    label: "Team Comps",
+    mobileLabel: "Comps",
+    icon: "Users",
+  },
+  {
+    path: "/pairings",
+    label: "Pairings",
+    mobileLabel: "Pairs",
+    icon: "Handshake",
+  },
+  {
+    path: "/champions/adc",
+    label: "Champions",
+    mobileLabel: "Champs",
+    icon: "BookOpen",
+  },
+  {
+    path: "/calculator",
+    label: "Calculator",
+    mobileLabel: "Calc",
+    icon: "Calculator",
+  },
+  {
+    path: "/history",
+    label: "History",
+    mobileLabel: "History",
+    icon: "History",
+  },
+];
 
-export function Navigation({ views }: NavigationProps) {
-  const [activeView, setActiveView] = useQueryState<MainView>(
-    "view",
-    "drafting"
-  );
-  const [direction, setDirection] = useState(0);
+export function Navigation() {
+  const pathname = usePathname();
 
-  const navItems: NavItem[] = [
-    {
-      id: "drafting",
-      label: "Tier List",
-      mobileLabel: "Tiers",
-      icon: "Swords",
-    },
-    {
-      id: "team-comps",
-      label: "Team Comps",
-      mobileLabel: "Comps",
-      icon: "Users",
-    },
-    {
-      id: "pairings",
-      label: "Pairings",
-      mobileLabel: "Pairs",
-      icon: "Handshake",
-    },
-    {
-      id: "champions",
-      label: "Champions",
-      mobileLabel: "Champs",
-      icon: "BookOpen",
-    },
-    {
-      id: "calculator",
-      label: "Calculator",
-      mobileLabel: "Calc",
-      icon: "Calculator",
-    },
-    {
-      id: "history",
-      label: "History",
-      mobileLabel: "History",
-      icon: "History",
-    },
-  ];
-
-  const changeView = (newView: MainView) => {
-    if (newView === activeView) return;
-
-    const currentIndex = navItems.findIndex((item) => item.id === activeView);
-    const newIndex = navItems.findIndex((item) => item.id === newView);
-    const newDirection = newIndex > currentIndex ? 1 : -1;
-
-    setDirection(newDirection);
-    setActiveView(newView);
+  const isActive = (path: string) => {
+    if (path === "/") {
+      return pathname === "/";
+    }
+    return pathname.startsWith(path);
   };
 
-  const handlePanEnd = (
-    _event: MouseEvent | TouchEvent | PointerEvent,
-    info: PanInfo
-  ) => {
-    const swipeThreshold = 50;
-    const currentIndex = navItems.findIndex((item) => item.id === activeView);
-
-    if (info.offset.x > swipeThreshold && currentIndex > 0) {
-      changeView(navItems[currentIndex - 1].id);
-    } else if (
-      info.offset.x < -swipeThreshold &&
-      currentIndex < navItems.length - 1
-    ) {
-      changeView(navItems[currentIndex + 1].id);
-    }
+  const getSelectedKey = () => {
+    if (pathname === "/") return "/";
+    if (pathname.startsWith("/team-comps")) return "/team-comps";
+    if (pathname.startsWith("/pairings")) return "/pairings";
+    if (pathname.startsWith("/champions")) return "/champions/adc";
+    if (pathname.startsWith("/calculator")) return "/calculator";
+    if (pathname.startsWith("/history")) return "/history";
+    return "/";
   };
 
   return (
@@ -132,9 +87,10 @@ export function Navigation({ views }: NavigationProps) {
         <nav className="flex flex-col gap-2 flex-grow">
           {navItems.map((item) => (
             <Button
-              key={item.id}
-              color={activeView === item.id ? "primary" : "default"}
-              onPress={() => changeView(item.id)}
+              key={item.path}
+              as={Link}
+              href={item.path}
+              color={isActive(item.path) ? "primary" : "default"}
               className="justify-start h-14 text-lg"
               startContent={<LucideIcon name={item.icon} size={20} />}
             >
@@ -147,8 +103,7 @@ export function Navigation({ views }: NavigationProps) {
       <div className="md:hidden p-2 bg-content1 border-b border-divider sticky top-0 z-40">
         <Tabs
           aria-label="Mobile Navigation"
-          selectedKey={activeView}
-          onSelectionChange={(key) => changeView(key as MainView)}
+          selectedKey={getSelectedKey()}
           color="primary"
           variant="underlined"
           fullWidth
@@ -159,7 +114,8 @@ export function Navigation({ views }: NavigationProps) {
         >
           {navItems.map((item) => (
             <Tab
-              key={item.id}
+              key={item.path}
+              href={item.path}
               title={
                 <div className="flex flex-col items-center gap-1">
                   <LucideIcon name={item.icon} size={20} />
@@ -170,30 +126,6 @@ export function Navigation({ views }: NavigationProps) {
           ))}
         </Tabs>
       </div>
-
-      <motion.main onPanEnd={handlePanEnd}>
-        <div className="p-6 md:p-8 md:pl-72">
-          <div className="relative min-h-screen">
-            <AnimatePresence initial={false} custom={direction} mode="wait">
-              <motion.div
-                key={activeView}
-                className="absolute inset-0 w-full h-full"
-                custom={direction}
-                variants={variants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 },
-                }}
-              >
-                {views[activeView]}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </motion.main>
     </>
   );
 }
