@@ -43,7 +43,7 @@ export interface SavedDraft {
   readonly result: {
     readonly overallScore: number;
     readonly winChance: number;
-    readonly breakdown: readonly BreakdownItem[]; // CORRECTED: Added readonly
+    readonly breakdown: readonly BreakdownItem[];
   };
   readonly archetypes: {
     readonly your: Archetype;

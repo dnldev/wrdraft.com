@@ -1,3 +1,4 @@
+// lib/upstash.ts
 /**
  * @file Centralized Upstash Redis client configuration.
  * This file uses a singleton pattern that is robust against Next.js's
@@ -5,12 +6,8 @@
  * `globalThis` object to ensure it's only created once.
  */
 import { Redis } from "@upstash/redis";
-import dotenv from "dotenv";
 
 import { logger } from "./logger";
-
-// Load environment variables from .env files.
-dotenv.config({ path: ".env.development.local" });
 
 declare global {
   var _redisClient: Redis | undefined;

@@ -19,12 +19,11 @@ const getIsMobile = () => {
  * @returns {boolean} True if the device is identified as mobile, false otherwise.
  */
 export function useIsMobile(): boolean {
-  const [isMobile, setIsMobile] = useState(getIsMobile());
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => setIsMobile(getIsMobile());
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsMobile(getIsMobile());
   }, []);
 
   return isMobile;

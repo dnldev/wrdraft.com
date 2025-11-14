@@ -38,6 +38,7 @@ const StarRating: React.FC<{ rating: number }> = ({ rating }) => (
         className={
           index < rating ? "text-yellow-400 fill-yellow-400" : "text-gray-600"
         }
+        aria-hidden="true"
       />
     ))}
   </div>

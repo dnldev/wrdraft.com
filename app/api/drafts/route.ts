@@ -63,7 +63,8 @@ export async function POST(request: Request): Promise<NextResponse> {
 
   try {
     const pipeline = kv.pipeline();
-    // CORRECT: Use SET with stringified JSON for the whole object
+    // This model (individual keys + sorted set) allows O(1) access to drafts
+    // and efficient, paginated history queries, which is superior to a simple list.
     pipeline.set(`${DRAFT_PREFIX}${draftData.id}`, JSON.stringify(draftData));
     pipeline.zadd(DRAFTS_KEY, {
       score: draftData.timestamp,
@@ -105,7 +106,6 @@ export async function DELETE(request: Request): Promise<NextResponse> {
 
   try {
     const pipeline = kv.pipeline();
-    // CORRECT: Use DEL for a simple key
     pipeline.del(`${DRAFT_PREFIX}${id}`);
     pipeline.zrem(DRAFTS_KEY, id);
     await pipeline.exec();

@@ -62,8 +62,8 @@ export async function getPlaybookData(): Promise<PlaybookData> {
       (id) => `${DRAFT_PREFIX}${id}`
     );
     const drafts = await kv.mget<SavedDraft[]>(...draftKeys);
-
-    // CORRECT: The mget command already returns parsed objects. No JSON.parse is needed.
+    // The Upstash client automatically deserializes JSON strings from Redis.
+    // This filter handles cases where a draft might be missing or corrupt.
     draftHistory = drafts.filter((d): d is SavedDraft => d !== null);
   }
 
