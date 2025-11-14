@@ -99,8 +99,9 @@ export function DraftingInfo({ tierList, championStats }: DraftingInfoProps) {
               <ul className="space-y-2 text-sm">
                 <li>
                   To play <span className="champ-supp">Leona</span>, ban{" "}
-                  <strong className="font-bold text-purple-400">Morgana</strong>
-                  .
+                  <strong className="font-bold text-purple-400">
+                    Morgana.
+                  </strong>
                 </li>
                 <li>
                   To play an engage comp, ban{" "}
