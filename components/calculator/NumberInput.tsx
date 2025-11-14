@@ -1,3 +1,4 @@
+// components/calculator/NumberInput.tsx
 "use client";
 
 import { Button, Input, InputProps } from "@heroui/react";
@@ -73,6 +74,9 @@ export const NumberInput: React.FC<NumberInputProps> = ({
           <LucideIcon name="Plus" size={16} />
         </Button>
       }
+      classNames={{
+        input: "text-center",
+      }}
     />
   );
 };
