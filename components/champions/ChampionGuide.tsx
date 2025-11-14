@@ -7,8 +7,8 @@ import { ChampionStats } from "@/lib/stats";
 import { BuildPath } from "./BuildPath";
 
 interface ChampionGuideProps {
-  champion: Champion;
-  stats?: ChampionStats;
+  readonly champion: Champion;
+  readonly stats?: ChampionStats;
 }
 
 export function ChampionGuide({ champion, stats }: ChampionGuideProps) {

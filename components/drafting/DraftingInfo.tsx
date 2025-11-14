@@ -29,8 +29,8 @@ const mindsetTips = [
 ];
 
 interface DraftingInfoProps {
-  tierList: TierListData;
-  championStats: Map<string, ChampionStats>;
+  readonly tierList: TierListData;
+  readonly championStats: Map<string, ChampionStats>;
 }
 
 export function DraftingInfo({ tierList, championStats }: DraftingInfoProps) {
