@@ -68,6 +68,9 @@ export function calculateChampionStats(
   };
 
   for (const draft of draftHistory) {
+    if (draft.matchOutcome === "remake") {
+      continue;
+    }
     const isWin = draft.matchOutcome === "win";
     processPlayer(draft.picks.alliedAdc, isWin, draft.kda?.adc);
     processPlayer(draft.picks.alliedSupport, isWin, draft.kda?.support);
@@ -107,6 +110,7 @@ export function calculateMatchupPerformance(
 ): MatchupPerformance | null {
   const relevantGames = draftHistory.filter(
     (draft) =>
+      draft.matchOutcome !== "remake" &&
       draft.picks.alliedAdc === selections.alliedAdc &&
       draft.picks.alliedSupport === selections.alliedSupport &&
       draft.picks.enemyAdc === selections.enemyAdc &&
