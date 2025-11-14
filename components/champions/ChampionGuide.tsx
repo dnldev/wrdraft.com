@@ -1,44 +1,83 @@
-import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
+// components/champions/ChampionGuide.tsx
+import { Card, CardBody, CardHeader, Chip, Divider } from "@heroui/react";
 
 import { Champion } from "@/data/championData";
+import { ChampionStats } from "@/lib/stats";
 
 import { BuildPath } from "./BuildPath";
 
-export function ChampionGuide({ champion }: { champion: Champion }) {
-  const comfortSymbol = champion.comfort ? champion.comfort.split(" ")[0] : "";
+interface ChampionGuideProps {
+  champion: Champion;
+  stats?: ChampionStats;
+}
+
+export function ChampionGuide({ champion, stats }: ChampionGuideProps) {
+  const averageKdaString = stats?.averageKda
+    ? `${stats.averageKda.k} / ${stats.averageKda.d} / ${stats.averageKda.a}`
+    : "";
 
   return (
     <Card className="p-0 bg-content1 shadow-lg">
       <CardHeader className="p-4 md:p-6">
         <div className="w-full">
-          <h3 className="text-3xl font-bold text-white mb-2">
-            {champion.name}{" "}
-            <span
-              className={
-                comfortSymbol === "★" ? "text-primary" : "text-slate-400"
-              }
-            >
-              {comfortSymbol}
-            </span>
-          </h3>
-          <p className="text-sm text-foreground/70">{champion.role}</p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-3xl font-bold text-white mb-2">
+                {champion.name}{" "}
+                {champion.comfort && (
+                  <span
+                    className={
+                      champion.comfort.startsWith("S")
+                        ? "text-primary"
+                        : "text-slate-400"
+                    }
+                  >
+                    {champion.comfort}
+                  </span>
+                )}
+              </h3>
+              <p className="text-sm text-foreground/70">{champion.role}</p>
+            </div>
+            {stats && stats.gamesPlayed > 0 && (
+              <div className="flex flex-col items-end gap-2 text-xs">
+                <div className="flex gap-2">
+                  <Chip
+                    color={stats.winRate >= 50 ? "success" : "danger"}
+                    variant="shadow"
+                    className="font-bold"
+                  >
+                    {stats.winRate}% WR
+                  </Chip>
+                  <Chip variant="flat">
+                    {stats.gamesPlayed} Game{stats.gamesPlayed > 1 ? "s" : ""}
+                  </Chip>
+                </div>
+                <Chip variant="light">Avg KDA: {averageKdaString}</Chip>
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
       <Divider />
       <CardBody className="space-y-8 p-4 md:p-6">
-        <div>
-          <h4 className="text-2xl font-bold text-primary mb-4">How to Play</h4>
-          <ul className="list-none space-y-4 text-foreground/80">
-            {champion.howToPlay.map((item) => (
-              <li key={item.tip}>
-                <strong className="block text-white">{item.tip}</strong>
-                <p className="text-sm">{item.description}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <Divider />
+        {champion.howToPlay.length > 0 && (
+          <>
+            <div>
+              <h4 className="text-2xl font-bold text-primary mb-4">
+                How to Play
+              </h4>
+              <ul className="list-none space-y-4 text-foreground/80">
+                {champion.howToPlay.map((item) => (
+                  <li key={item.tip}>
+                    <strong className="block text-white">{item.tip}</strong>
+                    <p className="text-sm">{item.description}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Divider />
+          </>
+        )}
 
         <div>
           <h4 className="text-2xl font-bold text-primary mb-4">
@@ -77,16 +116,21 @@ export function ChampionGuide({ champion }: { champion: Champion }) {
           </div>
         </div>
 
-        <Divider />
-
-        <div>
-          <h4 className="text-2xl font-bold text-primary mb-4">Build Paths</h4>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {champion.builds.map((build) => (
-              <BuildPath key={build.name} build={build} />
-            ))}
-          </div>
-        </div>
+        {champion.builds.length > 0 && (
+          <>
+            <Divider />
+            <div>
+              <h4 className="text-2xl font-bold text-primary mb-4">
+                Build Paths
+              </h4>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {champion.builds.map((build) => (
+                  <BuildPath key={build.name} build={build} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </CardBody>
     </Card>
   );

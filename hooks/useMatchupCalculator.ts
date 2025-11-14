@@ -16,7 +16,7 @@ import {
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { logger } from "@/lib/development-logger";
 import { Archetype, createTierMap } from "@/lib/utils";
-import { Selections } from "@/types/draft";
+import { SavedDraft, Selections } from "@/types/draft";
 
 export interface DraftSummary {
   readonly overallScore: number;
@@ -39,6 +39,7 @@ interface UseMatchupCalculatorProps {
   readonly tierList: TierListData;
   readonly categories: RoleCategories[];
   readonly bannedChampions: Set<string>;
+  readonly draftHistory: readonly SavedDraft[];
 }
 
 /**
@@ -55,6 +56,7 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     synergyMatrix,
     counterMatrix,
     bannedChampions,
+    draftHistory,
   } = props;
   const [selections, setSelections] = useState<Selections>({
     alliedAdc: null,
@@ -139,6 +141,7 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
       synergyMatrix,
       counterMatrix,
       categories,
+      draftHistory,
     });
   }, [
     deferredSelections,
@@ -146,6 +149,7 @@ export function useMatchupCalculator(props: UseMatchupCalculatorProps) {
     synergyMatrix,
     counterMatrix,
     categories,
+    draftHistory,
   ]);
 
   const isCalculating = useMemo(

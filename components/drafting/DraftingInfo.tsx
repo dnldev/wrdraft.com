@@ -1,8 +1,10 @@
+// components/drafting/DraftingInfo.tsx
 "use client";
 
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 
 import { TierListData } from "@/data/tierListData";
+import { ChampionStats } from "@/lib/stats";
 
 import { LucideIcon } from "../core/LucideIcon";
 import { TierList } from "./TierList";
@@ -26,10 +28,15 @@ const mindsetTips = [
   },
 ];
 
-export function DraftingInfo({ tierList }: { tierList: TierListData }) {
+interface DraftingInfoProps {
+  tierList: TierListData;
+  championStats: Map<string, ChampionStats>;
+}
+
+export function DraftingInfo({ tierList, championStats }: DraftingInfoProps) {
   return (
     <div className="space-y-12">
-      <TierList tierList={tierList} />
+      <TierList tierList={tierList} championStats={championStats} />
       <Card className="p-0">
         <CardHeader className="flex items-center justify-center gap-3 p-4 md:p-6">
           <LucideIcon name="Swords" className="text-danger" />
