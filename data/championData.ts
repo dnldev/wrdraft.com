@@ -45,11 +45,43 @@ export interface Champion {
 // SECTION 2: CHAMPION DATA ARRAY
 export const champions: Champion[] = [
   {
+    id: "taliyah",
+    name: "Taliyah",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Taliyah.png",
+    role: "Support",
+    comfort: "S",
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
+    id: "heimerdinger",
+    name: "Heimerdinger",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Heimerdinger.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
+  },
+  {
     id: "varus",
     name: "Varus",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Varus.png",
-    comfort: "S+", // Your Main
+    comfort: "S", // Your Main
     role: "ADC / Poke / Utility",
     howToPlay: [
       {
@@ -268,7 +300,7 @@ export const champions: Champion[] = [
     name: "Lucian",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Lucian.png",
-    comfort: "A", // Your Pocket Pick
+    comfort: "S", // Your Pocket Pick
     role: "ADC / All-in / Poke",
     howToPlay: [
       {
@@ -340,7 +372,7 @@ export const champions: Champion[] = [
     name: "Xayah",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Xayah.png",
-    comfort: null,
+    comfort: "A",
     role: "ADC / Utility / All-in",
     howToPlay: [
       {
@@ -422,7 +454,7 @@ export const champions: Champion[] = [
     name: "Jhin",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Jhin.png",
-    comfort: null,
+    comfort: "B",
     role: "ADC / Poke / Utility",
     howToPlay: [
       {
@@ -588,7 +620,7 @@ export const champions: Champion[] = [
     name: "Caitlyn",
     portraitUrl:
       "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Caitlyn.png",
-    comfort: null,
+    comfort: "B",
     role: "ADC / Poke / Control",
     howToPlay: [
       {
@@ -1280,6 +1312,22 @@ export const champions: Champion[] = [
         ],
       },
     ],
+  },
+  {
+    id: "rell",
+    name: "Rell",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Rell.png",
+    role: "Support / Engage",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
+    },
+    builds: [],
   },
   {
     id: "zilean",

@@ -1,3 +1,4 @@
+// app/api/drafts/route.ts
 import { NextResponse } from "next/server";
 
 import { logger } from "@/lib/logger";
@@ -5,12 +6,8 @@ import { getKvClient } from "@/lib/upstash";
 import { SavedDraft } from "@/types/draft";
 
 const DRAFTS_KEY = "WR:drafts:history";
+const DRAFT_PREFIX = "WR:draft:";
 
-/**
- * Validates the structure and presence of required fields in the draft data.
- * @param {Partial<SavedDraft>} data - The draft data to validate.
- * @returns {boolean} True if the draft data is valid, false otherwise.
- */
 function isDraftDataValid(data: Partial<SavedDraft>): data is SavedDraft {
   const {
     id,
@@ -41,12 +38,6 @@ function isDraftDataValid(data: Partial<SavedDraft>): data is SavedDraft {
   );
 }
 
-/**
- * Handles POST requests to save a completed draft analysis.
- * The draft data is pushed to a Redis list for historical storage.
- * @param {Request} request - The incoming HTTP request.
- * @returns {Promise<NextResponse>} The response to the client.
- */
 export async function POST(request: Request): Promise<NextResponse> {
   const kv = getKvClient();
   let draftData: Partial<SavedDraft>;
@@ -71,7 +62,15 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    await kv.lpush(DRAFTS_KEY, JSON.stringify(draftData));
+    const pipeline = kv.pipeline();
+    // CORRECT: Use SET with stringified JSON for the whole object
+    pipeline.set(`${DRAFT_PREFIX}${draftData.id}`, JSON.stringify(draftData));
+    pipeline.zadd(DRAFTS_KEY, {
+      score: draftData.timestamp,
+      member: draftData.id,
+    });
+    await pipeline.exec();
+
     logger.info(
       { draftId: draftData.id },
       "Draft saved successfully to Upstash."
@@ -95,63 +94,22 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 }
 
-/**
- * Handles DELETE requests to remove a draft from the history.
- * @param {Request} request - The incoming HTTP request.
- * @returns {Promise<NextResponse>} The response to the client.
- */
 export async function DELETE(request: Request): Promise<NextResponse> {
   const kv = getKvClient();
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
 
   if (!id) {
-    logger.warn("DELETE request received without a draft ID.");
-    return new NextResponse(JSON.stringify({ message: "Missing draft ID" }), {
-      status: 400,
-    });
+    return new NextResponse("Missing draft ID", { status: 400 });
   }
 
-  logger.info({ draftId: id }, "Received request to delete draft.");
-
   try {
-    const allDraftItems = await kv.lrange<SavedDraft | string>(
-      DRAFTS_KEY,
-      0,
-      -1
-    );
-    let draftToRemove: SavedDraft | null = null;
-    let originalItem: SavedDraft | string | null = null;
+    const pipeline = kv.pipeline();
+    // CORRECT: Use DEL for a simple key
+    pipeline.del(`${DRAFT_PREFIX}${id}`);
+    pipeline.zrem(DRAFTS_KEY, id);
+    await pipeline.exec();
 
-    for (const item of allDraftItems) {
-      try {
-        const draft =
-          typeof item === "string" ? (JSON.parse(item) as SavedDraft) : item;
-        if (draft.id === id) {
-          draftToRemove = draft;
-          originalItem = item;
-          break;
-        }
-      } catch (error) {
-        logger.error(
-          { error, corruptedItem: item },
-          "Failed to parse a draft item from Redis during deletion scan."
-        );
-      }
-    }
-
-    if (!draftToRemove || !originalItem) {
-      logger.warn(
-        { draftId: id },
-        "Attempted to delete a draft that was not found."
-      );
-      return new NextResponse(JSON.stringify({ message: "Draft not found" }), {
-        status: 404,
-      });
-    }
-
-    // `lrem` needs the exact original value (string or object) to find and remove it.
-    await kv.lrem(DRAFTS_KEY, 1, originalItem);
     logger.info({ draftId: id }, "Draft deleted successfully from Upstash.");
     return new NextResponse(
       JSON.stringify({ message: "Draft deleted successfully" }),
@@ -162,9 +120,6 @@ export async function DELETE(request: Request): Promise<NextResponse> {
       { draftId: id, error },
       "Failed to delete draft from Upstash."
     );
-    return new NextResponse(
-      JSON.stringify({ message: "Internal Server Error" }),
-      { status: 500 }
-    );
+    return new NextResponse("Internal Server Error", { status: 500 });
   }
 }

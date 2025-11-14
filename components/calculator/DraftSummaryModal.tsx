@@ -52,23 +52,9 @@ export function DraftSummaryModal({
   summary,
   championMap,
 }: DraftSummaryModalProps) {
-  let yourSynergy = 0;
-  let enemySynergy = 0;
-  let matchups: DraftSummary["breakdown"] = [];
-
-  if (summary?.breakdown) {
-    yourSynergy =
-      summary.breakdown.find((b) => b.reason === "Your Team Synergy")?.value ??
-      0;
-    enemySynergy =
-      summary.breakdown.find((b) => b.reason === "Enemy Team Synergy")?.value ??
-      0;
-    matchups = summary.breakdown.filter((b) => b.reason.includes("vs"));
-  }
-
   if (!summary) return null;
 
-  const { overallScore, winChance, selections } = summary;
+  const { overallScore, winChance, selections, breakdown } = summary;
   const alliedAdc = championMap.get(selections.alliedAdc ?? "");
   const alliedSupport = championMap.get(selections.alliedSupport ?? "");
   const enemyAdc = championMap.get(selections.enemyAdc ?? "");
@@ -111,6 +97,7 @@ export function DraftSummaryModal({
                 </div>
               </div>
             </div>
+
             <div className="text-center space-y-2">
               <p className="text-sm uppercase font-bold text-primary">
                 Overall Lane Score
@@ -124,6 +111,7 @@ export function DraftSummaryModal({
                 {overallScore > 0 ? `+${overallScore}` : overallScore}
               </Chip>
             </div>
+
             <div className="space-y-2">
               <div className="flex justify-between items-baseline">
                 <p className="text-sm font-semibold text-white">
@@ -141,31 +129,25 @@ export function DraftSummaryModal({
                 size="md"
               />
             </div>
+
             <div className="space-y-4">
               <div>
                 <p className="text-sm font-semibold text-white mb-2">
-                  Synergy Analysis
+                  Detailed Breakdown
                 </p>
                 <div className="space-y-1 text-sm">
-                  <BreakdownRow label="Your Team Synergy" value={yourSynergy} />
-                  <BreakdownRow
-                    label="Enemy Team Synergy"
-                    value={enemySynergy}
-                  />
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-white mb-2">
-                  Lane Matchups
-                </p>
-                <div className="space-y-1 text-sm">
-                  {matchups.map((item) => (
+                  {breakdown.map((item) => (
                     <BreakdownRow
                       key={item.reason}
                       label={item.reason}
                       value={item.value}
                     />
                   ))}
+                  {breakdown.length === 0 && (
+                    <p className="text-foreground/60 text-center text-xs py-2">
+                      No specific advantages or disadvantages found.
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
