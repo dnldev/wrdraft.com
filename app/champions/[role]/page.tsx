@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 
 import { MemoizedChampionView } from "@/components/views";
@@ -13,6 +14,19 @@ const DRAFT_PREFIX = "WR:draft:";
 
 export async function generateStaticParams() {
   return [{ role: "adc" }, { role: "support" }];
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  readonly params: Promise<{ readonly role: string }>;
+}): Promise<Metadata> {
+  const { role } = await params;
+  const roleTitle = role === "adc" ? "ADC" : "Support";
+  return {
+    title: `${roleTitle} Champions | Wild Rift Dragon Lane Playbook`,
+    description: `Explore ${roleTitle} champions and their builds for Wild Rift.`,
+  };
 }
 
 interface ChampionsRolePageProps {

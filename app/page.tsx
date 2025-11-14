@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import React from "react";
 
 import { MemoizedDraftingInfo } from "@/components/views";
@@ -10,6 +11,11 @@ import { SavedDraft } from "@/types/draft";
 const KEY_PREFIX = "WR:";
 const DRAFTS_KEY = `${KEY_PREFIX}drafts:history`;
 const DRAFT_PREFIX = "WR:draft:";
+
+export const metadata: Metadata = {
+  title: "Tier List | Wild Rift Dragon Lane Playbook",
+  description: "The ultimate tier list for Wild Rift bot lane champions.",
+};
 
 export default async function HomePage() {
   logger.info("HomePage: Fetching tier list data...");
