@@ -9,15 +9,17 @@ import {
   Radio,
   RadioGroup,
   Slider,
+  Tab,
   Textarea,
 } from "@heroui/react";
-import React from "react";
+import React, { useState } from "react";
 
 import { LogResultState } from "@/hooks/useDraftLogger";
 import { LaneOutcome, MatchOutcome } from "@/types/draft";
 
 import { LucideIcon } from "../core/LucideIcon";
-import { KdaInput } from "./KdaInput";
+import { SwipeableTabs } from "../core/SwipeableTabs";
+import { KdaInputGroup } from "./KdaInputGroup";
 
 interface LogResultModalProps {
   readonly isOpen: boolean;
@@ -31,9 +33,13 @@ interface LogResultModalProps {
   ) => void;
 }
 
-/**
- * A modal form for logging the detailed results of a completed game.
- */
+const kdaTabs = [
+  { key: "your-adc", title: "Your ADC" },
+  { key: "your-support", title: "Your Support" },
+  { key: "enemy-adc", title: "Enemy ADC" },
+  { key: "enemy-support", title: "Enemy Support" },
+];
+
 export function LogResultModal({
   isOpen,
   onClose,
@@ -42,8 +48,14 @@ export function LogResultModal({
   resultState,
   onStateChange,
 }: LogResultModalProps) {
+  const [selectedTab, setSelectedTab] = useState<string>("your-adc");
   return (
-    <Modal isOpen={isOpen} onOpenChange={onClose} size="2xl">
+    <Modal
+      isOpen={isOpen}
+      onOpenChange={onClose}
+      size="2xl"
+      scrollBehavior="inside"
+    >
       <ModalContent>
         <ModalHeader className="flex-col gap-1 text-center">
           <h2 className="text-2xl font-bold">Log Game Result</h2>
@@ -52,7 +64,7 @@ export function LogResultModal({
           </p>
         </ModalHeader>
         <ModalBody className="pb-6">
-          <div className="space-y-4">
+          <div className="space-y-6">
             <Slider
               label="How effective did this lane matchup feel? (Required)"
               step={1}
@@ -96,16 +108,48 @@ export function LogResultModal({
               <Radio value="even">Even</Radio>
               <Radio value="unplayed">N/A</Radio>
             </RadioGroup>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <KdaInput
-                value={resultState.kdaAdc}
-                onChange={(v) => onStateChange("kdaAdc", v)}
-              />
-              <KdaInput
-                value={resultState.kdaSupport}
-                onChange={(v) => onStateChange("kdaSupport", v)}
-              />
-            </div>
+
+            <SwipeableTabs
+              aria-label="KDA Input"
+              color="primary"
+              selectedKey={selectedTab}
+              onSelectionChange={(key) => setSelectedTab(key)}
+              fullWidth
+            >
+              <Tab key="your-adc" title="Your ADC">
+                <div className="py-4">
+                  <KdaInputGroup
+                    value={resultState.kdaAdc}
+                    onChange={(v) => onStateChange("kdaAdc", v)}
+                  />
+                </div>
+              </Tab>
+              <Tab key="your-support" title="Your Support">
+                <div className="py-4">
+                  <KdaInputGroup
+                    value={resultState.kdaSupport}
+                    onChange={(v) => onStateChange("kdaSupport", v)}
+                  />
+                </div>
+              </Tab>
+              <Tab key="enemy-adc" title="Enemy ADC">
+                <div className="py-4">
+                  <KdaInputGroup
+                    value={resultState.kdaEnemyAdc}
+                    onChange={(v) => onStateChange("kdaEnemyAdc", v)}
+                  />
+                </div>
+              </Tab>
+              <Tab key="enemy-support" title="Enemy Support">
+                <div className="py-4">
+                  <KdaInputGroup
+                    value={resultState.kdaEnemySupport}
+                    onChange={(v) => onStateChange("kdaEnemySupport", v)}
+                  />
+                </div>
+              </Tab>
+            </SwipeableTabs>
+
             <Slider
               label="Game Length (Optional)"
               step={1}
