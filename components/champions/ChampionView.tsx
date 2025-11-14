@@ -1,3 +1,4 @@
+// components/champions/ChampionView.tsx
 "use client";
 
 import { Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
@@ -6,15 +7,21 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
 import { Champion } from "@/data/championData";
+import { ChampionStats } from "@/lib/stats";
 
 import { ChampionGuide } from "./ChampionGuide";
 
 interface ChampionViewProps {
   readonly adcs: Champion[];
   readonly supports: Champion[];
+  readonly championStats: Map<string, ChampionStats>;
 }
 
-export function ChampionView({ adcs, supports }: ChampionViewProps) {
+export function ChampionView({
+  adcs,
+  supports,
+  championStats,
+}: ChampionViewProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -39,6 +46,7 @@ export function ChampionView({ adcs, supports }: ChampionViewProps) {
 
   const selectedChampion =
     allChampions.find((c) => c.id === selectedChampId) || currentList[0];
+  const selectedChampionStats = championStats.get(selectedChampion.name);
 
   const handleSelectChampion = useCallback(
     (champId: string) => {
@@ -131,7 +139,10 @@ export function ChampionView({ adcs, supports }: ChampionViewProps) {
 
       {selectedChampion && (
         <div key={selectedChampion.id}>
-          <ChampionGuide champion={selectedChampion} />
+          <ChampionGuide
+            champion={selectedChampion}
+            stats={selectedChampionStats}
+          />
         </div>
       )}
     </div>

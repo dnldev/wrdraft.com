@@ -1,7 +1,7 @@
 "use client";
 
 import { FloatingFocusManager, FloatingPortal } from "@floating-ui/react";
-import { Avatar, Card } from "@heroui/react";
+import { Avatar, Card, Tab } from "@heroui/react";
 import React, { useMemo, useState } from "react";
 
 import { Category } from "@/data/categoryData";
@@ -160,15 +160,16 @@ export function ChampionSelector({
                       aria-label="Champion Categories"
                       size="sm"
                       color="primary"
-                      items={categoryTabs}
                       selectedKey={activeCategory}
-                      onSelectionChange={(key) =>
-                        setActiveCategory(key as string)
-                      }
+                      onSelectionChange={(key) => setActiveCategory(key)}
                       classNames={{
                         tabList: "bg-transparent p-0",
                       }}
-                    />
+                    >
+                      {categoryTabs.map((item) => (
+                        <Tab key={item.key} title={item.title} />
+                      ))}
+                    </SwipeableTabs>
                   </div>
                 )}
                 <div className="overflow-y-auto flex-grow min-h-0">

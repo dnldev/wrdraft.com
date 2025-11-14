@@ -1,5 +1,6 @@
 "use client";
 
+import { Button, Tooltip } from "@heroui/react";
 import React, { useEffect, useMemo, useState } from "react";
 
 import { RoleCategories } from "@/data/categoryData";
@@ -12,11 +13,12 @@ import { useDraftSummaryModal } from "@/hooks/useDraftSummaryModal";
 import { useMatchupCalculator } from "@/hooks/useMatchupCalculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { logger } from "@/lib/development-logger";
+import { SavedDraft } from "@/types/draft";
 
+import { LucideIcon } from "../core/LucideIcon";
 import { BanSelectorModal } from "./BanSelectorModal";
 import { DefaultCalculatorView } from "./DefaultCalculatorView";
 import { DraftSummaryModal } from "./DraftSummaryModal";
-import { FloatingActions } from "./FloatingActions";
 import { LogResultModal } from "./LogResultModal";
 
 interface MatchupCalculatorProps {
@@ -28,9 +30,26 @@ interface MatchupCalculatorProps {
   readonly firstPicks: FirstPickData;
   readonly tierList: TierListData;
   readonly categories: RoleCategories[];
+  readonly draftHistory: readonly SavedDraft[];
 }
 
 const UNLOGGED_DRAFT_KEY = "wrdraft:unloggedDraft";
+
+/**
+ * Renders the floating action buttons specific to the calculator view,
+ * such as the reset bans button.
+ */
+const CalculatorActions: React.FC<{ onResetBans: () => void }> = ({
+  onResetBans,
+}) => (
+  <div className="fixed bottom-4 right-4 z-30 pointer-events-auto">
+    <Tooltip content="Re-open Ban Phase">
+      <Button isIconOnly color="default" size="lg" onPress={onResetBans}>
+        <LucideIcon name="RotateCcw" />
+      </Button>
+    </Tooltip>
+  </div>
+);
 
 /**
  * Encapsulates the entire UI and logic for a standard drafting session,
@@ -46,6 +65,7 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     firstPicks,
     tierList,
     categories,
+    draftHistory,
   } = props;
 
   const {
@@ -77,6 +97,7 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
     tierList,
     categories,
     bannedChampions,
+    draftHistory,
   });
 
   // This effect is responsible for persisting a completed draft to local storage
@@ -203,11 +224,9 @@ export function MatchupCalculator(props: MatchupCalculatorProps) {
         resultState={logResultState}
         onStateChange={handleLogResultStateChange}
       />
-      <FloatingActions
-        bansLocked={bansLocked}
-        viewMode="default"
-        onResetBans={() => setBansLocked(false)}
-      />
+      {bansLocked && (
+        <CalculatorActions onResetBans={() => setBansLocked(false)} />
+      )}
     </div>
   );
 }

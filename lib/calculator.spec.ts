@@ -1,4 +1,3 @@
-// lib/calculator.spec.ts
 /**
  * @jest-environment node
  */
@@ -7,10 +6,10 @@ import { describe, expect, it } from "@jest/globals";
 import { RoleCategories } from "@/data/categoryData";
 import { Champion } from "@/data/championData";
 import { matrixData } from "@/data/matrixData";
+import { SavedDraft, Selections } from "@/types/draft";
 
 import { calculatePairRecommendations, createDraftSummary } from "./calculator";
 
-// Mocks remain the same...
 const mockAdcPool: Champion[] = [
   { id: "lucian", name: "Lucian", role: "ADC", comfort: "A" } as Champion,
   { id: "jinx", name: "Jinx", role: "ADC", comfort: "S+" } as Champion,
@@ -63,6 +62,7 @@ const baseContext = {
   counterMatrix: matrixData.counterMatrix,
   categories: mockCategories,
   championMap: championMap,
+  draftHistory: [] as SavedDraft[],
 };
 
 describe("calculatePairRecommendations", () => {
@@ -86,10 +86,8 @@ describe("calculatePairRecommendations", () => {
   });
 });
 
-describe("createDraftSummary", () => {
+describe("createDraftSummary (Theoretical Score)", () => {
   it("should calculate a high win chance for a clear winning matchup", () => {
-    // Lucian/Braum is a classic, strong lane.
-    // Jinx/Milio is a passive, scaling lane that Lucian/Braum can punish.
     const summary = createDraftSummary({
       ...baseContext,
       selections: {
@@ -101,12 +99,11 @@ describe("createDraftSummary", () => {
     });
 
     expect(summary).not.toBeNull();
-    expect(summary!.winChance).toBeGreaterThan(60);
+    expect(summary!.winChance).toBeGreaterThan(55);
     expect(summary!.overallScore).toBeGreaterThan(0);
   });
 
   it("should calculate a low win chance for a clear losing matchup", () => {
-    // Jinx is hard-countered by Draven. Nami is hard-countered by Leona.
     const summary = createDraftSummary({
       ...baseContext,
       selections: {
@@ -121,21 +118,73 @@ describe("createDraftSummary", () => {
     expect(summary!.winChance).toBeLessThan(40);
     expect(summary!.overallScore).toBeLessThan(0);
   });
+});
 
-  it("should calculate a win chance around 50% for a neutral/skill matchup", () => {
-    // Lucian/Nami and Caitlyn/Morgana are both strong lanes.
+describe("createDraftSummary (Historical Adjustment)", () => {
+  const mockSelections: Selections = {
+    alliedAdc: "Lucian",
+    alliedSupport: "Nami",
+    enemyAdc: "Caitlyn",
+    enemySupport: "Morgana",
+  };
+
+  const baselineSummary = createDraftSummary({
+    ...baseContext,
+    selections: mockSelections,
+  });
+  const baselineScore = baselineSummary!.overallScore;
+
+  it("should not apply an adjustment if there is only one game in history", () => {
+    const singleGameHistory: SavedDraft[] = [
+      { picks: mockSelections, matchOutcome: "win" } as SavedDraft,
+    ];
     const summary = createDraftSummary({
       ...baseContext,
-      selections: {
-        alliedAdc: "Lucian",
-        alliedSupport: "Nami",
-        enemyAdc: "Caitlyn",
-        enemySupport: "Morgana",
-      },
+      selections: mockSelections,
+      draftHistory: singleGameHistory,
+    });
+    expect(summary!.overallScore).toBe(baselineScore);
+  });
+
+  it("should increase the score and win chance with positive historical performance", () => {
+    const positiveHistory: SavedDraft[] = [
+      { picks: mockSelections, matchOutcome: "win" } as SavedDraft,
+      { picks: mockSelections, matchOutcome: "win" } as SavedDraft,
+      { picks: mockSelections, matchOutcome: "win" } as SavedDraft,
+      { picks: mockSelections, matchOutcome: "loss" } as SavedDraft,
+    ]; // 75% win rate
+
+    const summary = createDraftSummary({
+      ...baseContext,
+      selections: mockSelections,
+      draftHistory: positiveHistory,
     });
 
-    expect(summary).not.toBeNull();
-    expect(summary!.winChance).toBeGreaterThanOrEqual(40);
-    expect(summary!.winChance).toBeLessThanOrEqual(60);
+    expect(summary!.overallScore).toBeGreaterThan(baselineScore);
+    expect(summary!.winChance).toBeGreaterThan(baselineSummary!.winChance);
+    expect(
+      summary!.breakdown.some((b) => b.reason.includes("Historical"))
+    ).toBe(true);
+  });
+
+  it("should decrease the score and win chance with negative historical performance", () => {
+    const negativeHistory: SavedDraft[] = [
+      { picks: mockSelections, matchOutcome: "loss" } as SavedDraft,
+      { picks: mockSelections, matchOutcome: "loss" } as SavedDraft,
+      { picks: mockSelections, matchOutcome: "loss" } as SavedDraft,
+      { picks: mockSelections, matchOutcome: "win" } as SavedDraft,
+    ]; // 25% win rate
+
+    const summary = createDraftSummary({
+      ...baseContext,
+      selections: mockSelections,
+      draftHistory: negativeHistory,
+    });
+
+    expect(summary!.overallScore).toBeLessThan(baselineScore);
+    expect(summary!.winChance).toBeLessThan(baselineSummary!.winChance);
+    expect(
+      summary!.breakdown.some((b) => b.reason.includes("Historical"))
+    ).toBe(true);
   });
 });

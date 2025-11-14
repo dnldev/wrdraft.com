@@ -1,3 +1,4 @@
+// lib/data-fetching.ts
 import { groupBy, mapValues, sortBy } from "lodash-es";
 import { nanoid } from "nanoid";
 
@@ -18,6 +19,7 @@ export type CounterMatrix = Record<string, Record<string, number>>;
 
 const KEY_PREFIX = "WR:";
 const DRAFTS_KEY = `${KEY_PREFIX}drafts:history`;
+const DRAFT_PREFIX = "WR:draft:";
 
 interface PlaybookData {
   adcs: Champion[];
@@ -35,49 +37,45 @@ interface PlaybookData {
 }
 
 /**
- * Fetches the raw data from the Upstash database.
+ * Fetches, parses, and assembles all necessary data for the main page.
  */
-async function fetchRawData(staticKeys: string[]) {
+export async function getPlaybookData(): Promise<PlaybookData> {
+  const fetchId = nanoid(6);
+  logger.info({ fetchId }, "getPlaybookData: Starting data fetch...");
   const kv = getKvClient();
-  const [mGetResults, draftHistoryItems] = await Promise.all([
-    kv.mget<unknown[]>(...staticKeys),
-    kv.lrange<SavedDraft | string>(DRAFTS_KEY, 0, 99),
-  ]);
-  return { mGetResults, draftHistoryItems };
-}
 
-/**
- * Parses and assembles the raw data from Redis into the final PlaybookData object.
- */
-function parseAndAssembleData(
-  baseKeys: string[],
-  rawData: unknown[],
-  rawHistory: (SavedDraft | string)[]
-): PlaybookData {
-  const parsedData: Record<string, unknown> = {};
-  for (const [i, key] of baseKeys.entries()) {
-    parsedData[key] = rawData[i] || null;
+  const baseDataKeys = [
+    ...Object.keys(dataManifest),
+    "champions:adc",
+    "champions:support",
+  ];
+  const prefixedDataKeys = baseDataKeys.map((key) => `${KEY_PREFIX}${key}`);
+
+  const [mGetResults, draftIds] = await Promise.all([
+    kv.mget<unknown[]>(...prefixedDataKeys),
+    kv.zrange(DRAFTS_KEY, 0, 99, { rev: true }),
+  ]);
+
+  let draftHistory: SavedDraft[] = [];
+  if (draftIds.length > 0) {
+    const draftKeys = (draftIds as string[]).map(
+      (id) => `${DRAFT_PREFIX}${id}`
+    );
+    const drafts = await kv.mget<SavedDraft[]>(...draftKeys);
+    // The Upstash client automatically deserializes JSON strings from Redis.
+    // This filter handles cases where a draft might be missing or corrupt.
+    draftHistory = drafts.filter((d): d is SavedDraft => d !== null);
   }
 
-  const draftHistory = rawHistory
-    .map((item) => {
-      if (typeof item === "string") {
-        try {
-          return JSON.parse(item) as SavedDraft;
-        } catch (error) {
-          logger.error(
-            { error, item },
-            "Failed to parse a draft history string."
-          );
-          return null;
-        }
-      }
-      if (typeof item === "object" && item !== null) {
-        return item;
-      }
-      return null;
-    })
-    .filter((d): d is SavedDraft => d !== null);
+  logger.info(
+    { fetchId, draftCount: draftHistory.length },
+    "getPlaybookData: Fetched and processed data."
+  );
+
+  const parsedData: Record<string, unknown> = {};
+  for (const [i, key] of baseDataKeys.entries()) {
+    parsedData[key] = mGetResults[i] || null;
+  }
 
   const ratingOrder: Record<Synergy["rating"], number> = {
     Excellent: 0,
@@ -118,38 +116,4 @@ function parseAndAssembleData(
     categories: (parsedData["data:categories"] as RoleCategories[]) || [],
     draftHistory,
   };
-}
-
-/**
- * Fetches, parses, and assembles all necessary data for the main page.
- */
-export async function getPlaybookData(): Promise<PlaybookData> {
-  const fetchId = nanoid(6);
-  logger.info({ fetchId }, "getPlaybookData: Starting data fetch...");
-
-  const baseDataKeys = [
-    ...Object.keys(dataManifest),
-    "champions:adc",
-    "champions:support",
-  ];
-  const prefixedDataKeys = baseDataKeys.map((key) => `${KEY_PREFIX}${key}`);
-
-  const { mGetResults, draftHistoryItems } =
-    await fetchRawData(prefixedDataKeys);
-  logger.info(
-    { fetchId, draftCount: draftHistoryItems.length },
-    "getPlaybookData: Fetched raw data from Upstash."
-  );
-
-  const playbookData = parseAndAssembleData(
-    baseDataKeys,
-    mGetResults,
-    draftHistoryItems
-  );
-  logger.info(
-    { fetchId },
-    "getPlaybookData: Data fetch and processing complete."
-  );
-
-  return playbookData;
 }

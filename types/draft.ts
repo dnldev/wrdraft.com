@@ -1,3 +1,4 @@
+// types/draft.ts
 import { BreakdownItem } from "@/lib/calculator";
 import { Archetype } from "@/lib/utils";
 
@@ -7,11 +8,13 @@ import { Archetype } from "@/lib/utils";
 
 export type MatchOutcome = "win" | "loss" | "remake";
 export type LaneOutcome = "win" | "loss" | "even" | "unplayed";
+export type PlayerRating = "MVP" | "SVP" | "S" | "A";
 
 export interface KDA {
   k: number;
   d: number;
   a: number;
+  rating?: PlayerRating[];
 }
 
 /**
@@ -53,6 +56,8 @@ export interface SavedDraft {
   readonly kda?: {
     adc: KDA;
     support: KDA;
+    enemyAdc?: KDA;
+    enemySupport?: KDA;
   };
   readonly matchupFeel: number; // 1-5 rating
 }

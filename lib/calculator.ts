@@ -1,12 +1,12 @@
-// lib/calculator.ts
 import { flatMap } from "lodash-es";
 
 import { RoleCategories } from "@/data/categoryData";
 import { Champion, ComfortTier } from "@/data/championData";
 import { DraftSummary } from "@/hooks/useMatchupCalculator";
-import { Selections } from "@/types/draft";
+import { SavedDraft, Selections } from "@/types/draft";
 
 import { CounterMatrix, SynergyMatrix } from "./data-fetching";
+import { calculateMatchupPerformance } from "./stats";
 import { Archetype, getLaneArchetype } from "./utils";
 
 export interface PairRecommendation {
@@ -25,13 +25,6 @@ const comfortScores: Record<NonNullable<ComfortTier>, number> = {
   B: 0,
 };
 
-/**
- * Defines the multipliers for different scoring factors.
- * The values are based on game theory:
- * - COUNTER: Weighted most heavily as direct champion interactions are highly impactful.
- * - ARCHETYPE: Weighted heavily as the overall lane strategy is a major predictor of success.
- * - COMFORT/SYNERGY: Weighted at a baseline of 1.0 as important but secondary factors.
- */
 const WEIGHTS = {
   COMFORT: 1,
   ARCHETYPE: 1.2,
@@ -40,15 +33,29 @@ const WEIGHTS = {
 };
 
 /**
- * Defines the bounds for the win chance calculation.
- * The range is clamped between 10% and 90% to avoid presenting unrealistic
- * absolutes (0% or 100%). In a game of skill, no matchup is ever truly unwinnable
- * or guaranteed, and these bounds reflect that uncertainty.
+ * Defines the bounds and baseline for the win chance calculation.
  */
 const WIN_CHANCE_CONFIG = {
-  MIN: 10,
+  MIN: 25,
   AVG: 50,
-  MAX: 90,
+  MAX: 75,
+  /**
+   * The fixed score that represents a 50% win chance. This provides a
+   * stable, intuitive anchor for the user's perception of the score.
+   */
+  BASELINE_SCORE: 5,
+  /**
+   * A multiplier to dampen the impact of the score on the final win chance,
+   * making the calculation less volatile.
+   */
+  SENSITIVITY: 0.8,
+};
+
+// Constants for historical performance calculation.
+const HISTORICAL = {
+  BASELINE_WIN_RATE: 50, // The win rate considered neutral.
+  WIN_RATE_SCALE: 25, // Divisor to scale the win rate deviation.
+  CONFIDENCE_MULTIPLIER: 2, // Multiplier for the confidence factor.
 };
 
 function getComfortScore(champion: Champion): BreakdownItem | null {
@@ -84,14 +91,6 @@ function getArchetypeScore(
   };
 }
 
-/**
- * Calculates the synergy score for a champion pair.
- * @param adc - The name of the ADC.
- * @param support - The name of the Support.
- * @param synergyMatrix - The matrix containing synergy data.
- * @param {boolean} [isEnemy=false] - If true, this function returns a reason formatted for the enemy team and negates the score.
- * @returns {BreakdownItem | null} A breakdown item or null if the score is 0.
- */
 function getSynergyScore(
   adc: string | null,
   support: string | null,
@@ -116,11 +115,6 @@ function getCounterScore(
   return { value: score, reason: `${championName} vs ${opponentName}` };
 }
 
-/**
- * Analyzes a single champion pair to determine its weighted score and breakdown.
- * @param context - The context required for the analysis.
- * @returns An object containing the pair, their score, and the breakdown.
- */
 function analyzePair(context: {
   readonly adc: Champion;
   readonly support: Champion;
@@ -192,13 +186,6 @@ function getAllPairs(
   return flatMap(adcs, (adc) => supports.map((support) => ({ adc, support })));
 }
 
-/**
- * Determines the list of champions to iterate over for a specific role.
- * @param selectedChampion - The name of the currently selected champion for the role, if any.
- * @param championPool - The full list of available champions for the role.
- * @param championMap - A map of all champions by name.
- * @returns A readonly array of champions to be used in calculations.
- */
 function getChampionsToIterate(
   selectedChampion: string | null,
   championPool: readonly Champion[],
@@ -211,23 +198,12 @@ function getChampionsToIterate(
   return championPool;
 }
 
-/**
- * Calculates a simple comfort score for a pair, used as a sort tie-breaker.
- * @param pair - The recommendation pair.
- * @returns A numeric score based on the comfort level of the champions.
- */
 function getComfortScoreForPair(pair: PairRecommendation): number {
   const adcComfort = pair.adc.comfort ? 1 : 0;
   const supportComfort = pair.support.comfort ? 1 : 0;
   return adcComfort + supportComfort;
 }
 
-/**
- * Sorts pair recommendations primarily by score, and secondarily by comfort.
- * @param a - The first recommendation to compare.
- * @param b - The second recommendation to compare.
- * @returns A number indicating the sort order.
- */
 function sortRecommendations(
   a: PairRecommendation,
   b: PairRecommendation
@@ -275,7 +251,7 @@ export function calculatePairRecommendations(context: {
     const analysis = analyzePair({ adc, support, ...analysisContext });
 
     if (!analysis || analysis.weightedScore <= 0) {
-      return []; // Use flatMap to filter out non-positive scores
+      return [];
     }
 
     return [
@@ -291,8 +267,33 @@ export function calculatePairRecommendations(context: {
   return recommendations.toSorted(sortRecommendations);
 }
 
+function getHistoricalAdjustmentScore(
+  selections: Selections,
+  draftHistory: readonly SavedDraft[]
+): BreakdownItem | null {
+  const performance = calculateMatchupPerformance(selections, draftHistory);
+  if (!performance || performance.gamesPlayed < 2) {
+    return null;
+  }
+
+  const deviation =
+    (performance.winRate - HISTORICAL.BASELINE_WIN_RATE) /
+    HISTORICAL.WIN_RATE_SCALE;
+  const confidence = Math.log2(performance.gamesPlayed);
+  const adjustment = Math.round(
+    deviation * HISTORICAL.CONFIDENCE_MULTIPLIER * confidence
+  );
+
+  if (adjustment === 0) return null;
+
+  return {
+    value: adjustment,
+    reason: `Historical Performance (${performance.winRate}% WR in ${performance.gamesPlayed}g)`,
+  };
+}
+
 /**
- * Calculates the final draft summary, including a normalized, weighted score and win chance.
+ * Calculates the final draft summary, including a reality-adjusted score and win chance.
  * @param {object} context - The context required for the calculation.
  * @returns {DraftSummary | null} The complete draft summary or null if selections are incomplete.
  */
@@ -302,12 +303,14 @@ export function createDraftSummary({
   synergyMatrix,
   counterMatrix,
   categories,
+  draftHistory,
 }: {
   selections: Selections;
   championMap: Map<string, Champion>;
   synergyMatrix: SynergyMatrix;
   counterMatrix: CounterMatrix;
   categories: RoleCategories[];
+  draftHistory: readonly SavedDraft[];
 }): DraftSummary | null {
   const { alliedAdc, alliedSupport, enemyAdc, enemySupport } = selections;
   if (!alliedAdc || !alliedSupport || !enemyAdc || !enemySupport) return null;
@@ -349,20 +352,20 @@ export function createDraftSummary({
     true
   );
 
+  const historicalAdjustment = getHistoricalAdjustmentScore(
+    selections,
+    draftHistory
+  );
+
   const breakdown = [...currentAnalysis.breakdown];
-  if (enemySynergy) {
-    breakdown.push(enemySynergy);
-  }
+  if (enemySynergy) breakdown.push(enemySynergy);
+  if (historicalAdjustment) breakdown.push(historicalAdjustment);
 
   const overallScore =
-    currentAnalysis.weightedScore + (enemySynergy?.value ?? 0);
+    currentAnalysis.weightedScore +
+    (enemySynergy?.value ?? 0) +
+    (historicalAdjustment?.value ?? 0);
 
-  /**
-   * Calculates a normalized win chance. It finds the scores for all possible
-   * allied pairs, determines the min, max, and average score for the current
-   * draft context, and then maps the current pair's score to a win percentage.
-   * The average score represents a 50% win chance.
-   */
   const allAdcs = [...championMap.values()].filter((c) =>
     c.role.includes("ADC")
   );
@@ -373,29 +376,31 @@ export function createDraftSummary({
     .map((pair) => analyzePair({ ...analysisContext, ...pair })?.weightedScore)
     .filter((score): score is number => typeof score === "number");
 
-  let scoreSum = 0;
-  for (const score of allPossibleScores) {
-    scoreSum += score;
-  }
-  const avgScore =
-    allPossibleScores.length > 0 ? scoreSum / allPossibleScores.length : 0;
-
+  const baselineScore = WIN_CHANCE_CONFIG.BASELINE_SCORE;
   const minScore = Math.min(...allPossibleScores);
   const maxScore = Math.max(...allPossibleScores);
 
   let winChance = WIN_CHANCE_CONFIG.AVG;
-  if (overallScore >= avgScore && maxScore > avgScore) {
-    const range = maxScore - avgScore;
-    const progress = (overallScore - avgScore) / range;
-    winChance =
-      WIN_CHANCE_CONFIG.AVG +
-      progress * (WIN_CHANCE_CONFIG.MAX - WIN_CHANCE_CONFIG.AVG);
-  } else if (overallScore < avgScore && minScore < avgScore) {
-    const range = avgScore - minScore;
-    const progress = (avgScore - overallScore) / range;
-    winChance =
-      WIN_CHANCE_CONFIG.AVG -
-      progress * (WIN_CHANCE_CONFIG.AVG - WIN_CHANCE_CONFIG.MIN);
+  if (overallScore >= baselineScore) {
+    const range = maxScore - baselineScore;
+    if (range > 0) {
+      const progress = (overallScore - baselineScore) / range;
+      winChance =
+        WIN_CHANCE_CONFIG.AVG +
+        progress *
+          (WIN_CHANCE_CONFIG.MAX - WIN_CHANCE_CONFIG.AVG) *
+          WIN_CHANCE_CONFIG.SENSITIVITY;
+    }
+  } else {
+    const range = baselineScore - minScore;
+    if (range > 0) {
+      const progress = (baselineScore - overallScore) / range;
+      winChance =
+        WIN_CHANCE_CONFIG.AVG -
+        progress *
+          (WIN_CHANCE_CONFIG.AVG - WIN_CHANCE_CONFIG.MIN) *
+          WIN_CHANCE_CONFIG.SENSITIVITY;
+    }
   }
 
   return {

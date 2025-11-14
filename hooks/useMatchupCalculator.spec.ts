@@ -10,10 +10,10 @@ import { FirstPickData } from "@/data/firstPickData";
 import { matrixData } from "@/data/matrixData";
 import { TierListData } from "@/data/tierListData";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
+import { SavedDraft } from "@/types/draft";
 
 import { useMatchupCalculator } from "./useMatchupCalculator";
 
-// Setup a more comprehensive mock pool for varied testing
 const mockAdcPool: Champion[] = [
   { id: "lucian", name: "Lucian", comfort: "A", role: "ADC" } as Champion,
   { id: "jinx", name: "Jinx", comfort: null, role: "ADC" } as Champion,
@@ -46,6 +46,7 @@ const mockProps = {
   tierList: { adc: {}, support: {} } as TierListData,
   categories: [] as RoleCategories[],
   bannedChampions: new Set<string>(),
+  draftHistory: [] as SavedDraft[],
 };
 
 describe("useMatchupCalculator", () => {
@@ -78,7 +79,6 @@ describe("useMatchupCalculator", () => {
     it("should calculate a summary when all champions are selected", () => {
       const { result } = renderHook(() => useMatchupCalculator(mockProps));
       act(() => {
-        // This matchup (Lucian/Braum vs Jinx/Milio) has a clearly positive score
         result.current.handleSelectionChange("alliedAdc", "Lucian");
         result.current.handleSelectionChange("alliedSupport", "Braum");
         result.current.handleSelectionChange("enemyAdc", "Jinx");
@@ -98,9 +98,7 @@ describe("useMatchupCalculator", () => {
         result.current.handleSelectionChange("enemySupport", "Leona");
       });
 
-      // Assert that a summary object is returned, not null.
       expect(result.current.draftSummary).not.toBeNull();
-      // Assert that the calculated score is negative, as expected.
       expect(result.current.draftSummary?.overallScore).toBeLessThan(0);
     });
   });

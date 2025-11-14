@@ -10,6 +10,7 @@ import {
   MemoizedTeamComps,
 } from "@/components/views";
 import { getPlaybookData } from "@/lib/data-fetching";
+import { calculateChampionStats, ChampionStats } from "@/lib/stats";
 
 export default async function HomePage() {
   const {
@@ -27,7 +28,9 @@ export default async function HomePage() {
     draftHistory,
   } = await getPlaybookData();
 
-  // The calculator now receives all the data as props and manages its own state internally.
+  const championStats: Map<string, ChampionStats> =
+    calculateChampionStats(draftHistory);
+
   const calculatorView = (
     <MemoizedMatchupCalculator
       adcs={adcs}
@@ -38,6 +41,7 @@ export default async function HomePage() {
       firstPicks={firstPicks}
       tierList={tierList}
       categories={categories}
+      draftHistory={draftHistory}
     />
   );
 
@@ -47,7 +51,12 @@ export default async function HomePage() {
     <React.Suspense fallback={null}>
       <Navigation
         views={{
-          drafting: <MemoizedDraftingInfo tierList={tierList} />,
+          drafting: (
+            <MemoizedDraftingInfo
+              tierList={tierList}
+              championStats={championStats}
+            />
+          ),
           "team-comps": <MemoizedTeamComps teamComps={teamComps} />,
           pairings: (
             <MemoizedBestPairings
@@ -55,7 +64,13 @@ export default async function HomePage() {
               synergiesBySupport={synergiesBySupport}
             />
           ),
-          champions: <MemoizedChampionView adcs={adcs} supports={supports} />,
+          champions: (
+            <MemoizedChampionView
+              adcs={adcs}
+              supports={supports}
+              championStats={championStats}
+            />
+          ),
           calculator: calculatorView,
           history: (
             <MemoizedDraftHistory

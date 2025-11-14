@@ -10,6 +10,7 @@ import { useDraftLogger } from "@/hooks/useDraftLogger";
 import { DraftSummary } from "@/hooks/useMatchupCalculator";
 import { CounterMatrix, SynergyMatrix } from "@/lib/data-fetching";
 import { logger } from "@/lib/development-logger";
+import { SavedDraft } from "@/types/draft";
 
 import { LogPreviousDraft } from "./LogPreviousDraft";
 import { LogResultModal } from "./LogResultModal";
@@ -24,6 +25,7 @@ interface MatchupCalculatorContainerProps {
   readonly firstPicks: FirstPickData;
   readonly tierList: TierListData;
   readonly categories: RoleCategories[];
+  readonly draftHistory: readonly SavedDraft[]; // ADDED
 }
 
 interface UnloggedDraft {
@@ -51,10 +53,9 @@ export function MatchupCalculatorContainer(
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // This `useEffect` with an empty dependency array is a standard pattern to run
-    // code only on the client-side after initial render. It safely synchronizes
-    // with a client-only data source (localStorage) and prevents hydration
-    // mismatches between the server-rendered and client-rendered UI.
+    // This effect runs once on the client to safely access localStorage and
+    // avoid hydration errors. The linter rule is suppressed because this
+    // is a valid, intentional use case for a one-time client-side sync.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsClient(true);
     try {
