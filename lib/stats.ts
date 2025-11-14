@@ -21,6 +21,11 @@ export interface MatchupPerformance {
   winRate: number;
 }
 
+const calculateAverage = (value: number, divisor: number): number => {
+  if (divisor === 0) return 0;
+  return Number.parseFloat((value / divisor).toFixed(1));
+};
+
 /**
  * Calculates champion performance statistics from a list of saved drafts.
  *
@@ -79,12 +84,9 @@ export function calculateChampionStats(
       gamesPlayed,
       winRate,
       averageKda: {
-        k:
-          gamesPlayed > 0 ? Number.parseFloat((k / gamesPlayed).toFixed(1)) : 0,
-        d:
-          gamesPlayed > 0 ? Number.parseFloat((d / gamesPlayed).toFixed(1)) : 0,
-        a:
-          gamesPlayed > 0 ? Number.parseFloat((a / gamesPlayed).toFixed(1)) : 0,
+        k: calculateAverage(k, gamesPlayed),
+        d: calculateAverage(d, gamesPlayed),
+        a: calculateAverage(a, gamesPlayed),
       },
     });
   }

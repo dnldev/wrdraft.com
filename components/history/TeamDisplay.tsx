@@ -58,20 +58,29 @@ export const TeamDisplay: React.FC<TeamDisplayProps> = ({
   adcKda,
   supportKda,
   championMap,
-}) => (
-  <div className="space-y-2">
-    <p className={`text-xs font-bold text-${color} uppercase tracking-wider`}>
-      {label}
-    </p>
-    <PlayerDisplay
-      championName={adcName}
-      kda={adcKda}
-      championMap={championMap}
-    />
-    <PlayerDisplay
-      championName={supportName}
-      kda={supportKda}
-      championMap={championMap}
-    />
-  </div>
-);
+}) => {
+  const colorClasses = {
+    success: "text-success",
+    danger: "text-danger",
+  };
+
+  return (
+    <div className="space-y-2">
+      <p
+        className={`text-xs font-bold ${colorClasses[color]} uppercase tracking-wider`}
+      >
+        {label}
+      </p>
+      <PlayerDisplay
+        championName={adcName}
+        kda={adcKda}
+        championMap={championMap}
+      />
+      <PlayerDisplay
+        championName={supportName}
+        kda={supportKda}
+        championMap={championMap}
+      />
+    </div>
+  );
+};

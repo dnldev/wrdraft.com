@@ -33,13 +33,6 @@ interface LogResultModalProps {
   ) => void;
 }
 
-const kdaTabs = [
-  { key: "your-adc", title: "Your ADC" },
-  { key: "your-support", title: "Your Support" },
-  { key: "enemy-adc", title: "Enemy ADC" },
-  { key: "enemy-support", title: "Enemy Support" },
-];
-
 export function LogResultModal({
   isOpen,
   onClose,
@@ -49,6 +42,7 @@ export function LogResultModal({
   onStateChange,
 }: LogResultModalProps) {
   const [selectedTab, setSelectedTab] = useState<string>("your-adc");
+
   return (
     <Modal
       isOpen={isOpen}

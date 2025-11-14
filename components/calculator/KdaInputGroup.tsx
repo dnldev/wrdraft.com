@@ -15,6 +15,8 @@ interface KdaInputGroupProps {
   readonly onChange: (newValue: KDA) => void;
 }
 
+const validRatings = new Set<PlayerRating>(["MVP", "SVP", "S", "A"]);
+
 /**
  * A responsive and unified component for inputting a player's KDA and performance rating.
  * It renders a touch-friendly picker wheel on mobile devices and numeric steppers on desktop.
@@ -26,8 +28,10 @@ export const KdaInputGroup: React.FC<KdaInputGroupProps> = ({
   const isMobile = useIsMobile();
 
   const handleRatingChange = (ratings: string[]) => {
-    // The `rating` property is now an array of strings
-    onChange({ ...value, rating: ratings as PlayerRating[] });
+    const filtered = ratings.filter((r): r is PlayerRating =>
+      validRatings.has(r as PlayerRating)
+    );
+    onChange({ ...value, rating: filtered });
   };
 
   const handleKdaChange = (kda: Pick<KDA, "k" | "d" | "a">) => {

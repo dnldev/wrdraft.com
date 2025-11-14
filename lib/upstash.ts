@@ -14,7 +14,7 @@ import { logger } from "./logger";
 dotenv.config({ path: ".env.development.local" });
 
 declare global {
-  var __redis: Redis | undefined;
+  var _redisClient: Redis | undefined;
 }
 
 function createKvClient(): Redis {
@@ -49,13 +49,11 @@ function createKvClient(): Redis {
 }
 
 if (process.env.NODE_ENV === "production") {
-  globalThis.__redis = createKvClient();
+  globalThis._redisClient = createKvClient();
 } else {
-  if (!globalThis.__redis) {
-    globalThis.__redis = createKvClient();
-  }
+  globalThis._redisClient ??= createKvClient();
 }
 
 export function getKvClient(): Redis {
-  return globalThis.__redis as Redis;
+  return globalThis._redisClient as Redis;
 }

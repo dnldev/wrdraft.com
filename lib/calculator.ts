@@ -32,11 +32,24 @@ const WEIGHTS = {
   COUNTER: 1.5,
 };
 
+/**
+ * Defines the bounds for the win chance calculation.
+ * The range is clamped between 20% and 80% to avoid presenting unrealistic
+ * absolutes. In a game of skill, no matchup is ever truly unwinnable or
+ * guaranteed. The 48% average provides a slightly pessimistic baseline,
+ * acknowledging that uncoordinated play is more common than optimal play.
+ */
 const WIN_CHANCE_CONFIG = {
-  MIN: 20, // More realistic floor
-  AVG: 48, // Slightly pessimistic baseline
-  MAX: 80, // More realistic ceiling
-  SENSITIVITY: 1.5, // Reduced from 2.0
+  MIN: 20,
+  AVG: 48,
+  MAX: 80,
+};
+
+// Constants for historical performance calculation.
+const HISTORICAL = {
+  BASELINE_WIN_RATE: 50, // The win rate considered neutral.
+  WIN_RATE_SCALE: 25, // Divisor to scale the win rate deviation.
+  CONFIDENCE_MULTIPLIER: 2, // Multiplier for the confidence factor.
 };
 
 function getComfortScore(champion: Champion): BreakdownItem | null {
@@ -257,9 +270,13 @@ function getHistoricalAdjustmentScore(
     return null;
   }
 
-  const deviation = (performance.winRate - 50) / 25;
+  const deviation =
+    (performance.winRate - HISTORICAL.BASELINE_WIN_RATE) /
+    HISTORICAL.WIN_RATE_SCALE;
   const confidence = Math.log2(performance.gamesPlayed);
-  const adjustment = Math.round(deviation * 2 * confidence);
+  const adjustment = Math.round(
+    deviation * HISTORICAL.CONFIDENCE_MULTIPLIER * confidence
+  );
 
   if (adjustment === 0) return null;
 
@@ -343,8 +360,36 @@ export function createDraftSummary({
     (enemySynergy?.value ?? 0) +
     (historicalAdjustment?.value ?? 0);
 
-  const winChance =
-    WIN_CHANCE_CONFIG.AVG + overallScore * WIN_CHANCE_CONFIG.SENSITIVITY;
+  const allAdcs = [...championMap.values()].filter((c) =>
+    c.role.includes("ADC")
+  );
+  const allSupports = [...championMap.values()].filter((c) =>
+    c.role.includes("Support")
+  );
+  const allPossibleScores = getAllPairs(allAdcs, allSupports)
+    .map((pair) => analyzePair({ ...analysisContext, ...pair })?.weightedScore)
+    .filter((score): score is number => typeof score === "number");
+
+  const scoreSum = allPossibleScores.reduce((sum, score) => sum + score, 0);
+  const avgScore =
+    allPossibleScores.length > 0 ? scoreSum / allPossibleScores.length : 0;
+  const minScore = Math.min(...allPossibleScores, avgScore);
+  const maxScore = Math.max(...allPossibleScores, avgScore);
+
+  let winChance = WIN_CHANCE_CONFIG.AVG;
+  if (overallScore >= avgScore && maxScore > avgScore) {
+    const range = maxScore - avgScore;
+    const progress = (overallScore - avgScore) / range;
+    winChance =
+      WIN_CHANCE_CONFIG.AVG +
+      progress * (WIN_CHANCE_CONFIG.MAX - WIN_CHANCE_CONFIG.AVG);
+  } else if (overallScore < avgScore && minScore < avgScore) {
+    const range = avgScore - minScore;
+    const progress = (avgScore - overallScore) / range;
+    winChance =
+      WIN_CHANCE_CONFIG.AVG -
+      progress * (WIN_CHANCE_CONFIG.AVG - WIN_CHANCE_CONFIG.MIN);
+  }
 
   return {
     overallScore,

@@ -33,7 +33,74 @@ const initialResultState: LogResultState = {
   matchupFeel: 3,
 };
 
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P];
+};
+
 const isKdaEntered = (kda: KDA) => kda.k > 0 || kda.d > 0 || kda.a > 0;
+
+/**
+ * A builder function to construct the final SavedDraft object.
+ * This isolates the complex object creation logic from the hook's main body.
+ * @private
+ */
+function buildSavedDraft(
+  draftSummary: DraftSummary,
+  logResultState: LogResultState,
+  yourBans: readonly string[],
+  enemyBans: readonly string[]
+): SavedDraft {
+  const hasAnyKda =
+    isKdaEntered(logResultState.kdaAdc) ||
+    isKdaEntered(logResultState.kdaSupport) ||
+    isKdaEntered(logResultState.kdaEnemyAdc) ||
+    isKdaEntered(logResultState.kdaEnemySupport);
+
+  const draft: Partial<Mutable<SavedDraft>> = {
+    id: nanoid(),
+    timestamp: Date.now(),
+    patch: CURRENT_PATCH,
+    bans: {
+      your: yourBans.filter(Boolean),
+      enemy: enemyBans.filter(Boolean),
+    },
+    picks: draftSummary.selections,
+    result: {
+      overallScore: draftSummary.overallScore,
+      winChance: draftSummary.winChance,
+      breakdown: draftSummary.breakdown,
+    },
+    archetypes: draftSummary.archetypes,
+    matchOutcome: logResultState.matchOutcome,
+    matchupFeel: logResultState.matchupFeel,
+  };
+
+  if (logResultState.notes) {
+    draft.notes = logResultState.notes;
+  }
+  if (logResultState.laneOutcome !== "unplayed") {
+    draft.laneOutcome = logResultState.laneOutcome;
+  }
+  if (logResultState.gameLength > 0) {
+    draft.gameLength = logResultState.gameLength;
+  }
+
+  if (hasAnyKda) {
+    const kdaData: NonNullable<Mutable<SavedDraft>["kda"]> = {
+      adc: logResultState.kdaAdc,
+      support: logResultState.kdaSupport,
+    };
+    if (isKdaEntered(logResultState.kdaEnemyAdc)) {
+      kdaData.enemyAdc = logResultState.kdaEnemyAdc;
+    }
+    if (isKdaEntered(logResultState.kdaEnemySupport)) {
+      kdaData.enemySupport = logResultState.kdaEnemySupport;
+    }
+    draft.kda = kdaData;
+  }
+
+  return draft as SavedDraft;
+}
 
 interface UseDraftLoggerProps {
   readonly draftSummary: DraftSummary | null;
@@ -53,9 +120,6 @@ export function useDraftLogger({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  /**
-   * Constructs the SavedDraft object, sends it to the API, and refreshes the UI on success.
-   */
   const handleSaveDraft = async () => {
     if (!draftSummary) {
       logger.error(
@@ -71,41 +135,12 @@ export function useDraftLogger({
       logResultState
     );
 
-    const draftToSave: SavedDraft = {
-      id: nanoid(),
-      timestamp: Date.now(),
-      patch: CURRENT_PATCH,
-      bans: {
-        your: yourBans.filter(Boolean),
-        enemy: enemyBans.filter(Boolean),
-      },
-      picks: draftSummary.selections,
-      result: {
-        overallScore: draftSummary.overallScore,
-        winChance: draftSummary.winChance,
-        breakdown: draftSummary.breakdown,
-      },
-      archetypes: draftSummary.archetypes,
-      matchOutcome: logResultState.matchOutcome,
-      matchupFeel: logResultState.matchupFeel,
-      ...(logResultState.notes && { notes: logResultState.notes }),
-      ...(logResultState.laneOutcome !== "unplayed" && {
-        laneOutcome: logResultState.laneOutcome,
-      }),
-      ...(logResultState.gameLength > 0 && {
-        gameLength: logResultState.gameLength,
-      }),
-      kda: {
-        adc: logResultState.kdaAdc,
-        support: logResultState.kdaSupport,
-        ...(isKdaEntered(logResultState.kdaEnemyAdc) && {
-          enemyAdc: logResultState.kdaEnemyAdc,
-        }),
-        ...(isKdaEntered(logResultState.kdaEnemySupport) && {
-          enemySupport: logResultState.kdaEnemySupport,
-        }),
-      },
-    };
+    const draftToSave = buildSavedDraft(
+      draftSummary,
+      logResultState,
+      yourBans,
+      enemyBans
+    );
 
     try {
       await saveDraft(draftToSave);
@@ -115,7 +150,7 @@ export function useDraftLogger({
       );
       setLogResultState(initialResultState);
       setIsModalOpen(false);
-      onSaveSuccess?.(); // Call the success callback
+      onSaveSuccess?.();
       router.refresh();
     } catch (error) {
       logger.error("useDraftLogger", "Failed to save draft:", error);

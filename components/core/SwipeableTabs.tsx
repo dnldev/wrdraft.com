@@ -37,8 +37,9 @@ export function SwipeableTabs({
         child.type === Tab &&
         child.key != null
       ) {
-        // After validating the type, we can safely assert the props shape
-        const { title } = child.props as { title?: ReactNode };
+        const props = child.props as Record<string, unknown>;
+        const title = props.title as ReactNode;
+
         if (title) {
           return {
             key: String(child.key),
