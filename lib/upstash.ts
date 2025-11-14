@@ -1,4 +1,3 @@
-// lib/upstash.ts
 /**
  * @file Centralized Upstash Redis client configuration.
  * This file uses a singleton pattern that is robust against Next.js's
@@ -48,12 +47,13 @@ function createKvClient(): Redis {
   return kv;
 }
 
-if (process.env.NODE_ENV === "production") {
-  globalThis._redisClient = createKvClient();
-} else {
-  globalThis._redisClient ??= createKvClient();
-}
-
+/**
+ * Returns a singleton instance of the Upstash Redis client using a lazy
+ * initialization pattern. This is robust against Next.js build processes
+ * and development server hot-reloading.
+ * @returns {Redis} The singleton Redis client instance.
+ */
 export function getKvClient(): Redis {
-  return globalThis._redisClient as Redis;
+  globalThis._redisClient ??= createKvClient();
+  return globalThis._redisClient;
 }
