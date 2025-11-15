@@ -45,38 +45,6 @@ export interface Champion {
 // SECTION 2: CHAMPION DATA ARRAY
 export const champions: Champion[] = [
   {
-    id: "taliyah",
-    name: "Taliyah",
-    portraitUrl:
-      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Taliyah.png",
-    role: "Support",
-    comfort: "S",
-    howToPlay: [],
-    matchups: {
-      userSynergies: [],
-      metaSynergies: [],
-      goodAgainst: [],
-      badAgainst: [],
-    },
-    builds: [],
-  },
-  {
-    id: "heimerdinger",
-    name: "Heimerdinger",
-    portraitUrl:
-      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Heimerdinger.png",
-    role: "Support",
-    comfort: null,
-    howToPlay: [],
-    matchups: {
-      userSynergies: [],
-      metaSynergies: [],
-      goodAgainst: [],
-      badAgainst: [],
-    },
-    builds: [],
-  },
-  {
     id: "varus",
     name: "Varus",
     portraitUrl:
@@ -2254,6 +2222,22 @@ export const champions: Champion[] = [
       metaSynergies: ["Pyke", "Rakan", "Galio"],
       goodAgainst: ["Vayne", "Kai'Sa", "Ezreal"],
       badAgainst: ["Caitlyn", "Draven", "Varus", "Ashe", "Leona"],
+    },
+    builds: [],
+  },
+  {
+    id: "heimerdinger",
+    name: "Heimerdinger",
+    portraitUrl:
+      "https://ddragon.leagueoflegends.com/cdn/14.10.1/img/champion/Heimerdinger.png",
+    role: "Support",
+    comfort: null,
+    howToPlay: [],
+    matchups: {
+      userSynergies: [],
+      metaSynergies: [],
+      goodAgainst: [],
+      badAgainst: [],
     },
     builds: [],
   },

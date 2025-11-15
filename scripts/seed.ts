@@ -18,6 +18,7 @@ dotenv.config({ path: ".env.development.local" });
 const KEY_PREFIX = "WR:";
 const DRAFTS_KEY = `${KEY_PREFIX}drafts:history`;
 const DRAFT_PREFIX = "WR:draft:";
+const SEED_ID_PREFIX = "seed-";
 
 async function seedStaticData(kv: Redis): Promise<Champion[]> {
   logger.info("Staging static data (champions, matrices, etc.)...");
@@ -50,33 +51,43 @@ async function seedStaticData(kv: Redis): Promise<Champion[]> {
   return fullChampionsData;
 }
 
-async function backupUserDrafts(kv: Redis): Promise<SavedDraft[]> {
-  const allExistingDraftKeys = await kv.keys(`${DRAFT_PREFIX}*`);
-  if (allExistingDraftKeys.length === 0) {
-    logger.info("- No existing drafts found to preserve.");
-    return [];
+async function syncDraftHistory(kv: Redis, fullChampionsData: Champion[]) {
+  logger.info("\nStarting non-destructive sync of draft history...");
+
+  const oldSeededDraftKeys: string[] = [];
+  // FIX: The initial cursor for Redis SCAN is the string '0'.
+  let cursor: string = "0";
+  do {
+    const [nextCursor, keys]: [string, string[]] = await kv.scan(
+      // The cursor argument must be a string for subsequent calls.
+      Number.parseInt(cursor, 10),
+      {
+        match: `${DRAFT_PREFIX}${SEED_ID_PREFIX}*`,
+      }
+    );
+    cursor = nextCursor;
+    if (keys.length > 0) {
+      oldSeededDraftKeys.push(...keys);
+    }
+  } while (cursor !== "0");
+
+  const oldSeededDraftIds = oldSeededDraftKeys.map((key) =>
+    key.replace(DRAFT_PREFIX, "")
+  );
+
+  if (oldSeededDraftIds.length > 0) {
+    logger.info(
+      `- Found and removing ${oldSeededDraftIds.length} old seeded drafts.`
+    );
+    const pipeline = kv.pipeline();
+    pipeline.del(...oldSeededDraftKeys);
+    pipeline.zrem(DRAFTS_KEY, ...oldSeededDraftIds);
+    await pipeline.exec();
+  } else {
+    logger.info("- No old seeded drafts found to remove.");
   }
 
-  const existingDraftStrings = await kv.mget<string[]>(...allExistingDraftKeys);
-  const userGeneratedDrafts = existingDraftStrings
-    .map((jsonString) => {
-      try {
-        return jsonString ? (JSON.parse(jsonString) as SavedDraft) : null;
-      } catch {
-        return null;
-      }
-    })
-    .filter(
-      (draft): draft is SavedDraft => !!(draft && !draft.id.startsWith("seed-"))
-    );
-
-  logger.info(
-    `- Found and preserved ${userGeneratedDrafts.length} user-generated drafts.`
-  );
-  return userGeneratedDrafts;
-}
-
-function prepareSeededDrafts(fullChampionsData: Champion[]): SavedDraft[] {
+  // ... (rest of the function is unchanged)
   const championMap = new Map(fullChampionsData.map((c) => [c.name, c]));
   const synergyMatrix = dataManifest["matrix:synergy"] as Record<
     string,
@@ -87,7 +98,7 @@ function prepareSeededDrafts(fullChampionsData: Champion[]): SavedDraft[] {
     Record<string, number>
   >;
 
-  const seededDrafts = historySeedData
+  const newSeededDrafts = historySeedData
     .map((rawDraft, index) => {
       const summary = createDraftSummary({
         selections: rawDraft.picks,
@@ -99,8 +110,8 @@ function prepareSeededDrafts(fullChampionsData: Champion[]): SavedDraft[] {
       });
 
       if (summary) {
-        const draft: SavedDraft = {
-          id: `seed-${index + 1}`,
+        return {
+          id: `${SEED_ID_PREFIX}${index + 1}`,
           timestamp: Date.now() - (historySeedData.length - index) * 86_400_000,
           patch: CURRENT_PATCH,
           result: {
@@ -110,36 +121,16 @@ function prepareSeededDrafts(fullChampionsData: Champion[]): SavedDraft[] {
           },
           archetypes: summary.archetypes,
           ...rawDraft,
-        };
-        return draft;
+        } as SavedDraft;
       }
       return null;
     })
     .filter((d): d is SavedDraft => d !== null);
 
-  logger.info(
-    `- Prepared ${seededDrafts.length} historical drafts for seeding.`
-  );
-  return seededDrafts;
-}
-
-async function syncDraftHistory(kv: Redis, fullChampionsData: Champion[]) {
-  logger.info("\nStarting atomic sync of draft history...");
-
-  const userGeneratedDrafts = await backupUserDrafts(kv);
-  const seededDrafts = prepareSeededDrafts(fullChampionsData);
-
-  const allOldKeys = await kv.keys(`${DRAFT_PREFIX}*`);
-  const keysToDelete = [DRAFTS_KEY, ...allOldKeys];
-  if (keysToDelete.length > 1) {
-    logger.info(`- Deleting ${keysToDelete.length} old draft-related keys.`);
-    await kv.del(...keysToDelete);
-  }
-
-  const allDraftsToSave = [...userGeneratedDrafts, ...seededDrafts];
-  if (allDraftsToSave.length > 0) {
+  if (newSeededDrafts.length > 0) {
+    logger.info(`- Adding ${newSeededDrafts.length} new seeded drafts.`);
     const pipeline = kv.pipeline();
-    for (const draft of allDraftsToSave) {
+    for (const draft of newSeededDrafts) {
       pipeline.set(`${DRAFT_PREFIX}${draft.id}`, JSON.stringify(draft));
       pipeline.zadd(DRAFTS_KEY, { score: draft.timestamp, member: draft.id });
     }
