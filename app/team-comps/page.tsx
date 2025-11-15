@@ -2,11 +2,7 @@ import type { Metadata } from "next";
 import React from "react";
 
 import { MemoizedTeamComps } from "@/components/views";
-import { TeamComposition } from "@/data/teamCompsData";
-import { logger } from "@/lib/logger";
-import { getKvClient } from "@/lib/upstash";
-
-const KEY_PREFIX = "WR:";
+import { getPlaybookData } from "@/lib/data-fetching";
 
 export const metadata: Metadata = {
   title: "Team Compositions | Wild Rift Dragon Lane Playbook",
@@ -14,13 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function TeamCompsPage() {
-  logger.info("TeamCompsPage: Fetching team comps data...");
-  const kv = getKvClient();
-
-  const teamCompsData = await kv.get<TeamComposition[]>(
-    `${KEY_PREFIX}teamcomps`
-  );
-  const teamComps = teamCompsData || [];
+  const { teamComps } = await getPlaybookData();
 
   return <MemoizedTeamComps teamComps={teamComps} />;
 }
