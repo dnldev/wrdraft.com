@@ -62,6 +62,10 @@ export function Navigation() {
     if (path === "/") {
       return pathname === "/";
     }
+    // Special case for champions - highlight if on any champions route
+    if (path === "/champions/adc") {
+      return pathname.startsWith("/champions");
+    }
     return pathname.startsWith(path);
   };
 

@@ -4,7 +4,7 @@
 import { Card, CardBody, Tab, Tabs, Tooltip } from "@heroui/react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Champion } from "@/data/championData";
 import { ChampionStats } from "@/lib/stats";
@@ -29,6 +29,11 @@ export function ChampionView({
 
   const [activeRole, setActiveRole] = useState<"adc" | "support">(initialRole);
   const selectedChampId = searchParams.get("champ");
+
+  // Sync activeRole with initialRole when it changes (e.g., browser navigation)
+  useEffect(() => {
+    setActiveRole(initialRole);
+  }, [initialRole]);
 
   const championData = useMemo(
     () => ({
