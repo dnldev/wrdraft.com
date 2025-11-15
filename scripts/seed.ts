@@ -54,14 +54,17 @@ async function seedStaticData(kv: Redis): Promise<Champion[]> {
 async function syncDraftHistory(kv: Redis, fullChampionsData: Champion[]) {
   logger.info("\nStarting non-destructive sync of draft history...");
 
-  // 1. Find all existing keys for seeded drafts
   const oldSeededDraftKeys: string[] = [];
-  let cursor: string | number = 0;
+  // FIX: The initial cursor for Redis SCAN is the string '0'.
+  let cursor: string = "0";
   do {
-    // FIX: Explicitly type the destructured array
-    const [nextCursor, keys]: [string, string[]] = await kv.scan(cursor, {
-      match: `${DRAFT_PREFIX}${SEED_ID_PREFIX}*`,
-    });
+    const [nextCursor, keys]: [string, string[]] = await kv.scan(
+      // The cursor argument must be a string for subsequent calls.
+      Number.parseInt(cursor, 10),
+      {
+        match: `${DRAFT_PREFIX}${SEED_ID_PREFIX}*`,
+      }
+    );
     cursor = nextCursor;
     if (keys.length > 0) {
       oldSeededDraftKeys.push(...keys);
@@ -72,7 +75,6 @@ async function syncDraftHistory(kv: Redis, fullChampionsData: Champion[]) {
     key.replace(DRAFT_PREFIX, "")
   );
 
-  // 2. If old seeded drafts exist, remove them
   if (oldSeededDraftIds.length > 0) {
     logger.info(
       `- Found and removing ${oldSeededDraftIds.length} old seeded drafts.`
@@ -85,7 +87,7 @@ async function syncDraftHistory(kv: Redis, fullChampionsData: Champion[]) {
     logger.info("- No old seeded drafts found to remove.");
   }
 
-  // 3. Prepare the new set of seeded drafts
+  // ... (rest of the function is unchanged)
   const championMap = new Map(fullChampionsData.map((c) => [c.name, c]));
   const synergyMatrix = dataManifest["matrix:synergy"] as Record<
     string,
@@ -125,7 +127,6 @@ async function syncDraftHistory(kv: Redis, fullChampionsData: Champion[]) {
     })
     .filter((d): d is SavedDraft => d !== null);
 
-  // 4. Add the new seeded drafts to the database
   if (newSeededDrafts.length > 0) {
     logger.info(`- Adding ${newSeededDrafts.length} new seeded drafts.`);
     const pipeline = kv.pipeline();
