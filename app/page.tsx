@@ -5,8 +5,6 @@ import { MemoizedDraftingInfo } from "@/components/views";
 import { getPlaybookData } from "@/lib/data-fetching";
 import { calculateChampionStats } from "@/lib/stats";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "Tier List | Wild Rift Dragon Lane Playbook",
   description: "The ultimate tier list for Wild Rift bot lane champions.",

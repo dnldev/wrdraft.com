@@ -3,7 +3,7 @@
 import { Button, Tab, Tabs } from "@heroui/react";
 import { icons } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 import { LucideIcon } from "./LucideIcon";
@@ -56,6 +56,7 @@ const navItems: NavItem[] = [
 
 export function Navigation() {
   const pathname = usePathname();
+  const router = useRouter();
 
   const isActive = (path: string) => {
     if (path === "/") {
@@ -72,6 +73,10 @@ export function Navigation() {
     if (pathname.startsWith("/calculator")) return "/calculator";
     if (pathname.startsWith("/history")) return "/history";
     return "/";
+  };
+
+  const handleMobileTabChange = (key: React.Key) => {
+    router.push(key as string);
   };
 
   return (
@@ -104,6 +109,7 @@ export function Navigation() {
         <Tabs
           aria-label="Mobile Navigation"
           selectedKey={getSelectedKey()}
+          onSelectionChange={handleMobileTabChange}
           color="primary"
           variant="underlined"
           fullWidth
@@ -115,7 +121,6 @@ export function Navigation() {
           {navItems.map((item) => (
             <Tab
               key={item.path}
-              href={item.path}
               title={
                 <div className="flex flex-col items-center gap-1">
                   <LucideIcon name={item.icon} size={20} />

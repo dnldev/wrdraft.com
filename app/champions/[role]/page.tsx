@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import React from "react";
 
 import { MemoizedChampionView } from "@/components/views";
 import { getPlaybookData } from "@/lib/data-fetching";
 import { calculateChampionStats } from "@/lib/stats";
 
-export const dynamic = "force-dynamic";
+export async function generateStaticParams() {
+  return [{ role: "adc" }, { role: "support" }];
+}
 
 export async function generateMetadata({
   params,
@@ -30,6 +33,12 @@ export default async function ChampionsRolePage({
   params,
 }: ChampionsRolePageProps) {
   const { role } = await params;
+
+  // Validate role parameter
+  if (role !== "adc" && role !== "support") {
+    notFound();
+  }
+
   const { adcs, supports, draftHistory } = await getPlaybookData();
   const championStats = calculateChampionStats(draftHistory);
 
@@ -38,7 +47,7 @@ export default async function ChampionsRolePage({
       adcs={adcs}
       supports={supports}
       championStats={championStats}
-      initialRole={role as "adc" | "support"}
+      initialRole={role}
     />
   );
 }

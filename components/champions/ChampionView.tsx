@@ -40,13 +40,10 @@ export function ChampionView({
 
   const currentList =
     activeRole === "adc" ? championData.adc : championData.support;
-  const allChampions = useMemo(
-    () => [...championData.adc, ...championData.support],
-    [championData]
-  );
 
+  // Ensure selected champion is from the current role
   const selectedChampion =
-    allChampions.find((c) => c.id === selectedChampId) || currentList[0];
+    currentList.find((c) => c.id === selectedChampId) || currentList[0];
   const selectedChampionStats = championStats.get(selectedChampion?.name || "");
 
   const handleSelectChampion = useCallback(
